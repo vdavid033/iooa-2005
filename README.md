@@ -36,10 +36,11 @@ Kristijan Miletić
 >>>>>>> 362896624506bc5391aabdcf36f077b6f1126367
 <<<<<<< HEAD
 git
+
 >>>>>>> 9f3a108ed593a602f5ce36f20cbb05b04ee8bca2
+# Nikola JP :skull:
 
-
-
+# Nikola J Pavecic
 
 <<<<<<< HEAD
 
