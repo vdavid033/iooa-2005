@@ -1,7 +1,7 @@
 # iooa-2005
 <<<<<<< HEAD
 <<<<<<< HEAD
-luka pesic oiia
+#luka pesic oiia
 =======
 <<<<<<< HEAD
 Davor Čaprić
