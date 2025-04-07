@@ -2,17 +2,6 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 
-
-
-
-
-Domagoj Smojverg
-=======
-# Dominik Milić
->>>>>>> a4a0d631ef96e74f4123bc8811798af24a81adf5
-=======
-<<<<<<< HEAD
-
 =======
 <<<<<<< HEAD
 <<<<<<< HEAD
@@ -28,7 +17,7 @@ Davor Čaprić
 # Dominik Milić
 >>>>>>> a4a0d631ef96e74f4123bc8811798af24a81adf5
 
-# Borna Rošić
+
 
 
 
@@ -44,4 +33,3 @@ Davor Čaprić
 
 
 #luka pesic oiia
->>>>>>> ee9130cb8cf43e564455c6a04514af4e9f54f9bd
