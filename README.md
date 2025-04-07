@@ -1,7 +1,10 @@
+# iooa-2005
 <<<<<<< HEAD
-<<<<<<< HEAD
-
+# Laura Vukoša
 =======
+#Nikolina Štimac
+=======
+<<<<<<< HEAD
 # iooa-2005
 # MarkoPrgic
 =======
@@ -84,7 +87,7 @@ Domagoj Smojver
 <<<<<<< HEAD
 # Leonardo Matovina
 =======
-Davor Čaprić
+# Davor Čaprić xD
 >>>>>>> 1bc26b19d667fec453fc49c2c1415c547a41b536
 =======
 # Borna Družeta$
@@ -136,3 +139,5 @@ TEST MG
 >>>>>>> 2b8984f7fd4e6ee9e9a69bccd277031f0c64355f
 >>>>>>> e8272ce665417d92d14e59f13b4f7c916e839046
 >>>>>>> 3b4fc8f30a68d6559f0b3a2620cb854cde02958f
+>>>>>>> e51d92a8cc6bc1d0449844febe1635865f56fc5f
+>>>>>>> ac43fac0e40eb79145beb7705a419b291466606d
