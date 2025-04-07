@@ -4,7 +4,7 @@
 <<<<<<< HEAD
 # Leonardo Matovina
 =======
-Davor Čaprić
+# Davor Čaprić
 >>>>>>> 1bc26b19d667fec453fc49c2c1415c547a41b536
 =======
 # Borna Družeta$
