@@ -41,10 +41,11 @@ Kristijan Miletić
 git
 >>>>>>> 9f3a108ed593a602f5ce36f20cbb05b04ee8bca2
 
-#Florijan Matanović (Darkimunus)
-
-
 <<<<<<< HEAD
+
+========
+# Florijan Matanović (Darkimunus)
+========
 
 
 
