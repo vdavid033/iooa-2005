@@ -1,16 +1,15 @@
 <<<<<<< HEAD
-# Marko Goreta
+
 =======
 # iooa-2005
 <<<<<<< HEAD
 <<<<<<< HEAD
 Dario Pešić
-Marko Goreta
 # Dominik Milić
 =======
 <<<<<<< HEAD
 =======
-
+# Marko Goreta
 Kristijan Miletić
 =======
 # Dominik Milić
