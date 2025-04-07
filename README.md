@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+
+=======
 # iooa-2005
 #Nikolina Štimac
 =======
@@ -8,6 +11,7 @@
 =======
 <<<<<<< HEAD
 # Marko Goreta
+>>>>>>> e51d92a8cc6bc1d0449844febe1635865f56fc5f
 =======
 # iooa-2005
 <<<<<<< HEAD
@@ -23,12 +27,11 @@ Andrea SaršonCD
 =======
 <<<<<<< HEAD
 Dario Pešić
-Marko Goreta
 # Dominik Milić
 =======
 <<<<<<< HEAD
 =======
-
+# Marko Goreta
 Kristijan Miletić
 =======
 # Dominik Milić
@@ -129,7 +132,7 @@ borna rosic
 =======
  
 
-
+TEST MG
 <<<<<<< HEAD
 #Marko Filipović
 =======
