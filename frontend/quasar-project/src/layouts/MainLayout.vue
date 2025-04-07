@@ -55,43 +55,43 @@ defineOptions({
 
 const linksList = [
   {
-    title: 'Docs',
+    title: 'Forum',
     caption: 'quasar.dev',
     icon: 'school',
     link: 'https://quasar.dev'
   },
   {
-    title: 'Github',
+    title: 'Dijeljenje dokumenata',
     caption: 'github.com/quasarframework',
     icon: 'code',
     link: 'https://github.com/quasarframework'
   },
   {
-    title: 'Discord Chat Channel',
+    title: 'Poruke',
     caption: 'chat.quasar.dev',
     icon: 'chat',
     link: 'https://chat.quasar.dev'
   },
   {
-    title: 'Forum',
+    title: 'Kalendar događaja',
     caption: 'forum.quasar.dev',
     icon: 'record_voice_over',
     link: 'https://forum.quasar.dev'
   },
   {
-    title: 'Twitter',
+    title: 'Kalendar obaveza',
     caption: '@quasarframework',
     icon: 'rss_feed',
     link: 'https://twitter.quasar.dev'
   },
   {
-    title: 'Facebook',
+    title: 'Kreiranje grupa',
     caption: '@QuasarFramework',
     icon: 'public',
     link: 'https://facebook.quasar.dev'
   },
   {
-    title: 'Quasar Awesome',
+    title: 'Osobni profil',
     caption: 'Community Quasar projects',
     icon: 'favorite',
     link: 'https://awesome.quasar.dev'
