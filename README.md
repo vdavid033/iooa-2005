@@ -2,6 +2,7 @@
 <<<<<<< HEAD
 <<<<<<< HEAD
 Dario Pešić
+Marko Goreta
 # Dominik Milić
 =======
 <<<<<<< HEAD
