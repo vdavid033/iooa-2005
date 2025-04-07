@@ -1,5 +1,13 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+
+=======
+# iooa-2005
+# MarkoPrgic
+=======
+<<<<<<< HEAD
 # Marko Goreta
+>>>>>>> e51d92a8cc6bc1d0449844febe1635865f56fc5f
 =======
 # iooa-2005
 <<<<<<< HEAD
@@ -15,12 +23,11 @@ Andrea SaršonCD
 =======
 <<<<<<< HEAD
 Dario Pešić
-Marko Goreta
 # Dominik Milić
 =======
 <<<<<<< HEAD
 =======
-
+# Marko Goreta
 Kristijan Miletić
 =======
 # Dominik Milić
@@ -29,10 +36,42 @@ Kristijan Miletić
 >>>>>>> 362896624506bc5391aabdcf36f077b6f1126367
 <<<<<<< HEAD
 git
+>>>>>>> 9f3a108ed593a602f5ce36f20cbb05b04ee8bca2
 
 
 
 
+<<<<<<< HEAD
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+#Prgic
+=======
 Domagoj Smojver
 =======
 # Dominik Milić
@@ -84,14 +123,16 @@ borna rosic
 <<<<<<< HEAD
 >>>>>>> 9f3a108ed593a602f5ce36f20cbb05b04ee8bca2
 =======
+<<<<<<< HEAD
+>>>>>>> 9f3a108ed593a602f5ce36f20cbb05b04ee8bca2
+=======
  
 
-
+TEST MG
 <<<<<<< HEAD
 #Marko Filipović
 =======
 #Marko Filipović  je diplomirani inženjer građevinarstva i član SDP-a.
 >>>>>>> 2b8984f7fd4e6ee9e9a69bccd277031f0c64355f
 >>>>>>> e8272ce665417d92d14e59f13b4f7c916e839046
-
-#Nadijo Ražov
+>>>>>>> 3b4fc8f30a68d6559f0b3a2620cb854cde02958f
