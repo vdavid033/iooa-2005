@@ -59,4 +59,4 @@ Davor Čaprić
 
 
 
-#Marko Filipović
+#Marko Filipović je diplomirani inženjer građevinarstva i član SDP-a.
