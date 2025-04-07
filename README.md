@@ -1,22 +1,31 @@
+<<<<<<< HEAD
+# Marko Goreta
+=======
 # iooa-2005
+<<<<<<< HEAD
+<<<<<<< HEAD
+Dario Pešić
+Marko Goreta
+# Dominik Milić
+=======
+<<<<<<< HEAD
+=======
 
 Kristijan Miletić
 =======
 # Dominik Milić
 >>>>>>> a4a0d631ef96e74f4123bc8811798af24a81adf5
 =======
+>>>>>>> 362896624506bc5391aabdcf36f077b6f1126367
+<<<<<<< HEAD
 <<<<<<< HEAD
 # Nikolina Štimac
-=======
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
+>>>>>>> 918e05458901c550e801ae3892baeb4d3ccc5aaf
 
 
 
 
-
-Domagoj Smojverg
+Domagoj Smojver
 =======
 # Dominik Milić
 >>>>>>> a4a0d631ef96e74f4123bc8811798af24a81adf5
@@ -64,3 +73,14 @@ Davor Čaprić
 >>>>>>> 952d83f517c6350ec864ed4433410fed6e6dc4d7
 >>>>>>> ee9130cb8cf43e564455c6a04514af4e9f54f9bd
 >>>>>>> 534cd80e13da5746715cdebc364097beca1cb42a
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+>>>>>>> 2be3c6dfb3a79b09328739b687ed4d096303b08f
+# Alex Bahorić
+>>>>>>> 362896624506bc5391aabdcf36f077b6f1126367
+
+
+
+#Marko Filipović
