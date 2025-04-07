@@ -1,6 +1,5 @@
 # iooa-2005
-<<<<<<< HEAD
-<<<<<<< HEAD
+
 Kristijan Miletić
 =======
 # Dominik Milić
