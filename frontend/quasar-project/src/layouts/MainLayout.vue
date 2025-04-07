@@ -99,7 +99,7 @@ const linksList = [
   {
     title: 'Osobni profili',
     caption: 'osobni profili',
-    icon: 'favorite',
+    icon: 'account_circle',
     link: '#'
   }
 ]
