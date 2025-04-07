@@ -40,13 +40,13 @@
     </q-drawer>
 
     <q-page-container>
-      <router-view />
+      <router-view/>
     </q-page-container>
   </q-layout>
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import {ref} from 'vue'
 import EssentialLink from 'components/EssentialLink.vue'
 
 defineOptions({
@@ -61,9 +61,9 @@ const linksList = [
     link: 'https://quasar.dev'
   },
   {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
+    title: 'Datoteke',
+    caption: 'dijeljenje datoteka',
+    icon: 'file_copy',
     link: 'https://github.com/quasarframework'
   },
   {
