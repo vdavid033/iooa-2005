@@ -1,18 +1,12 @@
-/* eslint-env node */
+import path from 'path'
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 
-/*
- * This file runs in a Node context (it's NOT transpiled by Babel), so use only
- * the ES6 features that are supported by your Node version. https://node.green/
- */
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = dirname(__filename)
+import { configure } from 'quasar/wrappers'
 
-// Configuration for your app
-// https://v2.quasar.dev/quasar-cli-vite/quasar-config-js
-
-
-const { configure } = require('quasar/wrappers');
-const path = require('path');
-
-module.exports = configure(function (/* ctx */) {
+export default configure(function (ctx) {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
