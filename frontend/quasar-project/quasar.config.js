@@ -1,12 +1,7 @@
-import path from 'path'
-import { fileURLToPath } from 'url';
-import { dirname } from 'path';
+const { configure } = require('quasar/wrappers');
+const path = require('path');
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = dirname(__filename)
-import { configure } from 'quasar/wrappers'
-
-export default configure(function (ctx) {
+module.exports = configure(function (/* ctx */) {
   return {
     // https://v2.quasar.dev/quasar-cli-vite/prefetch-feature
     // preFetch: true,
