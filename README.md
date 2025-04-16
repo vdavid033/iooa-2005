@@ -23,3 +23,5 @@ Slavko
 borna rosic
 Luka Pesic oiia
 Alex Bahorić
+Dino Turak 
+Marko Linić
