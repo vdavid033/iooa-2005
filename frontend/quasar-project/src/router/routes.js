@@ -1,18 +1,20 @@
+import KalendarObaveza from 'src/pages/KalendarObaveza.vue';
+
 const routes = [
   {
     path: '/',
     component: () => import('layouts/MainLayout.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
+      { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: 'kalendar-obaveze', component: KalendarObaveza  },  // Ovdje ide ruta za stranicu za unos obaveze
     ]
   },
 
-  // Always leave this as last one,
-  // but you can also remove it
+  // Ako ne postoji ruta, prikazat će se stranica za grešku
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue')
   }
-]
+];
 
-export default routes
+export default routes;
