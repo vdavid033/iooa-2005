@@ -1,5 +1,5 @@
 <template>
-  <q-card>
+  <q-card class="q-ma-sm">
     <q-card-section>
       <div class="text-h6">Detalji obaveze</div>
       <div><strong>Kolegij:</strong> Napredno programiranje</div>
@@ -15,6 +15,6 @@
 
 <script setup>
 defineOptions({
-  name: 'DetaljiObaveze'
+  name: 'DetaljiObaveze',
 })
 </script>

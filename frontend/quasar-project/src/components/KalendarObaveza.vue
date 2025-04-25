@@ -1,24 +1,22 @@
 <template>
-  <div>
-    <div class="row items-center justify-between q-mb-sm">
-      <q-btn flat icon="chevron_left" @click="prevMonth" />
-      <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
-      <q-btn flat icon="chevron_right" @click="nextMonth" />
-    </div>
+  <div class="row items-center justify-between q-mb-sm">
+    <q-btn flat icon="chevron_left" @click="prevMonth" />
+    <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
+    <q-btn flat icon="chevron_right" @click="nextMonth" />
+  </div>
 
-    <div class="calendar-grid">
-      <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
-      <div v-for="day in daysInMonth" :key="day.date" class="calendar-cell">
-        <div class="day-number">{{ day.day }}</div>
-        <div class="obaveze">
-          <div
-            v-for="(o, index) in getObavezeForDate(day.date)"
-            :key="index"
-            class="obaveza"
-            @click="klikNaObavezu(day.date, o)"
-          >
-            {{ o }}
-          </div>
+  <div class="calendar-grid">
+    <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
+    <div v-for="day in daysInMonth" :key="day.date" class="calendar-cell">
+      <div class="day-number">{{ day.day }}</div>
+      <div class="obaveze">
+        <div
+          v-for="(o, index) in getObavezeForDate(day.date)"
+          :key="index"
+          class="obaveza"
+          @click="klikNaObavezu(day.date, o)"
+        >
+          {{ o }}
         </div>
       </div>
     </div>

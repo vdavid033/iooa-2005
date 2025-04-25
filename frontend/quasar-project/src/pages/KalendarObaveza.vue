@@ -1,8 +1,8 @@
 <template>
-  <q-page class="q-pa-md">
+  <q-page class="q-pa-xl">
     <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze" />
 
-    <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" />
+    <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" class="q-mt-md" />
 
     <q-dialog v-model="showUnos">
       <q-card style="max-width: 30%; width: 100%">
@@ -10,7 +10,7 @@
           <UnosObaveze />
         </q-card-section>
         <q-card-actions>
-          <q-btn @click="showUnos = false" label="Zatvori" color="secondary" />
+          <q-btn @click="showUnos = false" label="Zatvori" color="secondary" class="q-ma-md" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -21,7 +21,7 @@
           <DetaljiObaveze />
         </q-card-section>
         <q-card-actions>
-          <q-btn @click="showDetalji = false" label="Zatvori" color="secondary" />
+          <q-btn @click="showDetalji = false" label="Zatvori" color="secondary" class="q-ma-md" />
         </q-card-actions>
       </q-card>
     </q-dialog>
