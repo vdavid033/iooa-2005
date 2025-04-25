@@ -1,6 +1,14 @@
 <template>
   <q-page class="q-pa-md">
-    <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" />
+    <!-- Gumb za otvaranje popupa za unos obaveze -->
+    <q-btn
+      @click="
+        showUnos = true
+        showDetalji = false
+      "
+      label="Unesi novu obavezu"
+      color="primary"
+    />
 
     <q-btn
       @click="toggleDetalji"
@@ -35,17 +43,10 @@
 
 <script setup>
 import { ref } from 'vue'
+import KalendarObaveza from 'src/components/KalendarObaveza.vue'
 import UnosObaveze from 'src/components/UnosObaveze.vue'
 import DetaljiObaveze from 'src/components/DetaljiObaveze.vue'
 
 const showUnos = ref(false)
 const showDetalji = ref(false)
-
-const toggleUnos = () => {
-  showUnos.value = !showUnos.value
-}
-
-const toggleDetalji = () => {
-  showDetalji.value = !showDetalji.value
-}
 </script>
