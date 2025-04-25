@@ -4,13 +4,6 @@
 
     <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" />
 
-    <q-btn
-      @click="toggleDetalji"
-      label="Prikaži detalje obaveze"
-      color="secondary"
-      class="q-ml-md"
-    />
-
     <q-dialog v-model="showUnos">
       <q-card style="max-width: 30%; width: 100%">
         <q-card-section>
@@ -48,9 +41,6 @@ const toggleUnos = () => {
   showUnos.value = !showUnos.value
 }
 
-const toggleDetalji = () => {
-  showDetalji.value = !showDetalji.value
-}
 const selektiranaObaveza = ref(null)
 
 function prikaziDetaljeObaveze(obaveza) {
