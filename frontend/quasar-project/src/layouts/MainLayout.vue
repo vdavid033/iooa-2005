@@ -80,9 +80,9 @@ const linksList = [
   },
   {
     title: 'Kalendar događaja',
-    caption: 'kalendar dogadaja',
-    icon: 'rss_feed',
-    link: '#'
+    caption: 'kalendar studentskih dogadaja',
+    icon: 'event',
+    link: '/kalendardog'
   },
   {
     title: 'Kalendar rokova',
