@@ -1,12 +1,13 @@
 <template>
   <div>
+    <div class="row items-center justify-between q-mb-sm">
+      <q-btn flat icon="chevron_left" @click="prevMonth" />
+      <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
+      <q-btn flat icon="chevron_right" @click="nextMonth" />
+    </div>
     <div class="calendar-grid">
       <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
-      <div
-        v-for="day in daysInMonth"
-        :key="day.date"
-        class="calendar-cell"
-      >
+      <div v-for="day in daysInMonth" :key="day.date" class="calendar-cell">
         <div class="day-number">{{ day.day }}</div>
         <div class="obaveze">
           <div
@@ -35,7 +36,7 @@ const obaveze = ref({
   '2025-06-12': ['Kolokvij'],
   '2025-06-14': ['Ispit', 'Predavanje'],
   '2025-06-25': ['Projekt'],
-  '2025-05-25': ['Projekt']
+  '2025-05-25': ['Projekt'],
 })
 
 const dayNames = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
@@ -70,6 +71,12 @@ const daysInMonth = computed(() => {
   return days
 })
 
+function nextMonth() {
+  currentDate.value = date.addToDate(currentDate.value, { months: 1 })
+}
+function prevMonth() {
+  currentDate.value = date.subtractFromDate(currentDate.value, { months: 1 })
+}
 function formatMonthYear(d) {
   return date.formatDate(d, 'MMMM YYYY')
 }
