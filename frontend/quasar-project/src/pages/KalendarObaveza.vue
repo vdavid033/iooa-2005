@@ -1,14 +1,8 @@
 <template>
   <q-page class="q-pa-md">
-    <!-- Gumb za otvaranje popupa za unos obaveze -->
-    <q-btn
-      @click="
-        showUnos = true
-        showDetalji = false
-      "
-      label="Unesi novu obavezu"
-      color="primary"
-    />
+    <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze" />
+
+    <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" />
 
     <q-btn
       @click="toggleDetalji"
@@ -23,7 +17,7 @@
           <UnosObaveze />
         </q-card-section>
         <q-card-actions>
-          <q-btn @click="toggleUnos" label="Zatvori" color="secondary" />
+          <q-btn @click="showUnos = false" label="Zatvori" color="secondary" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -34,7 +28,7 @@
           <DetaljiObaveze />
         </q-card-section>
         <q-card-actions>
-          <q-btn @click="toggleDetalji" label="Zatvori" color="secondary" />
+          <q-btn @click="showDetalji = false" label="Zatvori" color="secondary" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -49,4 +43,19 @@ import DetaljiObaveze from 'src/components/DetaljiObaveze.vue'
 
 const showUnos = ref(false)
 const showDetalji = ref(false)
+
+const toggleUnos = () => {
+  showUnos.value = !showUnos.value
+}
+
+const toggleDetalji = () => {
+  showDetalji.value = !showDetalji.value
+}
+const selektiranaObaveza = ref(null)
+
+function prikaziDetaljeObaveze(obaveza) {
+  console.log('Primio obavezu:', obaveza)
+  selektiranaObaveza.value = obaveza
+  showDetalji.value = true
+}
 </script>

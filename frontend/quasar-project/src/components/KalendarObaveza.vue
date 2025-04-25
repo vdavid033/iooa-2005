@@ -5,6 +5,7 @@
       <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
       <q-btn flat icon="chevron_right" @click="nextMonth" />
     </div>
+
     <div class="calendar-grid">
       <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
       <div v-for="day in daysInMonth" :key="day.date" class="calendar-cell">
