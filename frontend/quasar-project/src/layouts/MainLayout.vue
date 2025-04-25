@@ -66,6 +66,12 @@ const linksList = [
     icon: 'code',
     link: 'https://github.com/quasarframework'
   },
+   {
+    title: 'Filtriranje objava',
+    caption: 'Tagovi filter',
+    icon: 'filter_list',
+    to: '/tagovifilter' // DODANO
+  },
   {
     title: 'Poruke',
     caption: 'chat.quasar.dev',
