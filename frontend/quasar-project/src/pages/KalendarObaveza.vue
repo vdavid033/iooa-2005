@@ -1,5 +1,7 @@
 <template>
   <q-page class="q-pa-md">
+    <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze" />
+
     <!-- Gumb za otvaranje popupa za unos obaveze -->
     <q-btn @click="showUnos = true; showDetalji = false" label="Unesi novu obavezu" color="primary" />
 
@@ -34,9 +36,17 @@
 
 <script setup>
 import { ref } from 'vue'
+import KalendarObaveza from 'src/components/KalendarObaveza.vue'
 import UnosObaveze from 'src/components/UnosObaveze.vue'
 import DetaljiObaveze from 'src/components/DetaljiObaveze.vue'
 
 const showUnos = ref(false)
 const showDetalji = ref(false)
+const selektiranaObaveza = ref(null)
+
+function prikaziDetaljeObaveze(obaveza) {
+  console.log('Primio obavezu:', obaveza)
+  selektiranaObaveza.value = obaveza
+  showDetalji.value = true
+}
 </script>
