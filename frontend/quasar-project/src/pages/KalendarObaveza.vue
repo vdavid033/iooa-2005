@@ -10,7 +10,7 @@
 
     <!-- Popup za unos obaveze -->
     <q-dialog v-model="showUnos">
-      <q-card>
+      <q-card style="max-width: 30%; width:100%">
         <q-card-section>
           <UnosObaveze />
         </q-card-section>
