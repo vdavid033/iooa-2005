@@ -25,9 +25,7 @@
       bordered
     >
       <q-list>
-        <q-item-label
-          header
-        >
+        <q-item-label header>
           Essential Links
         </q-item-label>
 
@@ -95,6 +93,12 @@ const linksList = [
     caption: 'Community Quasar projects',
     icon: 'favorite',
     link: 'https://awesome.quasar.dev'
+  },
+  {
+    title: 'Notifikacija Dummy',
+    caption: '',
+    icon: 'notifications',
+    link: '/notifikacija' // Možeš kasnije dodati pravi link ovdje
   }
 ]
 

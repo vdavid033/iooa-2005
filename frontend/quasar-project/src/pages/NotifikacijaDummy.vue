@@ -4,7 +4,7 @@
       <q-btn 
         label="Pokaži poruku" 
         color="primary" 
-        @click="showNotification('Ovo je kompletan tekst poruke koji će biti skraćen na prvih 30 znakova...')"
+        @click="showNotification('Ovo je kompletan tekst poruke...')"
       />
     </div>
   </q-page>
