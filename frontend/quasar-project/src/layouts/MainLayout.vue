@@ -12,10 +12,8 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+        PORUKE
         </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
 
@@ -52,6 +50,13 @@ defineOptions({
 })
 
 const linksList = [
+{
+    title: 'Poruke',
+    caption: '',
+    icon: 'poruke',
+    link: '/Poruke'
+  },
+
   {
     title: 'Notifikacija Dummy',
     caption: '',

@@ -5,16 +5,19 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
-      { path: 'inbox', component: () => import('pages/InboxPage.vue') } // <-- Dodano za Inbox
+      { path: 'inbox', component: () => import('pages/InboxPage.vue') }, // <-- Dodano za Inbox
+      {path: 'poruke', component: () => import('pages/PorukeMain.vue') }
     ]
   },
 
   // Always leave this as last one,
   // but you can also remove it
+
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue')
   }
+  
 ]
 
 export default routes
