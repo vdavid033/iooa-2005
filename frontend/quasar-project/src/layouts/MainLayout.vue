@@ -52,12 +52,17 @@ defineOptions({
 })
 
 const linksList = [
-  
   {
     title: 'Notifikacija Dummy',
     caption: '',
     icon: 'notifications',
-    link: '/notifikacija' // Možeš kasnije dodati pravi link ovdje
+    link: '/notifikacija'
+  },
+  {
+    title: 'Inbox Poruke',
+    caption: '',
+    icon: 'email',
+    link: '/inbox'
   }
 ]
 

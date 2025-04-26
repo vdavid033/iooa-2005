@@ -4,7 +4,8 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') }
+      { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
+      { path: 'inbox', component: () => import('pages/InboxPage.vue') } // <-- Dodano za Inbox
     ]
   },
 
