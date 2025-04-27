@@ -55,46 +55,52 @@ defineOptions({
 
 const linksList = [
   {
-    title: 'Docs',
-    caption: 'quasar.dev',
+    title: 'VeleRi',
+    caption: 'veleri',
     icon: 'school',
-    link: 'https://quasar.dev'
-  },
-  {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework'
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev'
+    link: 'https://veleri.hr'
   },
   {
     title: 'Forum',
-    caption: 'forum.quasar.dev',
+    caption: 'forum',
+    icon: 'code',
+    link: '#'
+  },
+  {
+    title: 'Dijeljenje dokumenata',
+    caption: 'Dijeljenje dokumenata',
+    icon: 'chat',
+    link: '#'
+  },
+  {
+    title: 'Poruke',
+    caption: 'poruke',
     icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev'
+    link: '#'
   },
   {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev'
+    title: 'Kalendar događaja',
+    caption: 'kalendar studentskih dogadaja',
+    icon: 'event',
+    link: '/kalendardog'
   },
   {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
+    title: 'Kalendar rokova',
+    caption: 'kalendar rokova',
     icon: 'public',
-    link: 'https://facebook.quasar.dev'
+    link: '#'
   },
   {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
+    title: 'Kreiranje grupa',
+    caption: 'kreiranje grupa',
     icon: 'favorite',
-    link: 'https://awesome.quasar.dev'
+    link: '#'
+  },
+  {
+    title: 'Osobni profili',
+    caption: 'osobni profili',
+    icon: 'account_circle',
+    link: '#'
   }
 ]
 
