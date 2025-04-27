@@ -1,9 +1,18 @@
 const routes = [
   {
     path: '/',
-    component: () => import('layouts/MainLayout.vue'),
+    component: () => import('layouts/MainLayout1.vue'),
     children: [
-      { path: '', component: () => import('pages/IndexPage.vue') }
+      { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: 'groups', component: () => import('pages/GroupMessagesUser.vue') }
+    ]
+  },
+  {
+    path: '/',
+    component: () => import('layouts/MainLayout2.vue'),
+    children: [
+      { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: 'groups-admin', component: () => import('pages/GroupMessagesAdmin.vue') }
     ]
   },
 
