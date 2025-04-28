@@ -58,7 +58,7 @@ function fetchFolderContent () {
   subfolders.value = []
   documents.value = []
 
-  setTimeout(() => {   // simulacija kao da čekaš API poziv
+  setTimeout(() => {   // simulacija kao da cekamo API poziv
     try {
       if (folderId.value === '1') {
         subfolders.value = [
