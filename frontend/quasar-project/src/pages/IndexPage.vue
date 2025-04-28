@@ -1,15 +1,10 @@
 <template>
   <q-page class="flex flex-center">
     <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
+      alt=""
+  
+      src="~assets\Veleuciliste-u-Rijeci-Logo.png"
+      style="width: 1000px; height: 350px"
     >
   </q-page>
 </template>
-
-<script setup>
-defineOptions({
-  name: 'IndexPage'
-});
-</script>

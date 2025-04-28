@@ -12,30 +12,28 @@
         />
 
         <q-toolbar-title>
-          Quasar App
+        PORUKE
         </q-toolbar-title>
+        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+        <div class="q-toolbar-title">
+          <q-btn flat label="Početna" to="/" />
+          <q-btn flat label="Forum" to="/forum" />
+          <q-btn flat label="Obaveze" to="/kalendar-obaveze"><q-tooltip>Kalendar</q-tooltip></q-btn>
+          <q-btn flat label="Dogadaji" to="/kalendardog"><q-tooltip>Kalendar</q-tooltip></q-btn>
+        </div>
+        <q-toolbar-title> Quasar App </q-toolbar-title>
 
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
     </q-header>
 
-    <q-drawer
-      v-model="leftDrawerOpen"
-      show-if-above
-      bordered
-    >
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label
-          header
-        >
+        <q-item-label header>
           Essential Links
         </q-item-label>
 
-        <EssentialLink
-          v-for="link in linksList"
-          :key="link.title"
-          v-bind="link"
-        />
+        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
     </q-drawer>
 
@@ -50,63 +48,34 @@ import { ref } from 'vue'
 import EssentialLink from 'components/EssentialLink.vue'
 
 defineOptions({
-  name: 'MainLayout'
+  name: 'MainLayout',
 })
 
 const linksList = [
-  {
-    title: 'VeleRi',
-    caption: 'veleri',
-    icon: 'school',
-    link: 'https://veleri.hr'
-  },
-  {
-    title: 'Forum',
-    caption: 'forum',
-    icon: 'code',
-    link: '#'
-  },
-  {
-    title: 'Dijeljenje dokumenata',
-    caption: 'Dijeljenje dokumenata',
-    icon: 'chat',
-    link: '#'
-  },
-  {
+{
     title: 'Poruke',
-    caption: 'poruke',
-    icon: 'record_voice_over',
-    link: '#'
+    caption: '',
+    icon: 'poruke',
+    link: '/Poruke'
+  },
+
+  {
+    title: 'Notifikacija Dummy',
+    caption: '',
+    icon: 'notifications',
+    link: '/notifikacija'
   },
   {
-    title: 'Kalendar događaja',
-    caption: 'kalendar studentskih dogadaja',
-    icon: 'event',
-    link: '/kalendardog'
-  },
-  {
-    title: 'Kalendar rokova',
-    caption: 'kalendar rokova',
-    icon: 'public',
-    link: '#'
-  },
-  {
-    title: 'Kreiranje grupa',
-    caption: 'kreiranje grupa',
-    icon: 'favorite',
-    link: '#'
-  },
-  {
-    title: 'Osobni profili',
-    caption: 'osobni profili',
-    icon: 'account_circle',
-    link: '#'
+    title: 'Inbox Poruke',
+    caption: '',
+    icon: 'email',
+    link: '/inbox'
   }
 ]
 
 const leftDrawerOpen = ref(false)
 
-function toggleLeftDrawer () {
+function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 </script>
