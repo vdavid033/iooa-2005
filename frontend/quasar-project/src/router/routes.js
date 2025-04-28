@@ -6,7 +6,8 @@ const routes = [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
       { path: 'inbox', component: () => import('pages/InboxPage.vue') }, // <-- Dodano za Inbox
-      {path: 'poruke', component: () => import('pages/PorukeMain.vue') }
+      {path: 'poruke', component: () => import('pages/PorukeMain.vue') },
+      {path: 'alextest', component: () => import('pages/Alextest.vue') }
     ]
   },
 
