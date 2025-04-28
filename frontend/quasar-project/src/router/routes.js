@@ -8,7 +8,9 @@ const routes = [
       { path: 'nova-objava', component: () => import('pages/CreatePost.vue') },
       { path: 'forum-komentari', component: () => import('pages/ForumCommentPage.vue') },
       { path: 'forum', component: () => import('pages/ForumPage.vue') },
-      { path: 'tagovifilter', component: () => import('pages/TagFilterPage.vue') }
+      { path: 'tagovifilter', component: () => import('pages/TagFilterPage.vue') },
+      { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue') }
+
 
 
     ]
