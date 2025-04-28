@@ -1,4 +1,11 @@
 <template>
+<q-btn
+  label="← Natrag na forum"
+  color="primary"
+  flat
+  @click="goBack"
+  class="q-mb-md"
+/>
   <q-page class="q-pa-md">
 
     <!-- Prikaz OBJAVE -->
@@ -27,7 +34,7 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router' 
 import CommentSection from 'components/CommentSection.vue'
 
 // Ovdje ćeš učitati sve objave (normalno bi išlo s backend servera)
@@ -51,8 +58,11 @@ const posts = ref([
     date: '2025-04-24'
   }
 ])
-
+function goBack() {
+  router.push('/forum')
+}
 const route = useRoute()
+const router = useRouter() 
 const post = ref(null)
 
 onMounted(() => {
