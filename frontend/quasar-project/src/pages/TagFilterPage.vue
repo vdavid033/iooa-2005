@@ -85,12 +85,12 @@ export default {
   },
   methods: {
     async filterPosts () {
-      // ako nemaš backend, koristi lokalne podatke:
+      // ako nema backend, lokalni podatci:
       this.filteredPosts = this.allPosts.filter(post =>
         post.tags.some(tag => this.selectedTags.includes(tag))
       )
 
-      // kad backend proradi, koristi ovaj axios kod:
+      // kad backend proradi:
       /*
       try {
         const query = this.selectedTags.join(',')
