@@ -8,7 +8,7 @@
         <q-btn flat icon="chevron_right" @click="nextMonth" />
       </q-card-section>
 
-      <div class="q-gutter-sm q-mt-sm calendar-grid">
+      <div style="padding: 20px;" class="q-gutter-sm q-mt-sm calendar-grid">
         <div v-for="day in daysInMonth" :key="day.date" class="calendar-day" :class="{
           'highlight-today': isToday(day.date),
           'disabled-day': isPast(day.date)
@@ -264,7 +264,7 @@ const isPast = (dayDate) => {
 <style scoped>
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(11, 1fr);
   gap: 8px;
 }
 
