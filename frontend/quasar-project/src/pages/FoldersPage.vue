@@ -1,13 +1,13 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="row items-center justify-between q-mb-lg">
-      <h1 class="text-h5">Kolegiji (Root mape)</h1>
+    <h1 class="text-h5">Kolegiji (Root mape)</h1>
+    <div class="row items-center justify-end q-mb-lg">
       <q-btn
         v-if="isAdmin"
         color="primary"
         icon="add"
-        label="Kreiraj datoteku"
-        @click="createFolder"
+        label="Kreiraj mapu"
+        @click="showCreateModal = true"
         rounded
         unelevated
       />
@@ -20,6 +20,12 @@
         :on-folder-click="openFolder"
       />
     </div>
+    <CreateFolderModal
+      v-model="showCreateModal"
+      :parent-folders="[]"
+      :kolegiji="kolegiji"
+      @create="handleCreateFolder"
+    />
   </q-page>
 </template>
 
@@ -29,6 +35,7 @@ import {useRouter} from 'vue-router'
 import FolderGrid from 'components/FolderGrid.vue'
 import LoadingSpinner from 'components/LoadingSpinner.vue'
 import ErrorMessage from 'components/ErrorMessage.vue'
+import CreateFolderModal from 'components/CreateFolderModal.vue'
 
 defineOptions({
   name: 'FoldersPage'
@@ -39,6 +46,13 @@ const folders = ref([])
 const isLoading = ref(false)
 const errorMessage = ref('')
 const isAdmin = true
+const showCreateModal = ref(false)
+const kolegiji = ref([
+  {id: 1, naziv: 'Baze podataka'},
+  {id: 2, naziv: 'Programiranje 1'},
+  {id: 3, naziv: 'Matematika'},
+  {id: 4, naziv: 'Računalne mreže'}
+])
 
 function fetchRootFolders () {
   isLoading.value = true
@@ -53,7 +67,6 @@ function fetchRootFolders () {
         {id_mape: 4, ime_mape: 'Ispiti', id_parent_mapa: null, fk_kolegija: 4}
       ]
     } catch (error) {
-      console.error(error)
       errorMessage.value = 'Došlo je do greške prilikom učitavanja mapa.'
     } finally {
       isLoading.value = false
@@ -61,9 +74,16 @@ function fetchRootFolders () {
   }, 800)
 }
 
-function createFolder () {
-  console.log('Kreiranje nove mape...')
+function handleCreateFolder ({name, parentId}) {
+  const newFolder = {
+    id_mape: Date.now(),
+    ime_mape: name,
+    id_parent_mapa: null,
+    fk_kolegija: kolegijId
+  }
+  folders.value.push(newFolder)
 }
+
 
 function openFolder (folder) {
   router.push(`/folders/${folder.id_mape}`)
