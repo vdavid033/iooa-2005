@@ -18,17 +18,21 @@
   <q-item
     v-else
     clickable
-    tag="a"
-    target="_blank"
-    :href="props.link"
+    tag="router-link"
+    :to="link"
   >
-    <q-item-section v-if="props.icon" avatar>
-      <q-icon :name="props.icon" />
+
+    <q-item-section
+      v-if="icon"
+      avatar
+    >
+      <q-icon :name="icon" />
+
     </q-item-section>
 
     <q-item-section>
-      <q-item-label>{{ props.title }}</q-item-label>
-      <q-item-label caption>{{ props.caption }}</q-item-label>
+      <q-item-label>{{ title }}</q-item-label>
+      <q-item-label caption>{{ caption }}</q-item-label>
     </q-item-section>
   </q-item>
 </template>
@@ -48,12 +52,10 @@ const props = defineProps({
     default: ''
   },
   link: {
-    type: String,
-    default: ''
-  },
-  to: {
-    type: String,
-    default: ''
+
+    type: [String, Object],
+    required: true
+
   },
   icon: {
     type: String,
