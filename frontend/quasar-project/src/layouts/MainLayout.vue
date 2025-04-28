@@ -70,7 +70,7 @@ const linksList = [
     title: 'Filtriranje objava',
     caption: 'Tagovi filter',
     icon: 'filter_list',
-    to: '/tagovifilter' // DODANO
+    to: '/tagovifilter' // dodan filter po tagovima
   },
   {
     title: 'Poruke',
