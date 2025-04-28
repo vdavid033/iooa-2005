@@ -18,9 +18,9 @@
     <q-dialog v-model="showDetalji">
       <q-card>
         <q-card-section>
-          <DetaljiObaveze />
+          <DetaljiObaveze :datum="selektiranDatum" :obaveze="selektiraneObaveze" />
         </q-card-section>
-        <q-card-actions>
+        <q-card-actions align="center">
           <q-btn @click="showDetalji = false" label="Zatvori" color="secondary" class="q-ma-md" />
         </q-card-actions>
       </q-card>
@@ -40,12 +40,12 @@ const showDetalji = ref(false)
 const toggleUnos = () => {
   showUnos.value = !showUnos.value
 }
+const selektiranDatum = ref('')
+const selektiraneObaveze = ref(null)
 
-const selektiranaObaveza = ref(null)
-
-function prikaziDetaljeObaveze(obaveza) {
-  console.log('Primio obavezu:', obaveza)
-  selektiranaObaveza.value = obaveza
+function prikaziDetaljeObaveze({ datum, sveObaveze }) {
+  selektiranDatum.value = datum
+  selektiraneObaveze.value = sveObaveze || []
   showDetalji.value = true
 }
 </script>

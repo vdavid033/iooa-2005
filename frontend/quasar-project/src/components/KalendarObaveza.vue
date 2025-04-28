@@ -7,14 +7,19 @@
 
   <div class="calendar-grid">
     <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
-    <div v-for="day in daysInMonth" :key="day.date" class="calendar-cell">
+    <div
+      v-for="day in daysInMonth"
+      :key="day.date"
+      class="calendar-cell"
+      @click="klikNaDan(day.date)"
+    >
       <div class="day-number">{{ day.day }}</div>
       <div class="obaveze">
         <div
           v-for="(o, index) in getObavezeForDate(day.date)"
           :key="index"
           class="obaveza"
-          @click="klikNaObavezu(day.date, o)"
+          @click.stop="klikNaObavezu(day.date, o)"
         >
           {{ o }}
         </div>
@@ -26,6 +31,7 @@
 <script setup>
 import { ref, computed } from 'vue'
 import { date } from 'quasar'
+import { Notify } from 'quasar'
 
 const emit = defineEmits(['klikNaObavezu'])
 
@@ -44,9 +50,8 @@ function getObavezeForDate(datum) {
   return obaveze.value[datum] || []
 }
 
-function klikNaObavezu(datum, naziv) {
-  console.log('Klik!', datum, naziv)
-  emit('klikNaObavezu', { datum, naziv })
+function klikNaObavezu(datum) {
+  emit('klikNaObavezu', { datum, sveObaveze: obaveze.value[datum] })
 }
 
 const daysInMonth = computed(() => {
@@ -79,6 +84,11 @@ function prevMonth() {
 function formatMonthYear(d) {
   return date.formatDate(d, 'MMMM YYYY')
 }
+
+function klikNaDan(datum) {
+  console.log('Klik na dan!', datum)
+  emit('klikNaDan', datum)
+}
 </script>
 
 <style scoped>
@@ -103,6 +113,11 @@ function formatMonthYear(d) {
   padding: 4px;
   background: #fafafa;
   position: relative;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+.calendar-cell:hover {
+  background-color: #e0e0e0;
 }
 
 .day-number {
