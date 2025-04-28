@@ -68,12 +68,6 @@ const linksList = [
     caption: '',
     icon: 'email',
     link: '/inbox'
-  },
-  {
-    title: 'Alex Test',
-    caption: '',
-    icon: 'email',
-    link: '/alextest'
   }
 ]
 
