@@ -11,6 +11,7 @@
       v-for="day in daysInMonth"
       :key="day.date"
       class="calendar-cell"
+      :class="getDensityClass(day.date)"
       @click="klikNaDan(day.date)"
     >
       <div class="day-number">{{ day.day }}</div>
@@ -102,6 +103,17 @@ function getColorClass(obaveza) {
     return 'ostale-obaveze-color'
   }
 }
+
+function getDensityClass(datum) {
+  const obavezeForDay = getObavezeForDate(datum).length
+  if (obavezeForDay === 0) {
+    return 'low-density' // Svijetlo plava
+  } else if (obavezeForDay === 1) {
+    return 'medium-density' // Narančasta
+  } else {
+    return 'high-density' // Crvena
+  }
+}
 </script>
 
 <style scoped>
@@ -160,5 +172,65 @@ function getColorClass(obaveza) {
 }
 .ostale-obaveze-color {
   background-color: #e3f2fd;
+  .low-density {
+    background-color: #e1f5fe !important; /* Svijetlo plava za nizak broj obaveza */
+  }
+  .medium-density {
+    background-color: #ffe0b2 !important; /* Narančasta za srednji broj obaveza */
+  }
+  .high-density {
+    background-color: #ffccbc !important; /* Crvena za visok broj obaveza */
+  }
+
+  .obaveza-count {
+    font-size: 10px;
+    font-weight: bold;
+    color: #333;
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #fff;
+    border-radius: 50%;
+    padding: 2px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+}
+
+.low-density {
+  background-color: #4fb7e7; /* Svijetlo plava za nizak broj obaveza */
+}
+.medium-density {
+  background-color: #ff9b04; /* Narančasta za srednji broj obaveza */
+}
+.high-density {
+  background-color: #ec0d0d; /* Crvena za visok broj obaveza */
+}
+
+.obaveza-count {
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Gustoće za promjenu boje pozadine kartice */
+.low-density {
+  background-color: #e1f5fe; /* Svijetlo plava za nizak broj obaveza */
+}
+.medium-density {
+  background-color: #ffe0b2; /* Narančasta za srednji broj obaveza */
+}
+.high-density {
+  background-color: #ffccbc; /* Crvena za visok broj obaveza */
 }
 </style>
