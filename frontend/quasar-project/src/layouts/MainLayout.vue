@@ -62,9 +62,9 @@ const linksList = [
   },
   {
     title: 'Datoteke',
-    caption: 'dijeljenje datoteka',
-    icon: 'file_copy',
-    link: 'https://github.com/quasarframework'
+    caption: 'Dijeljenje datoteka',
+    icon: 'folder',
+    to: '/folders'
   },
   {
     title: 'Discord Chat Channel',
