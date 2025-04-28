@@ -1,0 +1,51 @@
+<template>
+  <q-page class="q-pa-xl">
+    <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze" />
+
+    <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" class="q-mt-md" />
+
+    <q-dialog v-model="showUnos">
+      <q-card style="max-width: 30%; width: 100%">
+        <q-card-section>
+          <UnosObaveze />
+        </q-card-section>
+        <q-card-actions>
+          <q-btn @click="showUnos = false" label="Zatvori" color="secondary" class="q-ma-md" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-dialog v-model="showDetalji">
+      <q-card>
+        <q-card-section>
+          <DetaljiObaveze :datum="selektiranDatum" :obaveze="selektiraneObaveze" />
+        </q-card-section>
+        <q-card-actions align="center">
+          <q-btn @click="showDetalji = false" label="Zatvori" color="secondary" class="q-ma-md" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </q-page>
+</template>
+
+<script setup>
+import { ref } from 'vue'
+import KalendarObaveza from 'src/components/KalendarObaveza.vue'
+import UnosObaveze from 'src/components/UnosObaveze.vue'
+import DetaljiObaveze from 'src/components/DetaljiObaveze.vue'
+
+const showUnos = ref(false)
+const showDetalji = ref(false)
+
+const toggleUnos = () => {
+  showUnos.value = !showUnos.value
+}
+const selektiranDatum = ref('')
+const selektiraneObaveze = ref(null)
+
+function prikaziDetaljeObaveze({ datum, sveObaveze }) {
+  selektiranDatum.value = datum
+  selektiraneObaveze.value = sveObaveze || []
+  showDetalji.value = true
+}
+</script>
