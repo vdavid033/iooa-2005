@@ -19,6 +19,7 @@
           v-for="(o, index) in getObavezeForDate(day.date)"
           :key="index"
           class="obaveza"
+          :class="getColorClass(o)"
           @click.stop="klikNaObavezu(day.date, o)"
         >
           {{ o }}
@@ -89,6 +90,18 @@ function klikNaDan(datum) {
   console.log('Klik na dan!', datum)
   emit('klikNaDan', datum)
 }
+
+function getColorClass(obaveza) {
+  if (obaveza === 'Kolokvij') {
+    return 'kolokvij-color'
+  } else if (obaveza === 'Ispit') {
+    return 'ispit-color'
+  } else if (obaveza === 'Predavanje') {
+    return 'predavanje-color'
+  } else {
+    return 'ostale-obaveze-color'
+  }
+}
 </script>
 
 <style scoped>
@@ -134,5 +147,18 @@ function klikNaDan(datum) {
   cursor: pointer;
   position: relative;
   z-index: 10;
+}
+
+.kolokvij-color {
+  background-color: #ffcc80;
+}
+.ispit-color {
+  background-color: #ff7043;
+}
+.predavanje-color {
+  background-color: #81c784;
+}
+.ostale-obaveze-color {
+  background-color: #e3f2fd;
 }
 </style>
