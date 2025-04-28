@@ -7,6 +7,7 @@ const routes = [
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
       { path: 'kalendardog', component: () => import('pages/KalendarDog.vue') },
+      { path: 'kalendar-obaveze', component: KalendarObaveza },
     ],
   },
 
