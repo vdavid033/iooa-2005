@@ -13,7 +13,7 @@
         @update:model-value="onSearchInputChange"
       >
         <template v-slot:prepend>
-          <q-icon name="search" @click="executeSearch" class="cursor-pointer" />         
+          <q-icon name="search" @click="executeSearch" class="cursor-pointer"/>
         </template>
       </q-input>
     </q-toolbar>
@@ -21,7 +21,7 @@
     <!-- Lista fileova -->
     <q-list bordered separator>
       <template v-if="isSearching">
-        <file-item 
+        <file-item
           v-for="item in searchResults"
           :key="item.path"
           :item="item"
@@ -29,7 +29,7 @@
         />
       </template>
       <template v-else>
-        <file-item 
+        <file-item
           v-for="item in files"
           :key="item.path"
           :item="item"
@@ -46,13 +46,13 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue';
+import {computed, onMounted, ref, watch} from 'vue';
 import FileItem from './FileItem.vue';
-import fileApi from '../../services/fileApi.js';
+import fileApi from '../services/fileApi.js';
 
 // Props
 const props = defineProps({
-  rootPath: { type: String, default: '/' }
+  rootPath: {type: String, default: '/'}
 });
 
 // Stanje
@@ -86,7 +86,7 @@ const fetchFiles = async () => {
     searchResults.value = [];
     return;
   }
-  
+
   try {
     isLoading.value = true;
     searchResults.value = await fileApi.searchFiles(searchQuery.value);
@@ -120,19 +120,19 @@ const handleSearchItemClick = (item) => {
 };
 
 
-const onSearchInputChange = (value) =>{
+const onSearchInputChange = (value) => {
   searchQuery.value = value;
-  if(searchQuery.value.trim().length > 2){
-   searchResult.value = [];
-   executeSearch();
+  if (searchQuery.value.trim().length > 2) {
+    searchResult.value = [];
+    executeSearch();
   }
 };
 
-const executeSearch = () =>{
+const executeSearch = () => {
   if (searchQuery.value.trim().length > 0) {
-     handleSearch(searchQuery.value);
+    handleSearch(searchQuery.value);
   } else {
-   
+
     console.log('Please enter search term');
   }
 };
@@ -140,7 +140,7 @@ const executeSearch = () =>{
 const handleSearch = async (value) => {
   //alert('tu sam');
   searchResult.value = await fileApi.searchFiles(value);
- 
+
 };
 
 // Lifecycle hooks
