@@ -2,11 +2,24 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
+        <q-btn
+          flat
+          dense
+          round
+          icon="menu"
+          aria-label="Menu"
+          @click="toggleLeftDrawer"
+        />
+
+        <q-toolbar-title>
+        PORUKE
+        </q-toolbar-title>
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
         <div class="q-toolbar-title">
           <q-btn flat label="Početna" to="/" />
-          <q-btn flat label="Forum" to="/Forum" />
+          <q-btn flat label="Forum" to="/forum" />
           <q-btn flat label="Obaveze" to="/kalendar-obaveze"><q-tooltip>Kalendar</q-tooltip></q-btn>
+          <q-btn flat label="Dogadaji" to="/kalendardog"><q-tooltip>Kalendar</q-tooltip></q-btn>
         </div>
         <q-toolbar-title> Quasar App </q-toolbar-title>
 
@@ -16,7 +29,9 @@
 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
       <q-list>
-        <q-item-label header> Essential Links </q-item-label>
+        <q-item-label header>
+          Essential Links
+        </q-item-label>
 
         <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
       </q-list>
@@ -37,48 +52,25 @@ defineOptions({
 })
 
 const linksList = [
+{
+    title: 'Poruke',
+    caption: '',
+    icon: 'poruke',
+    link: '/Poruke'
+  },
+
   {
-    title: 'Docs',
-    caption: 'quasar.dev',
-    icon: 'school',
-    link: 'https://quasar.dev',
+    title: 'Notifikacija Dummy',
+    caption: '',
+    icon: 'notifications',
+    link: '/notifikacija'
   },
   {
-    title: 'Github',
-    caption: 'github.com/quasarframework',
-    icon: 'code',
-    link: 'https://github.com/quasarframework',
-  },
-  {
-    title: 'Discord Chat Channel',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'https://chat.quasar.dev',
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev',
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Facebook',
-    caption: '@QuasarFramework',
-    icon: 'public',
-    link: 'https://facebook.quasar.dev',
-  },
-  {
-    title: 'Quasar Awesome',
-    caption: 'Community Quasar projects',
-    icon: 'favorite',
-    link: 'https://awesome.quasar.dev',
-  },
+    title: 'Inbox Poruke',
+    caption: '',
+    icon: 'email',
+    link: '/inbox'
+  }
 ]
 
 const leftDrawerOpen = ref(false)

@@ -6,20 +6,25 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'kalendar-obaveze', component: KalendarObaveza }, // Ovdje ide ruta za stranicu za unos obaveze
-    ],
+
+      { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
+      { path: 'inbox', component: () => import('pages/InboxPage.vue') }, // <-- Dodano za Inbox
+      {path: 'poruke', component: () => import('pages/PorukeMain.vue') },
+      { path: 'kalendardog', component: () => import('pages/KalendarDog.vue') },
+      { path: 'kalendar-obaveze', component: KalendarObaveza },    
+      { path: 'forum', component: () => import('pages/ForumPage.vue') },
+      { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue')}
+    ]
+
   },
 
-  // Ako ne postoji ruta, prikazat će se stranica za grešku
+  // Always leave this as last one,
+  // but you can also remove it
+
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
-  },
-  {
-    path: '/KalendarObaveza',
-    name: 'KalendarObaveza',
-    component: () => import('pages/KalendarObaveza.vue'),
-  },
+  }
 ]
 
 export default routes
