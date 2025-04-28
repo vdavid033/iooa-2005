@@ -77,7 +77,7 @@ function fetchFolderContent () {
       } else {
         subfolders.value = []
         documents.value = []
-        errorMessage.value = 'Folder nije pronađen.'
+        errorMessage.value = 'Folder ili datoteka nije pronađen/a.'
       }
     } catch (error) {
       console.error(error)
