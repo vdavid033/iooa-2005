@@ -17,7 +17,7 @@
         <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
         <div class="q-toolbar-title">
           <q-btn flat label="Početna" to="/" />
-          <q-btn flat label="Forum" to="/Forum" />
+          <q-btn flat label="Forum" to="/forum" />
           <q-btn flat label="Obaveze" to="/kalendar-obaveze"><q-tooltip>Kalendar</q-tooltip></q-btn>
           <q-btn flat label="Dogadaji" to="/kalendardog"><q-tooltip>Kalendar</q-tooltip></q-btn>
         </div>
