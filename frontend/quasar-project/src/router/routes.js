@@ -6,11 +6,10 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'kalendar-obaveze', component: KalendarObaveza }, // Ovdje ide ruta za stranicu za unos obaveze
+      { path: 'kalendardog', component: () => import('pages/KalendarDog.vue') },
     ],
   },
 
-  // Ako ne postoji ruta, prikazat će se stranica za grešku
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
