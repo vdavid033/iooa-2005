@@ -1,15 +1,15 @@
 <template>
-  <q-page class="flex flex-center">
-    <img
-      alt="Quasar logo"
-      src="~assets/quasar-logo-vertical.svg"
-      style="width: 200px; height: 200px"
-    >
+  <q-page class="q-pa-md">
+    <!-- Naslov (opcionalno) -->
+    <h1 class="text-h4 q-mb-md">My File Explorer</h1>
+    
+    <!-- File Explorer komponenta -->
+    <file-explorer 
+      root-path="/"
+      class="q-mt-md"
+    />
   </q-page>
 </template>
-
 <script setup>
-defineOptions({
-  name: 'IndexPage'
-});
+import FileExplorer from 'components/FileExplorer';
 </script>
