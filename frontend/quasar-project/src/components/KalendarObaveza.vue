@@ -107,11 +107,11 @@ function getColorClass(obaveza) {
 function getDensityClass(datum) {
   const obavezeForDay = getObavezeForDate(datum).length
   if (obavezeForDay === 0) {
-    return 'low-density' // Svijetlo plava
+    return 'low-density'
   } else if (obavezeForDay === 1) {
-    return 'medium-density' // Narančasta
+    return 'medium-density'
   } else {
-    return 'high-density' // Crvena
+    return 'high-density'
   }
 }
 </script>
@@ -173,13 +173,13 @@ function getDensityClass(datum) {
 .ostale-obaveze-color {
   background-color: #e3f2fd;
   .low-density {
-    background-color: #e1f5fe !important; /* Svijetlo plava za nizak broj obaveza */
+    background-color: #e1f5fe !important;
   }
   .medium-density {
-    background-color: #ffe0b2 !important; /* Narančasta za srednji broj obaveza */
+    background-color: #ffe0b2 !important;
   }
   .high-density {
-    background-color: #ffccbc !important; /* Crvena za visok broj obaveza */
+    background-color: #ffccbc !important;
   }
 
   .obaveza-count {
@@ -199,13 +199,13 @@ function getDensityClass(datum) {
 }
 
 .low-density {
-  background-color: #4fb7e7; /* Svijetlo plava za nizak broj obaveza */
+  background-color: #4fb7e7;
 }
 .medium-density {
-  background-color: #ff9b04; /* Narančasta za srednji broj obaveza */
+  background-color: #ff9b04;
 }
 .high-density {
-  background-color: #ec0d0d; /* Crvena za visok broj obaveza */
+  background-color: #ec0d0d;
 }
 
 .obaveza-count {
@@ -223,14 +223,13 @@ function getDensityClass(datum) {
   justify-content: center;
 }
 
-/* Gustoće za promjenu boje pozadine kartice */
 .low-density {
-  background-color: #e1f5fe; /* Svijetlo plava za nizak broj obaveza */
+  background-color: #e1f5fe;
 }
 .medium-density {
-  background-color: #ffe0b2; /* Narančasta za srednji broj obaveza */
+  background-color: #ffe0b2;
 }
 .high-density {
-  background-color: #ffccbc; /* Crvena za visok broj obaveza */
+  background-color: #ffccbc;
 }
 </style>
