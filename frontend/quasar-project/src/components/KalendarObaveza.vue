@@ -11,7 +11,7 @@
       v-for="day in daysInMonth"
       :key="day.date"
       class="calendar-cell"
-      :class="getDensityClass(day.date)"
+      :class="[getDensityClass(day.date), isToday(day.date) ? 'today' : '']"
       @click="klikNaDan(day.date)"
     >
       <div class="day-number">{{ day.day }}</div>
@@ -133,6 +133,10 @@ onMounted(async () => {
     console.error('Greška pri dohvaćanju obaveza:', err)
   }
 })
+function isToday(datum) {
+  const today = date.formatDate(new Date(), 'YYYY-MM-DD')
+  return datum === today
+}
 </script>
 
 <style scoped>
@@ -216,5 +220,40 @@ onMounted(async () => {
     align-items: center;
     justify-content: center;
   }
+}
+
+.low-density {
+  background-color: #4fb7e7;
+}
+.medium-density {
+  background-color: #ff9b04;
+}
+.high-density {
+  background-color: #ec0d0d;
+}
+
+.obaveza-count {
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.low-density {
+  background-color: #e1f5fe;
+}
+.medium-density {
+  background-color: #ffe0b2;
+}
+.high-density {
+  background-color: #ffccbc;
 }
 </style>
