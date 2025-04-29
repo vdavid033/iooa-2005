@@ -11,7 +11,7 @@
       v-for="day in daysInMonth"
       :key="day.date"
       class="calendar-cell"
-      :class="getDensityClass(day.date)"
+      :class="[getDensityClass(day.date), isToday(day.date) ? 'today' : '']" 
       @click="klikNaDan(day.date)"
     >
       <div class="day-number">{{ day.day }}</div>
@@ -113,6 +113,10 @@ function getDensityClass(datum) {
   } else {
     return 'high-density'
   }
+}
+function isToday(datum) {
+  const today = date.formatDate(new Date(), 'YYYY-MM-DD')
+  return datum === today
 }
 </script>
 
@@ -231,5 +235,8 @@ function getDensityClass(datum) {
 }
 .high-density {
   background-color: #ffccbc;
+}
+.today {
+  border: 2px solid #2196f3;
 }
 </style>
