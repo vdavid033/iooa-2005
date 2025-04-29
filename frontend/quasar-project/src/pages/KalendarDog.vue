@@ -50,7 +50,6 @@
         </q-card-section>
 
         <q-card-section style="padding: 0 24px">
-          <!-- Naslovi kategorija -->
           <div class="row q-col-gutter-md q-pt-md">
             <div class="col text-center">
               <div class="text-subtitle2">Zabava</div>
@@ -66,7 +65,6 @@
             </div>
           </div>
 
-          <!-- Scrollable popis evenata -->
           <div style="max-height: 300px; overflow-y: auto; margin-bottom: 10px">
             <div class="row q-col-gutter-md">
               <div class="col text-center">
@@ -129,7 +127,9 @@
           </div>
         </q-card-section>
 
-        <q-card-actions align="right">
+        <q-card-actions align="between">
+          <!-- NOVO: Gumb za brisanje -->
+          <q-btn color="negative" flat label="Obriši" @click="deleteEvent" />
           <q-btn flat label="Zatvori" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -212,7 +212,6 @@ const handleDateClick = (dateObj) => {
 const selectDate = (dateObj) => {
   selectedDate.value = dateObj
   showDateModal.value = true
-  //showEventModal.value = true
 }
 
 const openCreateEventModal = () => {
@@ -233,7 +232,6 @@ const selectedEvent = ref({
   location: '',
 })
 
-// Funkcija za otvaranje detalja eventa
 const openEventDetails = (event, category) => {
   selectedEvent.value = {
     ...event,
@@ -242,10 +240,16 @@ const openEventDetails = (event, category) => {
   showEventDetailModal.value = true
 }
 
+// NOVO: funkcija za brisanje
+const deleteEvent = () => {
+  console.log('Brisanje eventa:', selectedEvent.value)
+  showEventDetailModal.value = false
+}
+
 const saveEvent = () => {
   const eventData = {
     ...form.value,
-    author: 'trenutniKorisnik', //trenutno logirani korisnik
+    author: 'trenutniKorisnik',
     date: selectedDateFormatted.value,
   }
   console.log('Spremanje eventa:', eventData)
@@ -253,7 +257,6 @@ const saveEvent = () => {
   form.value = { headline: '', description: '', location: '' }
 }
 
-// provjera je li dani dan danas
 const isToday = (dayDate) => {
   const today = new Date()
   return (
@@ -263,7 +266,6 @@ const isToday = (dayDate) => {
   )
 }
 
-// onemogucuje prijasnje datume
 const isPast = (dayDate) => {
   const today = new Date()
   today.setHours(0, 0, 0, 0)
