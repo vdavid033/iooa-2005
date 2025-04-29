@@ -20,10 +20,10 @@
           v-for="(o, index) in getObavezeForDate(day.date)"
           :key="index"
           class="obaveza"
-          :class="getColorClass(o)"
+          :class="getColorClass(o.opis_obaveze)"
           @click.stop="klikNaObavezu(day.date, o)"
         >
-          {{ o }}
+          {{ o.opis_obaveze }}
         </div>
       </div>
     </div>
@@ -31,20 +31,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { date } from 'quasar'
-import { Notify } from 'quasar'
+import axios from 'axios'
 
 const emit = defineEmits(['klikNaObavezu'])
 
 const currentDate = ref(date.formatDate(new Date(), 'YYYY-MM-DD'))
-
-const obaveze = ref({
-  '2025-06-12': ['Kolokvij'],
-  '2025-06-14': ['Ispit', 'Predavanje'],
-  '2025-06-25': ['Projekt'],
-  '2025-05-25': ['Projekt'],
-})
+const obaveze = ref({})
 
 const dayNames = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
 
@@ -52,8 +46,13 @@ function getObavezeForDate(datum) {
   return obaveze.value[datum] || []
 }
 
-function klikNaObavezu(datum) {
-  emit('klikNaObavezu', { datum, sveObaveze: obaveze.value[datum] })
+function klikNaObavezu(datum, obaveza) {
+  console.log('Klik na obavezu!', datum, obaveza)
+  if (obaveza) {
+    emit('klikNaObavezu', { datum, obaveza })
+  } else {
+    console.error('Obaveza nije definirana!')
+  }
 }
 
 const daysInMonth = computed(() => {
@@ -93,11 +92,11 @@ function klikNaDan(datum) {
 }
 
 function getColorClass(obaveza) {
-  if (obaveza === 'Kolokvij') {
+  if (obaveza === 'kolokvij') {
     return 'kolokvij-color'
-  } else if (obaveza === 'Ispit') {
+  } else if (obaveza === 'praktični zadatak') {
     return 'ispit-color'
-  } else if (obaveza === 'Predavanje') {
+  } else if (obaveza === 'predaja seminara') {
     return 'predavanje-color'
   } else {
     return 'ostale-obaveze-color'
@@ -114,6 +113,26 @@ function getDensityClass(datum) {
     return 'high-density'
   }
 }
+
+onMounted(async () => {
+  try {
+    const response = await axios.get('http://localhost:3000/api/obaveze')
+    const data = response.data
+
+    const grupirane = {}
+    data.forEach((ob) => {
+      const datum = date.formatDate(ob.datum_obaveze, 'YYYY-MM-DD')
+      if (!grupirane[datum]) {
+        grupirane[datum] = []
+      }
+      grupirane[datum].push(ob)
+    })
+
+    obaveze.value = grupirane
+  } catch (err) {
+    console.error('Greška pri dohvaćanju obaveza:', err)
+  }
+})
 </script>
 
 <style scoped>
@@ -172,6 +191,7 @@ function getDensityClass(datum) {
 }
 .ostale-obaveze-color {
   background-color: #e3f2fd;
+
   .low-density {
     background-color: #e1f5fe !important;
   }
@@ -196,40 +216,5 @@ function getDensityClass(datum) {
     align-items: center;
     justify-content: center;
   }
-}
-
-.low-density {
-  background-color: #4fb7e7;
-}
-.medium-density {
-  background-color: #ff9b04;
-}
-.high-density {
-  background-color: #ec0d0d;
-}
-
-.obaveza-count {
-  font-size: 10px;
-  font-weight: bold;
-  color: #333;
-  position: absolute;
-  top: 5px;
-  right: 5px;
-  background-color: #fff;
-  border-radius: 50%;
-  padding: 2px 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.low-density {
-  background-color: #e1f5fe;
-}
-.medium-density {
-  background-color: #ffe0b2;
-}
-.high-density {
-  background-color: #ffccbc;
 }
 </style>

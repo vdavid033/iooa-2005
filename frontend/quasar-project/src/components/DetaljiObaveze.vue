@@ -11,13 +11,13 @@
       >
         <q-card-section>
           <div class="text-h6">Detalji</div>
-          <div><strong>Kolegij:</strong> Napredno programiranje</div>
-          <div><strong>Nastavnik:</strong> dr. Ivan Ivić</div>
-          <div><strong>Datum:</strong> 12.06.2025</div>
-          <div><strong>Vrijeme:</strong> 14:00</div>
-          <div><strong>Dvorana:</strong> D-201</div>
-          <div><strong>Tip:</strong> Kolokvij</div>
-          <div><strong>Napomena:</strong> Prvi kolokvij</div>
+          <div><strong>Kolegij:</strong> {{ o.kolegij }}</div>
+          <div><strong>Nastavnik:</strong> {{ o.profesor }}</div>
+          <div><strong>Datum:</strong> {{ formatirajDatum(o.datum_obaveze) }}</div>
+          <div><strong>Vrijeme:</strong> {{ o.vrijeme_pocetka }}</div>
+          <div><strong>Dvorana:</strong> {{ o.lokacija }}</div>
+          <div><strong>Tip:</strong> {{ o.opis_obaveze }}</div>
+          <div><strong>Napomena:</strong> {{ o.opis_obaveze }}</div>
         </q-card-section>
       </q-card>
     </div>

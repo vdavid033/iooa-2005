@@ -30,6 +30,7 @@
 
 <script setup>
 import { ref } from 'vue'
+import axios from 'axios'
 import KalendarObaveza from 'src/components/KalendarObaveza.vue'
 import UnosObaveze from 'src/components/UnosObaveze.vue'
 import DetaljiObaveze from 'src/components/DetaljiObaveze.vue'
@@ -43,9 +44,26 @@ const toggleUnos = () => {
 const selektiranDatum = ref('')
 const selektiraneObaveze = ref(null)
 
-function prikaziDetaljeObaveze({ datum, sveObaveze }) {
+async function dohvatiDetaljeObaveze(obaveza) {
+  try {
+    const response = await axios.get(`http://localhost:3000/api/obaveze?id=${obaveza.id_obaveze}`)
+    return response.data
+  } catch (err) {
+    console.error('Greška pri dohvaćanju detalja obaveze:', err)
+    return []
+  }
+}
+
+function prikaziDetaljeObaveze({ datum, obaveza }) {
+  console.log('Detalji obaveze:', datum, obaveza)
   selektiranDatum.value = datum
-  selektiraneObaveze.value = sveObaveze || []
-  showDetalji.value = true
+  if (obaveza && obaveza.id_obaveze) {
+    dohvatiDetaljeObaveze(obaveza).then((detalji) => {
+      selektiraneObaveze.value = detalji
+      showDetalji.value = true
+    })
+  } else {
+    console.error('Obaveza nije ispravno definirana ili nema ID')
+  }
 }
 </script>
