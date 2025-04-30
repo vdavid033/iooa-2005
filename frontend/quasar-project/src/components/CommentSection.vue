@@ -9,22 +9,24 @@
       autogrow
       class="q-mb-sm"
     />
-   <q-btn
-  label="Objavi komentar"
-  color="primary"
-  @click="postComment"
-  :disable="!newComment.trim()"
-  class="q-mb-lg"
-/>
+    <q-btn
+      label="Objavi komentar"
+      color="primary"
+      @click="postComment"
+      :disable="!newComment.trim()"
+      class="q-mb-lg"
+    />
 
     <!-- Prikaz komentara -->
     <div v-if="comments.length">
       <q-list bordered separator>
-        <q-item v-for="(comment, index) in sortedComments" :key="index">
+        <q-item v-for="(comment, index) in comments" :key="index">
           <q-item-section>
-            <q-item-label>{{ comment.author }}:</q-item-label>
-            <q-item-label caption>{{ comment.text }}</q-item-label>
-            <q-item-label class="text-caption text-grey">{{ formatDate(comment.date) }}</q-item-label>
+            <q-item-label>Korisnik #{{ comment.id_korisnika }}</q-item-label>
+            <q-item-label caption>{{ comment.sadrzaj_komentara }}</q-item-label>
+            <q-item-label class="text-caption text-grey">
+              {{ formatDate(comment.datum_komentara) }}
+            </q-item-label>
           </q-item-section>
         </q-item>
       </q-list>
@@ -35,59 +37,51 @@
 
 <script setup>
 import axios from 'axios'
-import { ref, computed } from 'vue'
+import { ref, onMounted } from 'vue'
+import { useRoute } from 'vue-router'
 
 const newComment = ref('')
-const comments = ref([
-  { author: 'Ana', text: 'Super objava!', date: new Date().toISOString() },
-  { author: 'Marko', text: 'Slažem se.', date: new Date().toISOString() }
-])
-
-import { useRoute } from 'vue-router'
+const comments = ref([])
 const route = useRoute()
 
-const postComment = async () => {
-  console.log('🔄 postComment funkcija pozvana')  // 👈 DIJAGNOSTIKA
-
-  if (!newComment.value.trim()) {
-    console.log('⚠️ Komentar je prazan – ništa ne šaljem')
-    return
+// 🚀 Dohvat komentara iz baze
+const fetchComments = async () => {
+  try {
+    const response = await axios.get(`http://localhost:3000/api/comments/${route.params.id}`)
+    comments.value = response.data
+    console.log('✅ Komentari dohvaćeni:', comments.value)
+  } catch (err) {
+    console.error('❌ Greška pri dohvaćanju komentara:', err)
   }
+}
+
+// 📨 Slanje komentara u bazu
+const postComment = async () => {
+  if (!newComment.value.trim()) return
 
   const id_objava = parseInt(route.params.id)
   const id_korisnika = parseInt(localStorage.getItem('user_id')) || 1
 
-  console.log('📤 Šaljem podatke:', {
-    id_objava,
-    id_korisnika,
-    sadrzaj_komentara: newComment.value
-  })
-
   try {
-    const response = await axios.post('http://localhost:3000/api/comments', {
+    await axios.post('http://localhost:3000/api/comments', {
       id_objava,
       id_korisnika,
       sadrzaj_komentara: newComment.value
     })
-
-    console.log('✅ Backend odgovorio:', response.data)
-
-    comments.value.unshift({
-      author: 'Ti',
-      text: newComment.value,
-      date: new Date().toISOString()
-    })
     
     newComment.value = ''
+    await fetchComments() // osvježi prikaz komentara iz baze
   } catch (err) {
     console.error('❌ Greška prilikom slanja komentara:', err)
   }
 }
 
-const sortedComments = computed(() =>
-  [...comments.value].sort((a, b) => new Date(b.date) - new Date(a.date))
-)
+// Pozovi automatski kad se komponenta učita
+onMounted(() => {
+  fetchComments()
+})
 
+// Formatiranje datuma
 const formatDate = (isoDate) => {
   return new Date(isoDate).toLocaleString('hr-HR')
 }
