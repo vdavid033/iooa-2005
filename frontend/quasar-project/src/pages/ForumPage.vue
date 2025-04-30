@@ -1,6 +1,5 @@
 <template>
   <q-page padding>
-    <!-- Forma za kreiranje nove objave -->
     <q-card class="q-pa-md q-mb-lg">
       <q-card-section>
         <div class="text-h6">Kreiraj novu objavu</div>
@@ -13,6 +12,8 @@
         <q-select
           v-model="category"
           :options="categories"
+          option-label="label"
+          option-value="value"
           label="Kategorija"
           filled
           class="q-mt-md"
@@ -21,6 +22,8 @@
         <q-select
           v-model="tags"
           :options="availableTags"
+          option-label="label"
+          option-value="value"
           label="Tagovi"
           multiple
           filled
@@ -35,29 +38,26 @@
       </q-card-actions>
     </q-card>
 
-    <!-- Sekcija za filtriranje objava -->
     <div class="q-mb-md">
-  <div class="row items-center q-gutter-sm">
-    <q-select
-      v-model="selectedTags"
-      :options="availableTags.map(tag => ({ label: tag, value: tag }))"
-      label="Filtriraj po tagovima"
-      multiple
-      filled
-      emit-value
-      map-options
-      style="flex: 1"
-    />
+      <div class="row items-center q-gutter-sm">
+        <q-select
+          v-model="selectedTags"
+          :options="availableTags.map(tag => ({ label: tag, value: tag }))"
+          label="Filtriraj po tagovima"
+          multiple
+          filled
+          emit-value
+          map-options
+          style="flex: 1"
+        />
+        <q-btn
+          label="Filtriraj"
+          color="primary"
+          @click="filterPosts"
+        />
+      </div>
+    </div>
 
-    <q-btn
-      label="Filtriraj"
-      color="primary"
-      @click="filterPosts"
-    />
-  </div>
-</div>
-
-    <!-- Lista objava -->
     <div v-for="post in paginatedPostsFiltered" :key="post.id" class="q-mb-md">
       <q-card clickable @click="goToPost(post.id)" class="q-pa-sm">
         <q-card-section class="row items-center justify-between">
@@ -85,7 +85,6 @@
       </q-card>
     </div>
 
-    <!-- Paginacija -->
     <q-pagination
       v-model="page"
       :max="maxPage"
@@ -100,6 +99,11 @@
 <script setup>
 import { ref, computed, watch } from 'vue'
 import { useRouter } from 'vue-router'
+import axios from 'axios'
+import { onMounted } from 'vue'
+import { useQuasar } from 'quasar'
+
+const $q = useQuasar()
 
 const router = useRouter()
 
@@ -108,31 +112,7 @@ const content = ref('')
 const category = ref(null)
 const tags = ref([])
 
-const categories = ['Pitanja i odgovori', 'Tehnička podrška', 'Razmjena materijala']
-const availableTags = ['Python', 'Programiranje', 'Ispit', 'Frontend', 'Quasar', 'Pomoć','Algoritmi', 'Zadaća']
-
-const posts = ref([
-  {
-    id: 1,
-    author: 'Kolega Kolegić',
-    category: 'Tehnička podrška',
-    title: 'Naslov prve objave',
-    preview: 'Ovo je kratki sadržaj prve objave...',
-    tags: ['Python', 'Pomoć'],
-    comments: 7,
-    date: '2025-04-25'
-  },
-  {
-    id: 2,
-    author: 'Ana Studentić',
-    category: 'Pitanja i odgovori',
-    title: 'Druga tema',
-    preview: 'Brzo pitanje vezano uz zadaću...',
-    tags: ['Algoritmi', 'Zadaća'],
-    comments: 3,
-    date: '2025-04-24'
-  },
-])
+const posts = ref([])
 
 const selectedTags = ref([])
 const filteredPosts = ref([])
@@ -149,30 +129,59 @@ const maxPage = computed(() =>
   Math.ceil(filteredPosts.value.length / perPage)
 )
 
-function savePost() {
+const availableTags = ref([])
+const categories = ref([])
+
+onMounted(() => {
+  fetchTagovi()
+  fetchKategorije()
+})
+
+async function fetchTagovi() {
+  const response = await axios.get('http://localhost:3000/api/tagovi')
+  availableTags.value = response.data
+}
+
+async function fetchKategorije() {
+  try {
+    const response = await axios.get('http://localhost:3000/api/kategorije')
+    categories.value = response.data
+  } catch (error) {
+    console.error('❌ Ne mogu dohvatiti kategorije:', error)
+  }
+}
+
+async function savePost() {
   if (title.value && content.value && category.value) {
-    const newPost = {
-      id: posts.value.length + 1,
-      author: 'Laura',
-      category: category.value,
-      title: title.value,
-      preview: content.value.slice(0, 100) + '...',
-      tags: tags.value,
-      comments: 0,
-      date: new Date().toISOString().split('T')[0]
+    try {
+      const noviPodaci = {
+        naslov: title.value,
+        sadrzaj: content.value,
+        datum: new Date().toISOString().slice(0, 19).replace('T', ' '),
+        fk_korisnik: 1, //trebat ce promijeniti kada se spoje korisnici
+        fk_kategorija: category.value?.value || null,
+        tagovi: tags.value.map(t => t.value)
+
+      }
+
+      const response = await axios.post('http://localhost:3000/api/objave', noviPodaci)
+
+      $q.notify({
+        type: 'positive',
+        message: 'Objava uspješno spremljena!',
+        timeout: 2500,
+        position: 'top-right'
+      })
+
+      title.value = ''
+      content.value = ''
+      category.value = null
+      tags.value = []
+    } 
+    catch (error) {
+      console.error('Greška pri spremanju objave:', error)
+      alert('Greška pri spremanju. Provjeri backend.')
     }
-    posts.value.unshift(newPost)
-
-    // Nakon dodavanja nove objave osvježi filtrirane postove
-    filterPosts()
-
-    // Reset forme
-    title.value = ''
-    content.value = ''
-    category.value = null
-    tags.value = []
-
-    console.log('Nova objava dodana!', newPost)
   } else {
     alert('Popuni sva obavezna polja!')
   }
