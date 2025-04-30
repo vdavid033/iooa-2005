@@ -24,6 +24,71 @@ db.connect(err => {
   }
 })
 
+app.post('/api/objave', (req, res) => {
+  const { naslov, sadrzaj, datum, fk_korisnik, fk_kategorija, tagovi } = req.body
+
+  if (!naslov || !sadrzaj || !datum || !fk_korisnik) {
+    return res.status(400).json({ error: 'Nedostaju potrebni podaci za objavu.' })
+  }
+
+  const sqlObjava = `
+    INSERT INTO objava (naslov_objave, sadrzaj_objave, datum_objave, fk_korisnik, fk_kategorija)
+    VALUES (?, ?, ?, ?, ?)
+  `
+
+  db.query(sqlObjava, [naslov, sadrzaj, datum, fk_korisnik, fk_kategorija], (err, result) => {
+    if (err) {
+      console.error('❌ Greška pri spremanju objave:', err)
+      return res.status(500).json({ error: 'Greška pri unosu objave.' })
+    }
+
+    const id_objava = result.insertId
+
+    if (Array.isArray(tagovi) && tagovi.length > 0) {
+      const tagSql = `
+        INSERT INTO objava_tag (fk_objava, fk_tag)
+        VALUES ?
+      `
+      const tagVrijednosti = tagovi.map(tagId => [id_objava, tagId])
+
+      db.query(tagSql, [tagVrijednosti], (tagErr) => {
+        if (tagErr) {
+          console.error('❌ Greška pri spremanju tagova:', tagErr)
+          return res.status(500).json({ error: 'Objava spremljena, ali tagovi nisu.' })
+        }
+
+        res.status(201).json({ message: 'Objava i tagovi spremljeni!', id_objava })
+      })
+    } else {
+      res.status(201).json({ message: 'Objava spremljena bez tagova.', id_objava })
+    }
+  })
+})
+
+app.get('/api/kategorije', (req, res) => {
+  const sql = `
+    SELECT id_kategorija_forum AS value, ime_kategorija_forum AS label
+    FROM kategorija_forum
+    ORDER BY label ASC
+  `
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error('❌ Greška pri dohvaćanju kategorija:', err)
+      return res.status(500).json({ error: 'Greška pri dohvaćanju kategorija.' })
+    }
+
+    res.status(200).json(results)
+  })
+})
+
+app.get('/api/tagovi', (req, res) => {
+  db.query('SELECT id_tag AS value, naziv_tag AS label FROM tag', (err, results) => {
+    if (err) return res.status(500).json({ error: 'Greška u bazi' })
+    res.status(200).json(results)
+  })
+})
+
 
 app.post('/api/comments', (req, res) => {
   const { id_objava, id_korisnika, sadrzaj_komentara } = req.body
@@ -44,6 +109,7 @@ app.post('/api/comments', (req, res) => {
     res.status(201).json({ message: 'Komentar spremljen!', id_komentar: result.insertId })
   })
 })
+
 app.get('/api/comments/:id_objava', (req, res) => {
     const id_objava = req.params.id_objava
   
