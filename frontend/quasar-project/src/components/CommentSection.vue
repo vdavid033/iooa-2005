@@ -9,13 +9,13 @@
       autogrow
       class="q-mb-sm"
     />
-    <q-btn
-      label="Objavi komentar"
-      color="primary"
-      @click="addComment"
-      :disable="!newComment.trim()"
-      class="q-mb-lg"
-    />
+   <q-btn
+  label="Objavi komentar"
+  color="primary"
+  @click="postComment"
+  :disable="!newComment.trim()"
+  class="q-mb-lg"
+/>
 
     <!-- Prikaz komentara -->
     <div v-if="comments.length">
@@ -34,6 +34,7 @@
 </template>
 
 <script setup>
+import axios from 'axios'
 import { ref, computed } from 'vue'
 
 const newComment = ref('')
@@ -42,14 +43,44 @@ const comments = ref([
   { author: 'Marko', text: 'Slažem se.', date: new Date().toISOString() }
 ])
 
-const addComment = () => {
-  if (newComment.value.trim()) {
+import { useRoute } from 'vue-router'
+const route = useRoute()
+
+const postComment = async () => {
+  console.log('🔄 postComment funkcija pozvana')  // 👈 DIJAGNOSTIKA
+
+  if (!newComment.value.trim()) {
+    console.log('⚠️ Komentar je prazan – ništa ne šaljem')
+    return
+  }
+
+  const id_objava = parseInt(route.params.id)
+  const id_korisnika = parseInt(localStorage.getItem('user_id')) || 1
+
+  console.log('📤 Šaljem podatke:', {
+    id_objava,
+    id_korisnika,
+    sadrzaj_komentara: newComment.value
+  })
+
+  try {
+    const response = await axios.post('http://localhost:3000/api/comments', {
+      id_objava,
+      id_korisnika,
+      sadrzaj_komentara: newComment.value
+    })
+
+    console.log('✅ Backend odgovorio:', response.data)
+
     comments.value.unshift({
       author: 'Ti',
       text: newComment.value,
       date: new Date().toISOString()
     })
+    
     newComment.value = ''
+  } catch (err) {
+    console.error('❌ Greška prilikom slanja komentara:', err)
   }
 }
 
