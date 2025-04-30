@@ -135,6 +135,7 @@ const categories = ref([])
 onMounted(() => {
   fetchTagovi()
   fetchKategorije()
+  fetchObjave()
 })
 
 async function fetchTagovi() {
@@ -177,6 +178,9 @@ async function savePost() {
       content.value = ''
       category.value = null
       tags.value = []
+      
+      await fetchObjave()
+
     } 
     catch (error) {
       console.error('Greška pri spremanju objave:', error)
@@ -184,6 +188,21 @@ async function savePost() {
     }
   } else {
     alert('Popuni sva obavezna polja!')
+  }
+}
+
+async function fetchObjave() {
+  try {
+    const response = await axios.get('http://localhost:3000/api/objave')
+    posts.value = response.data
+    filteredPosts.value = posts.value
+  } catch (error) {
+    console.error('❌ Ne mogu dohvatiti objave:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Greška pri dohvaćanju objava.',
+      timeout: 2500
+    })
   }
 }
 

@@ -65,6 +65,60 @@ app.post('/api/objave', (req, res) => {
   })
 })
 
+app.get('/api/objave', (req, res) => {
+  const sql = `
+    SELECT 
+      o.id_objava AS id,
+      o.naslov_objave AS title,
+      LEFT(o.sadrzaj_objave, 200) AS preview,
+      o.datum_objave AS date,
+      k.korisnicko_ime AS author,
+      kf.ime_kategorija_forum AS category,
+      o.id_objava
+    FROM objava o
+    LEFT JOIN korisnik k ON o.fk_korisnik = k.id_korisnika
+    LEFT JOIN kategorija_forum kf ON o.fk_kategorija = kf.id_kategorija_forum
+    ORDER BY o.datum_objave DESC
+  `
+
+  db.query(sql, async (err, results) => {
+    if (err) {
+      console.error('❌ Greška pri dohvaćanju objava:', err)
+      return res.status(500).json({ error: 'Greška pri dohvaćanju objava.' })
+    }
+
+    const postIds = results.map(r => r.id)
+    if (postIds.length === 0) return res.json([])
+
+    const tagSql = `
+      SELECT ot.fk_objava, t.naziv_tag
+      FROM objava_tag ot
+      JOIN tag t ON ot.fk_tag = t.id_tag
+      WHERE ot.fk_objava IN (?)
+    `
+    db.query(tagSql, [postIds], (tagErr, tagResults) => {
+      if (tagErr) {
+        console.error('❌ Greška pri dohvaćanju tagova za objave:', tagErr)
+        return res.status(500).json({ error: 'Greška pri dohvaćanju tagova.' })
+      }
+
+      const tagMap = {}
+      tagResults.forEach(({ fk_objava, naziv_tag }) => {
+        if (!tagMap[fk_objava]) tagMap[fk_objava] = []
+        tagMap[fk_objava].push(naziv_tag)
+      })
+
+      const finalResults = results.map(post => ({
+        ...post,
+        tags: tagMap[post.id] || [],
+        comments: 0 
+      }))
+
+      res.json(finalResults)
+    })
+  })
+})
+
 app.get('/api/kategorije', (req, res) => {
   const sql = `
     SELECT id_kategorija_forum AS value, ime_kategorija_forum AS label
