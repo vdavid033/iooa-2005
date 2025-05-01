@@ -1,23 +1,24 @@
 <template>
-<q-btn
-  label="← Natrag na forum"
-  color="primary"
-  flat
-  @click="goBack"
-  class="q-mb-md"
-/>
   <q-page class="q-pa-md">
+    <!-- Gumb za povratak -->
+    <q-btn
+      label="← Natrag na forum"
+      color="primary"
+      flat
+      @click="goBack"
+      class="q-mb-md"
+    />
 
     <!-- Prikaz OBJAVE -->
     <q-card v-if="post" class="q-mb-md">
       <q-card-section>
-        <div class="text-h5">{{ post.title }}</div>
+        <div class="text-h5">{{ post.naslov }}</div>
         <div class="text-subtitle2 text-grey">
-          {{ post.author }} | {{ post.date }} | {{ post.category }}
+          Korisnik #{{ post.id_korisnika }} | {{ post.kategorija }} | {{ formatDate(post.datum_objave) }}
         </div>
-        <div class="q-mt-md" v-html="post.content"></div>
+        <div class="q-mt-md" v-html="post.sadrzaj"></div>
         <div class="q-mt-sm">
-          <span v-for="tag in post.tags" :key="tag" class="q-mr-sm text-blue">#{{ tag }}</span>
+          <span v-for="tag in post.tagovi" :key="tag" class="q-mr-sm text-blue">#{{ tag }}</span>
         </div>
       </q-card-section>
     </q-card>
@@ -34,39 +35,30 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router' 
+import { useRoute, useRouter } from 'vue-router'
+import axios from 'axios'
 import CommentSection from 'components/CommentSection.vue'
 
-// Ovdje ćeš učitati sve objave (normalno bi išlo s backend servera)
-const posts = ref([
-  {
-    id: 1,
-    author: 'Kolega Kolegić',
-    category: 'Tehnička podrška',
-    title: 'Naslov prve objave',
-    content: 'Ovo je puni sadržaj prve objave...',
-    tags: ['Python', 'Pomoć'],
-    date: '2025-04-25'
-  },
-  {
-    id: 2,
-    author: 'Ana Studentić',
-    category: 'Pitanja i odgovori',
-    title: 'Druga tema',
-    content: 'Brzo pitanje vezano uz zadaću...',
-    tags: ['Algoritmi', 'Zadaća'],
-    date: '2025-04-24'
-  }
-])
-function goBack() {
-  router.push('/forum')
-}
 const route = useRoute()
-const router = useRouter() 
+const router = useRouter()
 const post = ref(null)
 
-onMounted(() => {
+const goBack = () => {
+  router.push('/forum')
+}
+
+const formatDate = (isoDate) => {
+  return new Date(isoDate).toLocaleString('hr-HR')
+}
+
+onMounted(async () => {
   const postId = parseInt(route.params.id, 10)
-  post.value = posts.value.find(p => p.id === postId)
+
+  try {
+    const response = await axios.get(`http://localhost:3000/api/posts/${postId}`)
+    post.value = response.data
+  } catch (err) {
+    console.error('❌ Greška pri dohvaćanju objave:', err)
+  }
 })
 </script>
