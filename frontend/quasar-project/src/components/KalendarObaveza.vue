@@ -195,31 +195,31 @@ function isToday(datum) {
 }
 .ostale-obaveze-color {
   background-color: #e3f2fd;
+}
 
-  .low-density {
-    background-color: #e1f5fe !important;
-  }
-  .medium-density {
-    background-color: #ffe0b2 !important;
-  }
-  .high-density {
-    background-color: #ffccbc !important;
-  }
+.low-density {
+  background-color: #e1f5fe !important;
+}
+.medium-density {
+  background-color: #ffe0b2 !important;
+}
+.high-density {
+  background-color: #ffccbc !important;
+}
 
-  .obaveza-count {
-    font-size: 10px;
-    font-weight: bold;
-    color: #333;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: #fff;
-    border-radius: 50%;
-    padding: 2px 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+.obaveza-count {
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .low-density {

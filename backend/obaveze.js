@@ -6,6 +6,7 @@ const app = express();
 const PORT = 3000;
 
 app.use(cors());
+app.use(express.json())
 
 const db = mysql.createConnection({
   host: "ucka.veleri.hr",
@@ -47,5 +48,36 @@ app.get("/api/obavezaDetalji", (req, res) => {
       return res.status(500).json({ error: "Greška pri dohvaćanju podataka." });
     }
     res.json(results[0]);
+  });
+  
+});
+
+app.post("/api/unosObaveze", (req, res) => {
+
+  const { datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze } = req.body;
+
+  const fk_korisnika = 1;
+
+  const sql = "INSERT INTO obaveza (datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze, fk_korisnika) VALUES (?, ?, ?, ?, ?, ?, ?,?)";
+
+  const values = [datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze, fk_korisnika];
+
+  db.query(sql, values, (err, result) => {
+    if (err) {
+      console.error("Greška pri unosu obaveze:", err);
+      return res.status(500).json({ error: "Neuspješan unos obaveze." });
+    }
+    res.status(201).json({ poruka: "Obaveza uspješno unesena.", id: result.insertId });
+  });
+});
+
+app.get("/api/tipoviObaveza", (req, res) => {
+  const sql = "SELECT id_tipa_obaveze AS value, naziv_tipa_obaveze AS label FROM tip_obaveze";
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Greška pri dohvaćanju tipova obaveza:", err);
+      return res.status(500).json({ error: "Greška pri dohvaćanju tipova obaveza." });
+    }
+    res.json(results); // [{ value: 1, label: 'Kolokvij' }, ...]
   });
 });
