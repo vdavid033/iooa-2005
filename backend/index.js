@@ -183,7 +183,54 @@ app.get('/api/comments/:id_objava', (req, res) => {
     })
   })
   
-
+  app.get('/api/posts/:id', (req, res) => {
+    const id = req.params.id
+  
+    const sql = `
+      SELECT 
+        o.id_objava AS id,
+        o.naslov_objave AS naslov,
+        o.sadrzaj_objave AS sadrzaj,
+        o.datum_objave,
+        k.korisnicko_ime AS author,
+        kf.ime_kategorija_forum AS kategorija
+      FROM objava o
+      LEFT JOIN korisnik k ON o.fk_korisnik = k.id_korisnika
+      LEFT JOIN kategorija_forum kf ON o.fk_kategorija = kf.id_kategorija_forum
+      WHERE o.id_objava = ?
+    `
+  
+    db.query(sql, [id], (err, results) => {
+      if (err) {
+        console.error('❌ Greška pri dohvaćanju objave:', err)
+        return res.status(500).json({ error: 'Greška u bazi.' })
+      }
+  
+      if (results.length === 0) {
+        return res.status(404).json({ error: 'Objava nije pronađena.' })
+      }
+  
+      const post = results[0]
+  
+      const tagSql = `
+        SELECT t.naziv_tag
+        FROM objava_tag ot
+        JOIN tag t ON ot.fk_tag = t.id_tag
+        WHERE ot.fk_objava = ?
+      `
+  
+      db.query(tagSql, [id], (tagErr, tagResults) => {
+        if (tagErr) {
+          console.error('❌ Greška pri dohvaćanju tagova:', tagErr)
+          return res.status(500).json({ error: 'Greška pri tagovima.' })
+        }
+  
+        post.tagovi = tagResults.map(r => r.naziv_tag)
+        res.status(200).json(post)
+      })
+    })
+  })
+  
 const PORT = 3000
 app.listen(PORT, () => {
   console.log(`🚀 Backend radi na http://localhost:${PORT}`)
