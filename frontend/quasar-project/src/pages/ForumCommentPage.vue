@@ -52,10 +52,10 @@ const formatDate = (isoDate) => {
 }
 
 onMounted(async () => {
-  const postId = parseInt(route.params.id, 10)
+  const postId = route.params.id
 
   try {
-    const response = await axios.get(`http://localhost:3000/api/posts/${postId}`)
+    const response = await axios.get(`http://localhost:3000/api/objave/${postId}`)
     post.value = response.data
   } catch (err) {
     console.error('❌ Greška pri dohvaćanju objave:', err)

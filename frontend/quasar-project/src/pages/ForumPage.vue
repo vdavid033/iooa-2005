@@ -1,5 +1,6 @@
 <template>
   <q-page padding>
+    <!-- Forma za unos nove objave -->
     <q-card class="q-pa-md q-mb-lg">
       <q-card-section>
         <div class="text-h6">Kreiraj novu objavu</div>
@@ -22,8 +23,6 @@
         <q-select
           v-model="tags"
           :options="availableTags"
-          option-label="label"
-          option-value="value"
           label="Tagovi"
           multiple
           filled
@@ -38,18 +37,22 @@
       </q-card-actions>
     </q-card>
 
+    <!-- Filter po tagovima -->
     <div class="q-mb-md">
       <div class="row items-center q-gutter-sm">
         <q-select
-          v-model="selectedTags"
-          :options="availableTags.map(tag => ({ label: tag, value: tag }))"
-          label="Filtriraj po tagovima"
-          multiple
-          filled
-          emit-value
-          map-options
-          style="flex: 1"
+        v-model="selectedTags"
+       :options="availableTags"
+        option-label="label"
+        option-value="label"
+        label="Filtriraj po tagovima"
+        multiple
+        filled
+        emit-value
+        map-options
+        style="flex: 1"
         />
+
         <q-btn
           label="Filtriraj"
           color="primary"
@@ -58,6 +61,7 @@
       </div>
     </div>
 
+    <!-- Lista objava -->
     <div v-for="post in paginatedPostsFiltered" :key="post.id" class="q-mb-md">
       <q-card clickable @click="goToPost(post.id)" class="q-pa-sm">
         <q-card-section class="row items-center justify-between">
@@ -97,40 +101,38 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
-import { onMounted } from 'vue'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
-
 const router = useRouter()
 
+// Podaci za formu
 const title = ref('')
 const content = ref('')
 const category = ref(null)
 const tags = ref([])
 
+// Postovi i tagovi
 const posts = ref([])
-
 const selectedTags = ref([])
 const filteredPosts = ref([])
-filteredPosts.value = posts.value
 
 const page = ref(1)
 const perPage = 20
 
+const availableTags = ref([])
+const categories = ref([])
+
+// Paginacija
 const paginatedPostsFiltered = computed(() =>
   filteredPosts.value.slice((page.value - 1) * perPage, page.value * perPage)
 )
-
 const maxPage = computed(() =>
   Math.ceil(filteredPosts.value.length / perPage)
 )
-
-const availableTags = ref([])
-const categories = ref([])
 
 onMounted(() => {
   fetchTagovi()
@@ -139,8 +141,12 @@ onMounted(() => {
 })
 
 async function fetchTagovi() {
-  const response = await axios.get('http://localhost:3000/api/tagovi')
-  availableTags.value = response.data
+  try {
+    const response = await axios.get('http://localhost:3000/api/tagovi')
+    availableTags.value = response.data // format: [{ label: 'skripta', value: 'skripta' }, ...]
+  } catch (error) {
+    console.error(' Ne mogu dohvatiti tagove:', error)
+  }
 }
 
 async function fetchKategorije() {
@@ -148,7 +154,22 @@ async function fetchKategorije() {
     const response = await axios.get('http://localhost:3000/api/kategorije')
     categories.value = response.data
   } catch (error) {
-    console.error('❌ Ne mogu dohvatiti kategorije:', error)
+    console.error(' Ne mogu dohvatiti kategorije:', error)
+  }
+}
+
+async function fetchObjave() {
+  try {
+    const response = await axios.get('http://localhost:3000/api/objave')
+    posts.value = response.data
+    filteredPosts.value = response.data
+  } catch (error) {
+    console.error(' Ne mogu dohvatiti objave:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Greška pri dohvaćanju objava.',
+      timeout: 2500
+    })
   }
 }
 
@@ -159,13 +180,12 @@ async function savePost() {
         naslov: title.value,
         sadrzaj: content.value,
         datum: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        fk_korisnik: 1, //trebat ce promijeniti kada se spoje korisnici
+        fk_korisnik: 1, // promijeniti kad se doda autentikacija
         fk_kategorija: category.value?.value || null,
-        tagovi: tags.value.map(t => t.value)
-
+        tagovi: tags.value.map(t => t.value) // dohvaćamo tagove po vrijednosti
       }
 
-      const response = await axios.post('http://localhost:3000/api/objave', noviPodaci)
+      await axios.post('http://localhost:3000/api/objave', noviPodaci)
 
       $q.notify({
         type: 'positive',
@@ -174,15 +194,14 @@ async function savePost() {
         position: 'top-right'
       })
 
+      // Reset forme
       title.value = ''
       content.value = ''
       category.value = null
       tags.value = []
-      
-      await fetchObjave()
 
-    } 
-    catch (error) {
+      await fetchObjave()
+    } catch (error) {
       console.error('Greška pri spremanju objave:', error)
       alert('Greška pri spremanju. Provjeri backend.')
     }
@@ -191,31 +210,29 @@ async function savePost() {
   }
 }
 
-async function fetchObjave() {
-  try {
-    const response = await axios.get('http://localhost:3000/api/objave')
-    posts.value = response.data
+async function filterPosts () {
+  // Ako nije odabran nijedan tag, prikaži sve objave
+  if (!selectedTags.value || selectedTags.value.length === 0) {
     filteredPosts.value = posts.value
-  } catch (error) {
-    console.error('❌ Ne mogu dohvatiti objave:', error)
+    return
+  }
+
+  try {
+    // selectedTags.value sada sadrži niz stringova: ['skripta', 'projekt']
+    const tagQuery = selectedTags.value.join(',')
+    console.log('🔍 Slanje upita za tagove:', tagQuery)
+
+    const res = await axios.get(`http://localhost:3000/api/objave/filtrirane?tagovi=${tagQuery}`)
+    filteredPosts.value = res.data
+  } catch (err) {
+    console.error(' Greška pri filtriranju objava:', err)
     $q.notify({
       type: 'negative',
-      message: 'Greška pri dohvaćanju objava.',
+      message: 'Greška pri filtriranju objava.',
       timeout: 2500
     })
   }
-}
-
-function filterPosts() {
-  if (selectedTags.value.length === 0) {
-    filteredPosts.value = posts.value
-  } else {
-    filteredPosts.value = posts.value.filter(post =>
-      post.tags.some(tag => selectedTags.value.includes(tag))
-    )
-  }
-  // Reset paginacije kad se filtrira
-  page.value = 1
+  page.value = 1 // reset paginacije
 }
 
 function goToPost(id) {

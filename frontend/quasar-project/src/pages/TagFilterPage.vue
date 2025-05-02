@@ -1,5 +1,6 @@
 <template>
   <div class="q-pa-md">
+    <!-- Selekt za tagove -->
     <q-select
       v-model="selectedTags"
       :options="availableTags"
@@ -10,6 +11,7 @@
       map-options
     />
 
+    <!-- Gumb za filtriranje -->
     <q-btn
       label="Filtriraj"
       color="primary"
@@ -17,22 +19,24 @@
       @click="filterPosts"
     />
 
+    <!-- Poruka ako nema rezultata -->
     <div v-if="filteredPosts.length === 0 && selectedTags.length > 0" class="q-mt-md">
       <q-banner class="bg-grey-3 text-black">
         Nema objava s odabranim tagovima.
       </q-banner>
     </div>
 
+    <!-- Prikaz filtriranih objava -->
     <div v-else class="q-mt-md">
       <q-card
         v-for="post in filteredPosts"
-        :key="post._id"
+        :key="post.id"
         class="q-mb-md"
       >
         <q-card-section>
           <div class="text-h6">{{ post.title }}</div>
           <div class="text-caption">{{ post.date }} - {{ post.author }}</div>
-          <div class="q-mt-sm">{{ post.content }}</div>
+          <div class="q-mt-sm">{{ post.preview }}</div>
           <div class="q-mt-sm">
             <q-chip
               v-for="tag in post.tags"
@@ -57,49 +61,33 @@ export default {
   data () {
     return {
       selectedTags: [],
-      availableTags: [
-        { label: 'Python', value: 'Python' },
-        { label: 'Ispit', value: 'Ispit' },
-        { label: 'Programiranje', value: 'Programiranje' }
-      ],
-      filteredPosts: [],
-      allPosts: [ // MOCK PODACI ZA TESTIRANJE
-        {
-          _id: '1',
-          title: 'Prva objava',
-          content: 'Ova objava se tiče ispita iz Pythona.',
-          author: 'Ana',
-          date: '2025-04-25',
-          tags: ['Python', 'Ispit']
-        },
-        {
-          _id: '2',
-          title: 'Druga objava',
-          content: 'Netko traži pomoć oko programiranja.',
-          author: 'Marko',
-          date: '2025-04-24',
-          tags: ['Programiranje']
-        }
-      ]
+      availableTags: [], // dinamčki dohvat s backenda
+      filteredPosts: []
+    }
+  },
+  async mounted () {
+    // Dohvati dostupne tagove s backenda
+    try {
+      const res = await axios.get('/api/tagovi')
+      this.availableTags = res.data
+    } catch (err) {
+      console.error(' Greška pri dohvaćanju tagova:', err)
     }
   },
   methods: {
     async filterPosts () {
-      // ako nema backend, lokalni podatci:
-      this.filteredPosts = this.allPosts.filter(post =>
-        post.tags.some(tag => this.selectedTags.includes(tag))
-      )
+      if (this.selectedTags.length === 0) {
+        this.filteredPosts = []
+        return
+      }
 
-      // kad backend proradi:
-      /*
       try {
         const query = this.selectedTags.join(',')
-        const res = await axios.get(`/api/posts?tags=${query}`)
+        const res = await axios.get(`/api/objave/filtrirane?tagovi=${query}`)
         this.filteredPosts = res.data
       } catch (err) {
-        console.error('Greška pri dohvaćanju objava:', err)
+        console.error(' Greška pri dohvaćanju objava:', err)
       }
-      */
     }
   }
 }
