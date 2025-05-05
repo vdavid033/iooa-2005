@@ -196,6 +196,9 @@ function isToday(datum) {
 .ostale-obaveze-color {
   background-color: #e3f2fd;
 }
+.today {
+  border: 2px solid #2196f3;
+}
 
 .low-density {
   background-color: #e1f5fe !important;
