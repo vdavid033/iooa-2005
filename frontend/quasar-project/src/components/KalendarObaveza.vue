@@ -24,6 +24,12 @@
           @click.stop="klikNaObavezu(day.date, o)"
         >
           {{ o.opis_obaveze }}
+          <button
+            class="delete-button"
+            @click.stop="obrisiObavezu(o.id_obaveze, day.date)"
+          >
+            ✖
+          </button>
         </div>
       </div>
     </div>
@@ -146,6 +152,25 @@ function isToday(datum) {
   const today = date.formatDate(new Date(), 'YYYY-MM-DD')
   return datum === today
 }
+
+async function obrisiObavezu(idObaveze, datum) {
+  try {
+    const response = await axios.delete(`http://localhost:3000/api/obaveza-brisanje/${idObaveze}`);
+    if (response.status === 200) {
+      alert("Obaveza uspješno obrisana.");
+      // Ažuriraj lokalni state
+      obaveze.value[datum] = obaveze.value[datum].filter((o) => o.id_obaveze !== idObaveze);
+      if (obaveze.value[datum].length === 0) {
+        delete obaveze.value[datum];
+      }
+    } else {
+      alert(response.data.message);
+    }
+  } catch (error) {
+    console.error("Greška pri brisanju obaveze:", error);
+    alert("Došlo je do greške pri brisanju obaveze. Pokušajte ponovo.");
+  }
+}
 </script>
 
 <style scoped>
@@ -267,5 +292,16 @@ function isToday(datum) {
 }
 .high-density {
   background-color: #ffccbc;
+}
+.delete-button {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+.delete-button:hover {
+  color: darkred;
 }
 </style>

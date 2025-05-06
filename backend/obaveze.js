@@ -82,3 +82,23 @@ app.get("/api/tipoviObaveza", (req, res) => {
     res.json(results); // [{ value: 1, label: 'Kolokvij' }, ...]
   });
 });
+
+app.delete("/api/obaveza-brisanje/:id", (req, res) => {
+  const { id } = req.params; // Dohvaćamo id iz URL parametara
+ 
+  const sql = "DELETE FROM obaveza WHERE id_obaveze = ?";
+ 
+  db.query(sql, [id], (err, results) => {
+    if (err) {
+      console.error("Greška pri brisanju obaveze:", err);
+      return res.status(500).json({ error: "Greška pri brisanju obaveze." });
+    }
+ 
+    // Provjeravamo je li obrisana barem jedna obaveza
+    if (results.affectedRows > 0) {
+      return res.status(200).json({ message: "Obaveza uspješno obrisana." });
+    } else {
+      return res.status(404).json({ message: "Obaveza nije pronađena." });
+    }
+  });
+});
