@@ -1,6 +1,7 @@
 <template>
   <q-page class="q-pa-xl">
-    <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze" />
+
+    <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze"/>
 
     <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" class="q-mt-md" />
 
@@ -46,11 +47,16 @@ const selektiraneObaveze = ref(null)
 
 async function dohvatiDetaljeObaveze(obaveza) {
   try {
-    const response = await axios.get(`http://localhost:3000/api/obaveze?id=${obaveza.id_obaveze}`)
-    return response.data
+    const response = await axios.get('http://localhost:3000/api/obaveze');
+    const sveObaveze = response.data;
+
+    // Filtriramo obaveze koje imaju tačan datum
+    const obavezeZaDatum = sveObaveze.filter(ob => ob.datum_obaveze === obaveza.datum_obaveze);
+
+    return obavezeZaDatum;
   } catch (err) {
-    console.error('Greška pri dohvaćanju detalja obaveze:', err)
-    return []
+    console.error('Greška pri dohvaćanju detalja obaveze:', err);
+    return [];
   }
 }
 
@@ -66,4 +72,18 @@ function prikaziDetaljeObaveze({ datum, obaveza }) {
     console.error('Obaveza nije ispravno definirana ili nema ID')
   }
 }
+
+async function prikaziObavezeZaDan(datum) {
+ selektiranDatum.value = datum
+  try {
+    const response = await axios.get(`http://localhost:3000/api/obavezaDetalji`, {
+      params: { datum_obaveze: datum }
+    })
+    selektiraneObaveze.value = response.data
+    showDetalji.value = true
+  } catch (err) {
+    console.error('Greška pri dohvaćanju obaveza za dan:', err)
+  }
+}
+
 </script>

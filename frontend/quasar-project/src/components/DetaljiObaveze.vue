@@ -14,7 +14,7 @@
           <div><strong>Kolegij:</strong> {{ o.kolegij }}</div>
           <div><strong>Nastavnik:</strong> {{ o.profesor }}</div>
           <div><strong>Datum:</strong> {{ formatirajDatum(o.datum_obaveze) }}</div>
-          <div><strong>Vrijeme:</strong> {{ o.vrijeme_pocetka }}</div>
+          <div><strong>Vrijeme:</strong> {{ formatirajVrijeme(o.vrijeme_pocetka) }}</div>
           <div><strong>Dvorana:</strong> {{ o.lokacija }}</div>
           <div><strong>Tip:</strong> {{ o.opis_obaveze }}</div>
           <div><strong>Napomena:</strong> {{ o.opis_obaveze }}</div>
@@ -29,19 +29,31 @@ import { computed } from 'vue'
 
 const props = defineProps({
   datum: String,
-  obaveze: Array,
+  obaveze: Array
 })
 
 defineOptions({
-  name: 'DetaljiObaveze',
+  name: 'DetaljiObaveze'
 })
 
 const sortiraneObaveze = computed(() => {
-  return [...props.obaveze].sort()
+  return [...props.obaveze].sort((a, b) => a.vrijeme_pocetka.localeCompare(b.vrijeme_pocetka))
 })
 
 function formatirajDatum(isoDatum) {
-  const [godina, mjesec, dan] = isoDatum.split('-')
-  return `${parseInt(dan)}.${parseInt(mjesec)}.${godina}.`
+  const datumObj = new Date(isoDatum)
+  const godina = datumObj.getFullYear()
+  const mjesec = String(datumObj.getMonth() + 1).padStart(2, '0')
+  const dan = String(datumObj.getDate()).padStart(2, '0')
+
+  return `${dan}.${mjesec}.${godina}.`
+}
+
+function formatirajVrijeme(vrijeme) {
+  const vrijemeObj = new Date(`1970-01-01T${vrijeme}Z`)
+  const sati = String(vrijemeObj.getHours()).padStart(2, '0')
+  const minute = String(vrijemeObj.getMinutes()).padStart(2, '0')
+
+  return `${sati}:${minute}`
 }
 </script>

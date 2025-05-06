@@ -39,10 +39,11 @@ app.listen(PORT, () => {
   console.log(`Server je pokrenut na http://localhost:${PORT}`);
 });
 
+/*
 app.get("/api/obavezaDetalji", (req, res) => {
-  const { id } = req.query;
-  const sql = "SELECT * FROM obaveza WHERE id_obaveze = ?";
-  db.query(sql, [id], (err, results) => {
+  const { datum_obaveze } = req.query;
+  const sql = "SELECT * FROM obaveza WHERE datum_obaveze = ?";
+  db.query(sql, [datum_obaveze], (err, results) => {
     if (err) {
       console.error("Greška pri dohvaćanju detalja obaveze:", err);
       return res.status(500).json({ error: "Greška pri dohvaćanju podataka." });
@@ -50,7 +51,7 @@ app.get("/api/obavezaDetalji", (req, res) => {
     res.json(results[0]);
   });
   
-});
+});*/
 
 app.post("/api/unosObaveze", (req, res) => {
 
