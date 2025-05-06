@@ -20,7 +20,7 @@
           v-for="(o, index) in getObavezeForDate(day.date)"
           :key="index"
           class="obaveza"
-          :class="getColorClass(o.opis_obaveze)"
+          :class="getColorClass(o.fk_tip_obaveze)"
           @click.stop="klikNaObavezu(day.date, o)"
         >
           {{ o.opis_obaveze }}
@@ -91,6 +91,7 @@ function klikNaDan(datum) {
   emit('klikNaDan', datum)
 }
 
+/*
 function getColorClass(obaveza) {
   if (obaveza === 'kolokvij') {
     return 'kolokvij-color'
@@ -101,6 +102,14 @@ function getColorClass(obaveza) {
   } else {
     return 'ostale-obaveze-color'
   }
+}
+*/
+
+function getColorClass(tip) {
+  if (tip === 1) return 'kolokvij'
+  if (tip === 2) return 'prakticni-zadatak'
+  if (tip === 3) return 'predaja-seminara'
+  return 'drugo'
 }
 
 function getDensityClass(datum) {
@@ -184,16 +193,16 @@ function isToday(datum) {
   z-index: 10;
 }
 
-.kolokvij-color {
+.kolokvij {
   background-color: #ffcc80;
 }
-.ispit-color {
+.prakticni-zadatak {
   background-color: #ff7043;
 }
-.predavanje-color {
+.predaja-seminara {
   background-color: #81c784;
 }
-.ostale-obaveze-color {
+.drugo {
   background-color: #e3f2fd;
 }
 .today {
