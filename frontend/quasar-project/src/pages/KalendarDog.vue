@@ -47,6 +47,16 @@
       <q-card style="min-width: 900px">
         <q-card-section>
           <div class="text-h6">Događaji za: {{ selectedDateFormatted }}</div>
+          <q-select
+  v-model="form.category"
+  :options="categoryOptions"
+  label="Kategorija"
+  option-value="value"
+  option-label="label"
+  emit-value
+  map-options
+  filled
+/>
         </q-card-section>
 
         <q-card-section style="padding: 0 24px">
@@ -138,8 +148,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { date } from 'quasar'
+import axios from 'axios'
 
 const currentDate = ref(new Date())
 const showDateModal = ref(false)
@@ -150,7 +161,28 @@ const form = ref({
   headline: '',
   description: '',
   location: '',
+  category: null
 })
+
+const categoryOptions = [
+  { label: 'Zabava', value: 2 },
+  { label: 'Edukacija', value: 3 },
+  { label: 'Volontiranje', value: 4 }
+]
+
+const events = ref({
+  zabava: [],
+  edukacija: [],
+  volontiranje: []
+})
+
+const currentMonthYear = computed(() =>
+  date.formatDate(currentDate.value, 'MMMM YYYY')
+)
+
+const selectedDateFormatted = computed(() =>
+  selectedDate.value ? date.formatDate(selectedDate.value, 'YYYY-MM-DD') : ''
+)
 
 const daysInMonth = computed(() => {
   const year = currentDate.value.getFullYear()
@@ -162,45 +194,20 @@ const daysInMonth = computed(() => {
   }))
 })
 
-const currentMonthYear = computed(() => date.formatDate(currentDate.value, 'MMMM YYYY'))
+const fetchEventsForDate = async () => {
+  try {
+    const res = await axios.get(`http://localhost:3000/api/events/${selectedDateFormatted.value}`)
+    const fetched = res.data
 
-const selectedDateFormatted = computed(() =>
-  selectedDate.value ? date.formatDate(selectedDate.value, 'DD-MM-YYYY') : ''
-)
-
-const prevMonth = () => {
-  currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() - 1))
-}
-
-const nextMonth = () => {
-  currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() + 1))
-}
-
-const events = {
-  zabava: [
-    { headline: 'Party Night', description: 'Opis', location: 'Kantrida' },
-    { headline: 'Ljetni festival', description: '', location: '' },
-    { headline: 'Noć igara', description: '', location: '' },
-    { headline: 'Karnevalska parada', description: '', location: '' },
-    { headline: 'Silent disco', description: '', location: '' },
-    { headline: 'Kino pod zvijezdama', description: '', location: '' },
-  ],
-  edukacija: [
-    { headline: 'Web Development', description: '', location: '' },
-    { headline: 'Marketing Workshop', description: '', location: '' },
-    { headline: 'Uvod u Python', description: '', location: '' },
-    { headline: 'Tečaj javnog nastupa', description: '', location: '' },
-    { headline: 'Osnove dizajna', description: '', location: '' },
-    { headline: 'Radionica financijske pismenosti', description: '', location: '' },
-  ],
-  volontiranje: [
-    { headline: 'Čišćenje plaže', description: '', location: '' },
-    { headline: 'Pomaganje u azilu', description: '', location: '' },
-    { headline: 'Sadnja drveća', description: '', location: '' },
-    { headline: 'Podrška starijima', description: '', location: '' },
-    { headline: 'Organizacija humanitarne utrke', description: '', location: '' },
-    { headline: 'Prikupljanje hrane za socijalne kuhinje', description: '', location: '' },
-  ],
+    // Kategorizacija po nazivu kategorije
+    events.value = {
+      zabava: fetched.filter(e => e.category === 'Zabava'),
+      edukacija: fetched.filter(e => e.category === 'Edukacija'),
+      volontiranje: fetched.filter(e => e.category === 'Volontiranje'),
+    }
+  } catch (err) {
+    console.error('Greška prilikom dohvaćanja događaja:', err)
+  }
 }
 
 const handleDateClick = (dateObj) => {
@@ -211,6 +218,7 @@ const handleDateClick = (dateObj) => {
 
 const selectDate = (dateObj) => {
   selectedDate.value = dateObj
+  fetchEventsForDate()
   showDateModal.value = true
 }
 
@@ -224,8 +232,41 @@ const cancelCreateEvent = () => {
   showDateModal.value = true
 }
 
+const saveEvent = async () => {
+  console.log('form.category:', form.value.category) // 👈 OVDJE
+  const eventData = {
+    headline: form.value.headline,
+    description: form.value.description,
+    location: form.value.location,
+    categoryId: form.value.category,
+    date: selectedDateFormatted.value,
+    time: '12:00:00', // možeš kasnije omogućiti unos
+    userId: 1 // koristi stvarni korisnički ID
+  }
+
+  try {
+    await axios.post('http://localhost:3000/api/events', eventData)
+    showEventModal.value = false
+    form.value = { headline: '', description: '', location: '', category:null}
+    fetchEventsForDate()
+  } catch (err) {
+    console.error('Greška pri spremanju događaja:', err)
+  }
+}
+
+const deleteEvent = async () => {
+  try {
+    await axios.delete(`http://localhost:3000/api/events/${selectedEvent.value.id}`)
+    showEventDetailModal.value = false
+    fetchEventsForDate()
+  } catch (err) {
+    console.error('Greška pri brisanju događaja:', err)
+  }
+}
+
 const showEventDetailModal = ref(false)
 const selectedEvent = ref({
+  id: null,
   headline: '',
   category: '',
   description: '',
@@ -240,21 +281,19 @@ const openEventDetails = (event, category) => {
   showEventDetailModal.value = true
 }
 
-// NOVO: funkcija za brisanje
-const deleteEvent = () => {
-  console.log('Brisanje eventa:', selectedEvent.value)
-  showEventDetailModal.value = false
+const getCategoryId = (name) => {
+  if (name === 'Zabava') return 1
+  if (name === 'Edukacija') return 2
+  if (name === 'Volontiranje') return 3
+  return 1
 }
 
-const saveEvent = () => {
-  const eventData = {
-    ...form.value,
-    author: 'trenutniKorisnik',
-    date: selectedDateFormatted.value,
-  }
-  console.log('Spremanje eventa:', eventData)
-  showEventModal.value = false
-  form.value = { headline: '', description: '', location: '' }
+const prevMonth = () => {
+  currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() - 1))
+}
+
+const nextMonth = () => {
+  currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() + 1))
 }
 
 const isToday = (dayDate) => {
