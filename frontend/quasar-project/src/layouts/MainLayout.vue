@@ -27,16 +27,37 @@
       </q-toolbar>
     </q-header>
 
-    <q-drawer v-model="leftDrawerOpen" show-if-above bordered>
-      <q-list>
-        <q-item-label header>
-          Essential Links
-        </q-item-label>
+    <!-- Lijevi drawer sa linkovima i kontaktima -->
+    <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1" :width="280">
+      <q-scroll-area style="height: 100%;">
+        <q-list>
+          <q-item-label header>NAVIGACIJA</q-item-label>
 
-        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
-      </q-list>
+          <q-item clickable v-ripple to="/poruke">
+            <q-item-section avatar>
+              <q-icon name="chat" />
+            </q-item-section>
+            <q-item-section>Poruke</q-item-section>
+          </q-item>
+
+          <q-item clickable v-ripple to="/notifikacija">
+            <q-item-section avatar>
+              <q-icon name="notifications" />
+            </q-item-section>
+            <q-item-section>Notifikacija Dummy</q-item-section>
+          </q-item>
+
+          <q-item clickable v-ripple to="/inbox">
+            <q-item-section avatar>
+              <q-icon name="email" />
+            </q-item-section>
+            <q-item-section>Inbox Poruke</q-item-section>
+          </q-item>
+        </q-list>
+      </q-scroll-area>
     </q-drawer>
 
+    <!-- Sadržaj stranice -->
     <q-page-container>
       <router-view />
     </q-page-container>
@@ -45,33 +66,10 @@
 
 <script setup>
 import { ref } from 'vue'
-import EssentialLink from 'components/EssentialLink.vue'
 
 defineOptions({
-  name: 'MainLayout',
+  name: 'MainLayout'
 })
-
-const linksList = [
-{
-    title: 'Poruke',
-    caption: '',
-    icon: 'poruke',
-    link: '/Poruke'
-  },
-
-  {
-    title: 'Notifikacija Dummy',
-    caption: '',
-    icon: 'notifications',
-    link: '/notifikacija'
-  },
-  {
-    title: 'Inbox Poruke',
-    caption: '',
-    icon: 'email',
-    link: '/inbox'
-  }
-]
 
 const leftDrawerOpen = ref(false)
 

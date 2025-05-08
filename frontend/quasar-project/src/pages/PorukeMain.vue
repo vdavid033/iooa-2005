@@ -1,198 +1,150 @@
 <template>
-    <q-layout view="hHh Lpr lFf">
-      <!-- Lijevi drawer sa Essential Links i kontaktima -->
-      <q-drawer 
-        v-model="leftDrawerOpen" 
-        show-if-above 
-        bordered
-        :width="280"
-        class="bg-grey-2"
-      >
-        <q-scroll-area style="height: 100%;">
-          <!-- Prvi dio - Essential Links -->
-          <q-list>
-            <q-item-label header>
-              NAVIGACIJA
-            </q-item-label>
-  
-            <EssentialLink
-              v-for="link in essentialLinks"
-              :key="link.title"
-              v-bind="link"
-            />
-          </q-list>
-  
-          <q-separator />
-  
-          <!-- Drugi dio - Kontakti za chat -->
-          <q-list>
-            <q-item-label header>
-              Kontakti
-            </q-item-label>
-  
-            <q-btn 
-              flat 
-              label="NEW CHAT" 
-              icon="add_comment" 
-              class="full-width text-left q-pl-md"
-            />
-            <q-btn 
-              flat 
-              label="NEW GROUP" 
-              icon="group_add" 
-              class="full-width text-left q-pl-md"
-            />
-  
-            <q-item 
-              v-for="contact in contacts" 
-              :key="contact.id"
-              clickable
-              v-ripple
-              :active="selectedContact === contact.id"
-              @click="selectContact(contact.id)"
-            >
-              <q-item-section avatar>
-                <q-avatar color="primary" text-color="white">
-                  {{ contact.name.charAt(0) }}
-                </q-avatar>
-              </q-item-section>
-              <q-item-section>
-                <q-item-label>{{ contact.name }}</q-item-label>
-                <q-item-label caption lines="1">{{ contact.lastMessage }}</q-item-label>
-              </q-item-section>
-              <q-item-section side>
-                <q-item-label caption>{{ contact.time }}</q-item-label>
-              </q-item-section>
-            </q-item>
-          </q-list>
-        </q-scroll-area>
-      </q-drawer>
-  
-      <!-- Glavni sadržaj - chat prozor -->
-      <q-page-container>
-        <q-page class="row no-wrap">
-          <div class="col column" style="min-width: 0;">
-            <!-- Chat header -->
-            <q-toolbar class="bg-grey-3">
-              <q-btn
-                flat
-                dense
-                round
-                icon="menu"
-                aria-label="Menu"
-                @click="leftDrawerOpen = !leftDrawerOpen"
-              />
-              <q-toolbar-title v-if="selectedContact">
-                {{ getContactName(selectedContact) }}
-              </q-toolbar-title>
-            </q-toolbar>
-  
-            <!-- Povijest razgovora -->
-            <q-scroll-area class="col q-pa-md" style="height: calc(100vh - 130px);">
-              <div class="text-caption text-center q-my-md">Today</div>
-              
-              <div 
-                v-for="(message, index) in messages" 
-                :key="index"
-                :class="['q-pa-sm', message.sent ? 'text-right' : 'text-left']"
+  <q-page class="row q-pa-md">
+    <!-- Sidebar s kontaktima -->
+    <div class="col-3 q-pr-md">
+      <q-card>
+        <q-card-section class="bg-primary text-white">
+          <div class="text-h6">Veleri</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-btn label="NEW CHAT" icon="chat" class="q-mb-sm full-width" color="primary" />
+          <q-btn label="NEW GROUP" icon="group_add" class="full-width" color="secondary" />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-list bordered padding>
+          <q-item clickable v-for="chat in chats" :key="chat.id" @click="selectChat(chat)">
+            <q-item-section>
+              <q-item-label>{{ chat.name }}</q-item-label>
+              <q-item-label caption>{{ chat.lastMessage }}</q-item-label>
+            </q-item-section>
+            <q-item-section side v-if="chat.time">
+              <q-item-label caption>{{ chat.time }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </q-card>
+    </div>
+
+    <!-- Glavni chat prozor -->
+    <div class="col-9">
+      <q-card class="full-height">
+        <q-card-section>
+          <div class="text-h6">{{ selectedChat?.name || 'Odaberi chat' }}</div>
+        </q-card-section>
+
+        <q-separator />
+
+        <q-scroll-area ref="scrollAreaRef" style="height: 60vh">
+          <div v-if="selectedChat">
+            <div v-for="(msg, index) in selectedChat.messages" :key="index" class="q-mb-sm row">
+              <div
+                :class="[
+                  'q-pa-sm rounded-borders',
+                  msg.fromMe ? 'bg-green-3 text-right self-end' : 'bg-grey-3 text-left self-start'
+                ]"
+                :style="{
+                  maxWidth: '60%',
+                  marginLeft: msg.fromMe ? 'auto' : '0', 
+                  marginRight: msg.fromMe ? '0' : 'auto'
+                }"
               >
-                <q-chat-message
-                  :text="[message.text]"
-                  :sent="message.sent"
-                  :stamp="message.time"
-                />
+                {{ msg.text }}
+                <div class="text-caption text-grey-7">{{ msg.time }}</div>
               </div>
-            </q-scroll-area>
-  
-            <!-- Input za novu poruku -->
-            <q-footer class="bg-white">
-              <q-toolbar>
-                <q-input 
-                  v-model="newMessage" 
-                  placeholder="Type a message" 
-                  dense 
-                  rounded 
-                  outlined 
-                  class="full-width"
-                  @keyup.enter="sendMessage"
-                >
-                  <template v-slot:after>
-                    <q-btn 
-                      round 
-                      dense 
-                      flat 
-                      icon="send" 
-                      @click="sendMessage"
-                    />
-                  </template>
-                </q-input>
-              </q-toolbar>
-            </q-footer>
+            </div>
           </div>
-        </q-page>
-      </q-page-container>
-    </q-layout>
-  </template>
-  
-  <script>
-  import EssentialLink from 'components/EssentialLink.vue'
-  
-  export default {
-    name: 'PorukeMain',
-    components: {
-      EssentialLink
-    },
-    data() {
-      return {
-        leftDrawerOpen: true,
-        selectedContact: 2,  
-        newMessage: '',
-        essentialLinks: [
-          {
-            title: 'Dashboard',
-            caption: 'Glavna ploča',
-            icon: 'dashboard',
-            link: '/'
-          }
-          // Dodajte ostale linkove po potrebi
-        ],
-        contacts: [
-          { id: 1, name: 'Marko Linić', lastMessage: 'Hello there!', time: '11:30' },
-          { id: 2, name: 'Borna Rošić', lastMessage: 'Hello there!', time: '12:45' },
-          { id: 3, name: 'Alex Bahorić', lastMessage: 'Hello there!', time: 'Yesterday' },
-          { id: 4, name: 'Dino Turak', lastMessage: 'Hello there!', time: 'Yesterday' }
-        ],
-        messages: [
-          { text: 'Hello there!', time: '12:45', sent: false },
-          { text: 'Hello! How are you doing today', time: '12:47', sent: true }
-        ]
-      }
-    },
-    methods: {
-      selectContact(contactId) {
-        this.selectedContact = contactId
-        // Ovdje bi dohvatili poruke za odabrani kontakt
-      },
-      sendMessage() {
-        if (this.newMessage.trim() && this.selectedContact) {
-          this.messages.push({
-            text: this.newMessage,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            sent: true
-          })
-          this.newMessage = ''
-        }
-      },
-      getContactName(id) {
-        const contact = this.contacts.find(c => c.id === id)
-        return contact ? contact.name : ''
-      }
-    }
+          <div v-else class="text-center text-grey q-mt-md">Odaberi kontakt za prikaz poruka</div>
+        </q-scroll-area>
+
+        <q-separator />
+
+        <q-card-actions>
+          <q-input
+            v-model="newMessage"
+            placeholder="Type a message"
+            class="col"
+            @keyup.enter="sendMessage"
+            dense
+          />
+          <q-btn icon="send" @click="sendMessage" round color="primary" />
+        </q-card-actions>
+      </q-card>
+    </div>
+  </q-page>
+</template>
+
+<script setup>
+import { ref, nextTick } from 'vue'
+
+const newMessage = ref('')
+const selectedChat = ref(null)
+const scrollAreaRef = ref(null)
+
+const chats = ref([
+  {
+    id: 1,
+    name: 'Marko Linić',
+    lastMessage: 'See you tomorrow!',
+    time: '11:30',
+    messages: [
+      { text: 'See you tomorrow!', time: '11:30', fromMe: false }
+    ]
+  },
+  {
+    id: 2,
+    name: 'Borna Rošić',
+    lastMessage: 'Hello there!',
+    time: '12:45',
+    messages: [
+      { text: 'Hello there!', time: '12:45', fromMe: false },
+      { text: 'Hello Borna! How are you doing today', time: '12:47', fromMe: true },
+      { text: 'Test', time: '23:27', fromMe: true }
+    ]
+  },
+  {
+    id: 3,
+    name: 'Alex Bahorić',
+    lastMessage: 'Meeting at 3pm',
+    time: 'Jučer',
+    messages: [
+      { text: 'Meeting at 3pm', time: 'Jučer', fromMe: false }
+    ]
+  },
+  {
+    id: 4,
+    name: 'Dino Turak',
+    lastMessage: 'Check this out',
+    time: 'Jučer',
+    messages: [
+      { text: 'Check this out', time: 'Jučer', fromMe: false }
+    ]
   }
-  </script>
-  
-  <style scoped>
-  .q-message-text {
-    max-width: 70%;
-  }
-  </style>
+])
+
+function selectChat(chat) {
+  selectedChat.value = chat
+  nextTick(() => {
+    scrollToBottom()
+  })
+}
+
+function sendMessage() {
+  if (!newMessage.value.trim() || !selectedChat.value) return
+  selectedChat.value.messages.push({
+    text: newMessage.value,
+    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+    fromMe: true
+  })
+  newMessage.value = ''
+  nextTick(() => {
+    scrollToBottom()
+  })
+}
+
+function scrollToBottom() {
+  scrollAreaRef.value?.setScrollPosition('vertical', 9999, 300)
+}
+</script>
