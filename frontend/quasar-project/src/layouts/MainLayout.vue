@@ -2,61 +2,43 @@
   <q-layout view="lHh Lpr lFf">
     <q-header elevated>
       <q-toolbar>
-        <q-btn
-          flat
-          dense
-          round
-          icon="menu"
-          aria-label="Menu"
-          @click="toggleLeftDrawer"
-        />
+  <div class="q-toolbar-title" style="display: flex; justify-content: center;">
+    <q-btn flat label="Početna" to="/" />
+    <q-btn flat label="Poruke" to="/poruke" />
+    <q-btn flat label="Forum" to="/forum" />
+    <q-btn flat label="Obaveze" to="/kalendar-obaveze">
+      <q-tooltip>Kalendar</q-tooltip>
+    </q-btn>
+    <q-btn flat label="Dogadaji" to="/kalendardog">
+      <q-tooltip>Kalendar</q-tooltip>
+    </q-btn>
+  </div>
+</q-toolbar>
 
-        <q-toolbar-title>
-        PORUKE
-        </q-toolbar-title>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-        <div class="q-toolbar-title">
-          <q-btn flat label="Početna" to="/" />
-          <q-btn flat label="Forum" to="/forum" />
-          <q-btn flat label="Obaveze" to="/kalendar-obaveze"><q-tooltip>Kalendar</q-tooltip></q-btn>
-          <q-btn flat label="Dogadaji" to="/kalendardog"><q-tooltip>Kalendar</q-tooltip></q-btn>
-        </div>
-        <q-toolbar-title> Quasar App </q-toolbar-title>
-
-        <div>Quasar v{{ $q.version }}</div>
-      </q-toolbar>
     </q-header>
 
-    <!-- Lijevi drawer sa linkovima i kontaktima -->
+    <!--  Lijevi drawer sa linkovima i kontaktima 
     <q-drawer v-model="leftDrawerOpen" show-if-above bordered class="bg-grey-1" :width="280">
       <q-scroll-area style="height: 100%;">
         <q-list>
           <q-item-label header>NAVIGACIJA</q-item-label>
-
           <q-item clickable v-ripple to="/poruke">
             <q-item-section avatar>
               <q-icon name="chat" />
             </q-item-section>
             <q-item-section>Poruke</q-item-section>
           </q-item>
-
           <q-item clickable v-ripple to="/notifikacija">
-            <q-item-section avatar>
-              <q-icon name="notifications" />
-            </q-item-section>
-            <q-item-section>Notifikacija Dummy</q-item-section>
-          </q-item>
+  <q-item-section avatar>
+    <q-icon name="notifications" />
+  </q-item-section>
+  <q-item-section>Notifikacija Dummy</q-item-section>
+</q-item>
 
-          <q-item clickable v-ripple to="/inbox">
-            <q-item-section avatar>
-              <q-icon name="email" />
-            </q-item-section>
-            <q-item-section>Inbox Poruke</q-item-section>
-          </q-item>
         </q-list>
       </q-scroll-area>
     </q-drawer>
-
+  -->
     <!-- Sadržaj stranice -->
     <q-page-container>
       <router-view />

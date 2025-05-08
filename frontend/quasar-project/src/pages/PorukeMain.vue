@@ -47,8 +47,8 @@
                 ]"
                 :style="{
                   maxWidth: '60%',
-                  marginLeft: msg.fromMe ? 'auto' : '0', 
-                  marginRight: msg.fromMe ? '0' : 'auto'
+                  marginLeft: msg.fromMe ? 'auto' : '12px', 
+                  marginRight: msg.fromMe ? '12px' : 'auto',
                 }"
               >
                 {{ msg.text }}
