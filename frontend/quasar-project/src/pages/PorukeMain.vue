@@ -57,7 +57,7 @@
               class="q-mb-sm row"
             >
               <div
-                :class="[
+                :class="[ 
                   'q-pa-sm rounded-borders',
                   msg.fromMe ? 'bg-green-3 text-right self-end' : 'bg-grey-3 text-left self-start'
                 ]"
@@ -93,7 +93,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch } from 'vue'
+import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
 
 // Varijable stanja
 const newMessage = ref('')
@@ -101,14 +101,13 @@ const selectedChat = ref(null)
 const scrollAreaRef = ref(null)
 const chats = ref([])
 const poruke = ref([])
-const trenutniKorisnikId = 1 // Hardcodirano za sada (kada se doda login onda cemu iz Session uzeti userID)
+const trenutniKorisnikId = 1 // Hardcodirano za sada (dodati login kasnije)
 
 // Dohvaćanje podataka
 const fetchKorisnici = async () => {
   try {
     const response = await fetch(`http://localhost:3000/api/korisnici/${trenutniKorisnikId}`)
     chats.value = await response.json()
-    // Nakon što dobijemo korisnike, učitamo sve poruke
     await fetchSvePoruke()
   } catch (error) {
     console.error('Greška pri dohvaćanju korisnika:', error)
@@ -128,7 +127,6 @@ const fetchPorukeZaKorisnika = async (korisnikId) => {
   try {
     const response = await fetch(`http://localhost:3000/api/poruke/${trenutniKorisnikId}/${korisnikId}`)
     const novePoruke = await response.json()
-    // Ažuriramo samo poruke za tog korisnika
     poruke.value = [
       ...poruke.value.filter(p => 
         !(p.posiljatelj === trenutniKorisnikId && p.primatelj === korisnikId) &&
@@ -158,7 +156,6 @@ const getMessagesForChat = (korisnikId) => {
 const getLastMessagePreview = (korisnikId) => {
   const messages = getMessagesForChat(korisnikId)
   if (messages.length === 0) return 'Nema poruka!'
-  
   const lastMsg = messages[messages.length - 1]
   return lastMsg.sadrzaj.length > 15 
     ? lastMsg.sadrzaj.substring(0, 25) + '...' 
@@ -168,29 +165,21 @@ const getLastMessagePreview = (korisnikId) => {
 const getLastMessageTime = (korisnikId) => {
   const messages = getMessagesForChat(korisnikId)
   if (messages.length === 0) return ''
-  
   return formatTime(messages[messages.length - 1].datum_vrijeme)
 }
 
 const formatTime = (datumVrijeme) => {
   if (!datumVrijeme) return ''
-  
   const date = new Date(datumVrijeme)
   const now = new Date()
-  
-  // Ako je poruka iz danas, prikaži samo vrijeme
+  const yesterday = new Date(now)
+  yesterday.setDate(now.getDate() - 1)
   if (date.toDateString() === now.toDateString()) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   }
-  
-  // Ako je poruka od jučer
-  const yesterday = new Date(now)
-  yesterday.setDate(yesterday.getDate() - 1)
   if (date.toDateString() === yesterday.toDateString()) {
     return 'Jučer'
   }
-  
-  // Inače, prikaži datum
   return date.toLocaleDateString()
 }
 
@@ -198,14 +187,11 @@ const formatTime = (datumVrijeme) => {
 const selectChat = async (chat) => {
   selectedChat.value = chat
   await fetchPorukeZaKorisnika(chat.id_korisnika)
-  nextTick(() => {
-    scrollToBottom()
-  })
+  nextTick(() => scrollToBottom())
 }
 
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedChat.value) return
-  
   try {
     await fetch('http://localhost:3000/api/poruke', {
       method: 'POST',
@@ -216,12 +202,9 @@ const sendMessage = async () => {
         primatelj: selectedChat.value.id_korisnika
       })
     })
-    
     newMessage.value = ''
     await fetchPorukeZaKorisnika(selectedChat.value.id_korisnika)
-    nextTick(() => {
-      scrollToBottom()
-    })
+    nextTick(() => scrollToBottom())
   } catch (error) {
     console.error('Greška pri slanju poruke:', error)
   }
@@ -234,5 +217,36 @@ const scrollToBottom = () => {
 // Inicijalno učitavanje
 onMounted(() => {
   fetchKorisnici()
+})
+
+// Polling mehanizam za automatsko dohvaćanje poruka
+let pollingInterval = null
+
+const startPolling = () => {
+  stopPolling()
+  pollingInterval = setInterval(async () => {
+    if (selectedChat.value) {
+      await fetchPorukeZaKorisnika(selectedChat.value.id_korisnika)
+    }
+  }, 3000)
+}
+
+const stopPolling = () => {
+  if (pollingInterval) {
+    clearInterval(pollingInterval)
+    pollingInterval = null
+  }
+}
+
+watch(selectedChat, (newChat) => {
+  if (newChat) {
+    startPolling()
+  } else {
+    stopPolling()
+  }
+})
+
+onUnmounted(() => {
+  stopPolling()
 })
 </script>
