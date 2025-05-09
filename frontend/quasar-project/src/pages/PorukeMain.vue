@@ -4,7 +4,7 @@
     <div class="col-3 q-pr-md">
       <q-card>
         <q-card-section class="bg-primary text-white">
-          <div class="text-h6">Veleri</div>
+          <div class="text-h6">Kontakti</div>
         </q-card-section>
 
         <q-card-section>
@@ -15,13 +15,23 @@
         <q-separator />
 
         <q-list bordered padding>
-          <q-item clickable v-for="chat in chats" :key="chat.id" @click="selectChat(chat)">
+          <q-item 
+            clickable 
+            v-for="chat in chats" 
+            :key="chat.id_korisnika" 
+            @click="selectChat(chat)"
+            :active="selectedChat?.id_korisnika === chat.id_korisnika"
+          >
             <q-item-section>
-              <q-item-label>{{ chat.name }}</q-item-label>
-              <q-item-label caption>{{ chat.lastMessage }}</q-item-label>
+              <q-item-label>{{ chat.ime_korisnika }} {{ chat.prezime_korisnika }}</q-item-label>
+              <q-item-label caption>
+                {{ getLastMessagePreview(chat.id_korisnika) }}
+              </q-item-label>
             </q-item-section>
-            <q-item-section side v-if="chat.time">
-              <q-item-label caption>{{ chat.time }}</q-item-label>
+            <q-item-section side>
+              <q-item-label caption>
+                {{ getLastMessageTime(chat.id_korisnika) }}
+              </q-item-label>
             </q-item-section>
           </q-item>
         </q-list>
@@ -32,14 +42,20 @@
     <div class="col-9">
       <q-card class="full-height">
         <q-card-section>
-          <div class="text-h6">{{ selectedChat?.name || 'Odaberi chat' }}</div>
+          <div class="text-h6">
+            {{ selectedChat ? `${selectedChat.ime_korisnika} ${selectedChat.prezime_korisnika}` : 'Odaberi chat' }}
+          </div>
         </q-card-section>
 
         <q-separator />
 
         <q-scroll-area ref="scrollAreaRef" style="height: 60vh">
           <div v-if="selectedChat">
-            <div v-for="(msg, index) in selectedChat.messages" :key="index" class="q-mb-sm row">
+            <div 
+              v-for="(msg, index) in getMessagesForChat(selectedChat.id_korisnika)" 
+              :key="index" 
+              class="q-mb-sm row"
+            >
               <div
                 :class="[
                   'q-pa-sm rounded-borders',
@@ -51,8 +67,8 @@
                   marginRight: msg.fromMe ? '12px' : 'auto',
                 }"
               >
-                {{ msg.text }}
-                <div class="text-caption text-grey-7">{{ msg.time }}</div>
+                {{ msg.sadrzaj }}
+                <div class="text-caption text-grey-7">{{ formatTime(msg.datum_vrijeme) }}</div>
               </div>
             </div>
           </div>
@@ -77,74 +93,146 @@
 </template>
 
 <script setup>
-import { ref, nextTick } from 'vue'
+import { ref, onMounted, nextTick, watch } from 'vue'
 
+// Varijable stanja
 const newMessage = ref('')
 const selectedChat = ref(null)
 const scrollAreaRef = ref(null)
+const chats = ref([])
+const poruke = ref([])
+const trenutniKorisnikId = 1 // Hardcodirano za sada (kada se doda login onda cemu iz Session uzeti userID)
 
-const chats = ref([
-  {
-    id: 1,
-    name: 'Marko Linić',
-    lastMessage: 'See you tomorrow!',
-    time: '11:30',
-    messages: [
-      { text: 'See you tomorrow!', time: '11:30', fromMe: false }
-    ]
-  },
-  {
-    id: 2,
-    name: 'Borna Rošić',
-    lastMessage: 'Hello there!',
-    time: '12:45',
-    messages: [
-      { text: 'Hello there!', time: '12:45', fromMe: false },
-      { text: 'Hello Borna! How are you doing today', time: '12:47', fromMe: true },
-      { text: 'Test', time: '23:27', fromMe: true }
-    ]
-  },
-  {
-    id: 3,
-    name: 'Alex Bahorić',
-    lastMessage: 'Meeting at 3pm',
-    time: 'Jučer',
-    messages: [
-      { text: 'Meeting at 3pm', time: 'Jučer', fromMe: false }
-    ]
-  },
-  {
-    id: 4,
-    name: 'Dino Turak',
-    lastMessage: 'Check this out',
-    time: 'Jučer',
-    messages: [
-      { text: 'Check this out', time: 'Jučer', fromMe: false }
-    ]
+// Dohvaćanje podataka
+const fetchKorisnici = async () => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/korisnici/${trenutniKorisnikId}`)
+    chats.value = await response.json()
+    // Nakon što dobijemo korisnike, učitamo sve poruke
+    await fetchSvePoruke()
+  } catch (error) {
+    console.error('Greška pri dohvaćanju korisnika:', error)
   }
-])
+}
 
-function selectChat(chat) {
+const fetchSvePoruke = async () => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/sve-poruke/${trenutniKorisnikId}`)
+    poruke.value = await response.json()
+  } catch (error) {
+    console.error('Greška pri dohvaćanju svih poruka:', error)
+  }
+}
+
+const fetchPorukeZaKorisnika = async (korisnikId) => {
+  try {
+    const response = await fetch(`http://localhost:3000/api/poruke/${trenutniKorisnikId}/${korisnikId}`)
+    const novePoruke = await response.json()
+    // Ažuriramo samo poruke za tog korisnika
+    poruke.value = [
+      ...poruke.value.filter(p => 
+        !(p.posiljatelj === trenutniKorisnikId && p.primatelj === korisnikId) &&
+        !(p.posiljatelj === korisnikId && p.primatelj === trenutniKorisnikId)
+      ),
+      ...novePoruke
+    ]
+  } catch (error) {
+    console.error('Greška pri dohvaćanju poruka:', error)
+  }
+}
+
+// Pomoćne funkcije
+const getMessagesForChat = (korisnikId) => {
+  return poruke.value
+    .filter(poruka => 
+      (poruka.posiljatelj === korisnikId && poruka.primatelj === trenutniKorisnikId) ||
+      (poruka.posiljatelj === trenutniKorisnikId && poruka.primatelj === korisnikId)
+    )
+    .map(poruka => ({
+      ...poruka,
+      fromMe: poruka.posiljatelj === trenutniKorisnikId
+    }))
+    .sort((a, b) => new Date(a.datum_vrijeme) - new Date(b.datum_vrijeme))
+}
+
+const getLastMessagePreview = (korisnikId) => {
+  const messages = getMessagesForChat(korisnikId)
+  if (messages.length === 0) return 'Nema poruka!'
+  
+  const lastMsg = messages[messages.length - 1]
+  return lastMsg.sadrzaj.length > 15 
+    ? lastMsg.sadrzaj.substring(0, 25) + '...' 
+    : lastMsg.sadrzaj
+}
+
+const getLastMessageTime = (korisnikId) => {
+  const messages = getMessagesForChat(korisnikId)
+  if (messages.length === 0) return ''
+  
+  return formatTime(messages[messages.length - 1].datum_vrijeme)
+}
+
+const formatTime = (datumVrijeme) => {
+  if (!datumVrijeme) return ''
+  
+  const date = new Date(datumVrijeme)
+  const now = new Date()
+  
+  // Ako je poruka iz danas, prikaži samo vrijeme
+  if (date.toDateString() === now.toDateString()) {
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  }
+  
+  // Ako je poruka od jučer
+  const yesterday = new Date(now)
+  yesterday.setDate(yesterday.getDate() - 1)
+  if (date.toDateString() === yesterday.toDateString()) {
+    return 'Jučer'
+  }
+  
+  // Inače, prikaži datum
+  return date.toLocaleDateString()
+}
+
+// Interakcije
+const selectChat = async (chat) => {
   selectedChat.value = chat
+  await fetchPorukeZaKorisnika(chat.id_korisnika)
   nextTick(() => {
     scrollToBottom()
   })
 }
 
-function sendMessage() {
+const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedChat.value) return
-  selectedChat.value.messages.push({
-    text: newMessage.value,
-    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    fromMe: true
-  })
-  newMessage.value = ''
-  nextTick(() => {
-    scrollToBottom()
-  })
+  
+  try {
+    await fetch('http://localhost:3000/api/poruke', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sadrzaj: newMessage.value,
+        posiljatelj: trenutniKorisnikId,
+        primatelj: selectedChat.value.id_korisnika
+      })
+    })
+    
+    newMessage.value = ''
+    await fetchPorukeZaKorisnika(selectedChat.value.id_korisnika)
+    nextTick(() => {
+      scrollToBottom()
+    })
+  } catch (error) {
+    console.error('Greška pri slanju poruke:', error)
+  }
 }
 
-function scrollToBottom() {
+const scrollToBottom = () => {
   scrollAreaRef.value?.setScrollPosition('vertical', 9999, 300)
 }
+
+// Inicijalno učitavanje
+onMounted(() => {
+  fetchKorisnici()
+})
 </script>
