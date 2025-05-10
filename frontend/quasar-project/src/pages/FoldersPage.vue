@@ -18,6 +18,9 @@
       <folder-grid
         :folders="folders"
         :on-folder-click="openFolder"
+        :is-admin="isAdmin"
+        @edit-folder="editFolder"
+        @delete-folder="confirmDelete"
       />
     </div>
     <CreateFolderModal
@@ -25,6 +28,17 @@
       :parent-folders="[]"
       :kolegiji="kolegiji"
       @create="handleCreateFolder"
+    />
+    <EditFolderDialog
+      v-model="showEditDialog"
+      :folder="folderToEdit"
+      @save="handleRenameFolder"
+    />
+
+    <ConfirmDeleteDialog
+      v-model="showDeleteDialog"
+      :folder="folderToDelete"
+      @confirm="handleDeleteFolder"
     />
   </q-page>
 </template>
@@ -36,6 +50,8 @@ import FolderGrid from 'components/FolderGrid.vue'
 import LoadingSpinner from 'components/LoadingSpinner.vue'
 import ErrorMessage from 'components/ErrorMessage.vue'
 import CreateFolderModal from 'components/CreateFolderModal.vue'
+import ConfirmDeleteDialog from "components/ConfirmDeleteDialog.vue";
+import EditFolderDialog from "components/EditFolderDialog.vue";
 
 defineOptions({
   name: 'FoldersPage'
@@ -53,6 +69,10 @@ const kolegiji = ref([
   {id: 3, naziv: 'Matematika'},
   {id: 4, naziv: 'Računalne mreže'}
 ])
+const folderToEdit = ref(null)
+const folderToDelete = ref(null)
+const showEditDialog = ref(false)
+const showDeleteDialog = ref(false)
 
 function fetchRootFolders () {
   isLoading.value = true
@@ -87,6 +107,25 @@ function handleCreateFolder ({name, parentId}) {
 
 function openFolder (folder) {
   router.push(`/folders/${folder.id_mape}`)
+}
+
+function editFolder (folder) {
+  folderToEdit.value = folder
+  showEditDialog.value = true
+}
+
+function confirmDelete (folder) {
+  folderToDelete.value = folder
+  showDeleteDialog.value = true
+}
+
+function handleRenameFolder (updated) {
+  const folder = folders.value.find(f => f.id_mape === updated.id_mape)
+  if (folder) folder.ime_mape = updated.ime_mape
+}
+
+function handleDeleteFolder (folder) {
+  folders.value = folders.value.filter(f => f.id_mape !== folder.id_mape)
 }
 
 onMounted(() => {

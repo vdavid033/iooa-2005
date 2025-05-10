@@ -3,6 +3,7 @@
     <h1 class="text-h5 q-mb-lg">Sadržaj mape</h1>
     <div class="row items-center justify-end q-gutter-sm">
       <q-btn
+        v-if="isAdmin"
         color="primary"
         icon="add"
         label="Kreiraj mapu"
@@ -27,6 +28,9 @@
         <folder-grid
           :folders="subfolders"
           :on-folder-click="openFolder"
+          :is-admin="isAdmin"
+          @edit-folder="editFolder"
+          @delete-folder="confirmDelete"
         />
       </div>
       <div v-if="documents.length > 0" class="q-mt-xl">
@@ -46,6 +50,17 @@
     :forced-kolegij-id="activeKolegijId"
     @create="handleCreateFolder"
   />
+  <EditFolderDialog
+    v-model="showEditDialog"
+    :folder="folderToEdit"
+    @save="handleRenameFolder"
+  />
+
+  <ConfirmDeleteDialog
+    v-model="showDeleteDialog"
+    :folder="folderToDelete"
+    @confirm="handleDeleteFolder"
+  />
 </template>
 
 <script setup>
@@ -56,6 +71,8 @@ import FileGrid from 'components/FileGrid.vue'
 import LoadingSpinner from "components/LoadingSpinner.vue"
 import ErrorMessage from "components/ErrorMessage.vue"
 import CreateFolderModal from 'components/CreateFolderModal.vue'
+import EditFolderDialog from 'components/EditFolderDialog.vue'
+import ConfirmDeleteDialog from 'components/ConfirmDeleteDialog.vue'
 
 defineOptions({
   name: 'FolderContentPage'
@@ -63,6 +80,7 @@ defineOptions({
 
 const route = useRoute()
 const router = useRouter()
+const isAdmin = true
 const folderId = ref(route.params.folderId)
 const showCreateModal = ref(false)
 const subfolders = ref([])
@@ -82,6 +100,10 @@ const currentFolder = computed(() => {
     ime_mape: getFolderNameById(folderId.value)
   }
 })
+const folderToEdit = ref(null)
+const folderToDelete = ref(null)
+const showEditDialog = ref(false)
+const showDeleteDialog = ref(false)
 
 function fetchFolderContent () {
   isLoading.value = true
@@ -143,6 +165,25 @@ function handleCreateFolder ({name, kolegijId}) {
     fk_kolegija: kolegijId
   }
   subfolders.value.push(newFolder)
+}
+
+function editFolder (folder) {
+  folderToEdit.value = folder
+  showEditDialog.value = true
+}
+
+function confirmDelete (folder) {
+  folderToDelete.value = folder
+  showDeleteDialog.value = true
+}
+
+function handleRenameFolder (updated) {
+  const folder = folders.value.find(f => f.id_mape === updated.id_mape)
+  if (folder) folder.ime_mape = updated.ime_mape
+}
+
+function handleDeleteFolder (folder) {
+  folders.value = folders.value.filter(f => f.id_mape !== folder.id_mape)
 }
 
 onMounted(() => {
