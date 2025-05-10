@@ -7,15 +7,15 @@ const routes = [
     children: [
       {path: '', component: () => import('pages/IndexPage.vue')},
       {path: 'folders', component: () => import('pages/FoldersPage.vue')},
-      {path: 'folders/:folderId', component: () => import('pages/FolderContentPage.vue')}
-      { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
-      { path: 'inbox', component: () => import('pages/InboxPage.vue') }, // <-- Dodano za Inbox
-      {path: 'poruke', component: () => import('pages/PorukeMain.vue') },
-      { path: 'kalendardog', component: () => import('pages/KalendarDog.vue') },
-      { path: 'kalendar-obaveze', component: KalendarObaveza },    
-      { path: 'forum', component: () => import('pages/ForumPage.vue') },
-      { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue')}
+      {path: 'folders/:folderId', component: () => import('pages/FolderContentPage.vue')},
+      {path: '', component: () => import('pages/IndexPage.vue')},
+      {path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue')},
+      {path: 'inbox', component: () => import('pages/InboxPage.vue')}, // <-- Dodano za Inbox
+      {path: 'poruke', component: () => import('pages/PorukeMain.vue')},
+      {path: 'kalendardog', component: () => import('pages/KalendarDog.vue')},
+      {path: 'kalendar-obaveze', component: KalendarObaveza},
+      {path: 'forum', component: () => import('pages/ForumPage.vue')},
+      {path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue')}
     ]
 
   },

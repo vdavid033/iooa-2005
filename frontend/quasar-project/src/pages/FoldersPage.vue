@@ -104,7 +104,6 @@ function handleCreateFolder ({name, parentId}) {
   folders.value.push(newFolder)
 }
 
-
 function openFolder (folder) {
   router.push(`/folders/${folder.id_mape}`)
 }

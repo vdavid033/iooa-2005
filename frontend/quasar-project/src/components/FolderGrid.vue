@@ -71,14 +71,14 @@ defineProps({
 
 .folder-edit-btn {
   position: absolute;
-  top: -10px;
+  top: -12px;
   left: 0;
   visibility: hidden;
 }
 
 .folder-delete-btn {
   position: absolute;
-  top: -10px;
+  top: -12px;
   right: 0;
   visibility: hidden;
 }

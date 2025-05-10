@@ -63,7 +63,6 @@ const searchResult = ref([]);
 const isLoading = ref(false);
 const error = ref(null);
 
-
 // Computed properties
 const isSearching = computed(() => searchQuery.value.length > 0);
 
@@ -119,7 +118,6 @@ const handleSearchItemClick = (item) => {
   }
 };
 
-
 const onSearchInputChange = (value) => {
   searchQuery.value = value;
   if (searchQuery.value.trim().length > 2) {
@@ -153,7 +151,6 @@ watch(() => props.rootPath, (newPath) => {
   currentPath.value = newPath;
   fetchFiles();
 });
-
 
 </script>
 
