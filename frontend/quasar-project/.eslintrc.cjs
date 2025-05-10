@@ -56,7 +56,10 @@ module.exports = {
 
   // add your custom rules here
   rules: {
-    
+
+  "no-multiple-empty-lines": ["error", { "max": 1 }],
+
+  
     'prefer-promise-reject-errors': 'off',
 
     // allow debugger during development only
