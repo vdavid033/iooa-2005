@@ -8,7 +8,7 @@
     >
       <div class="column items-center">
         <div class="folder-icon-wrapper">
-          <q-icon name="folder" size="64px" color="primary"/>
+          <q-icon name="folder" size="64px" color="primary" />
           <q-btn
             v-if="isAdmin"
             class="folder-edit-btn"
@@ -44,16 +44,16 @@
 defineProps({
   folders: {
     type: Array,
-    required: true
+    required: true,
   },
   onFolderClick: {
     type: Function,
-    required: true
+    required: true,
   },
   isAdmin: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 </script>
 

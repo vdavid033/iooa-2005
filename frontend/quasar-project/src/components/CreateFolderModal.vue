@@ -12,7 +12,7 @@
               label="Naziv mape"
               dense
               outlined
-              :rules="[val => !!val || 'Naziv mape je obavezan']"
+              :rules="[(val) => !!val || 'Naziv mape je obavezan']"
               autofocus
             />
           </div>
@@ -45,8 +45,8 @@
             />
           </div>
           <div class="row justify-end q-gutter-sm">
-            <q-btn flat label="Odustani" color="grey-6" @click="close"/>
-            <q-btn unelevated label="Spremi" color="positive" type="submit"/>
+            <q-btn flat label="Odustani" color="grey-6" @click="close" />
+            <q-btn unelevated label="Spremi" color="positive" type="submit" />
           </div>
         </q-form>
       </q-card-section>
@@ -55,33 +55,33 @@
 </template>
 
 <script setup>
-import {computed, ref, watch} from 'vue'
+import { computed, ref, watch } from 'vue'
 
 defineOptions({
-  name: 'CreateFolderModal'
+  name: 'CreateFolderModal',
 })
 
 const props = defineProps({
   modelValue: {
     type: Boolean,
-    required: true
+    required: true,
   },
   parentFolders: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   kolegiji: {
     type: Array,
-    default: () => []
+    default: () => [],
   },
   forcedParentId: {
     type: [String, Number],
-    default: null
+    default: null,
   },
   forcedKolegijId: {
     type: [String, Number],
-    default: null
-  }
+    default: null,
+  },
 })
 
 const emit = defineEmits(['update:modelValue', 'create'])
@@ -94,46 +94,49 @@ const parentOptions = ref([])
 const kolegijiOptions = ref([])
 const hideParentSelect = computed(() => props.forcedParentId === null)
 
-watch(() => props.modelValue, (value) => {
-  dialogOpen.value = value
-  if (value) {
-    folderName.value = ''
-    kolegijiOptions.value = props.kolegiji.map(k => ({
-      id: k.id,
-      name: k.naziv
-    }))
-    parentOptions.value = props.parentFolders.map(f => ({
-      id: f.id_mape,
-      name: f.ime_mape
-    }))
+watch(
+  () => props.modelValue,
+  (value) => {
+    dialogOpen.value = value
+    if (value) {
+      folderName.value = ''
+      kolegijiOptions.value = props.kolegiji.map((k) => ({
+        id: k.id,
+        name: k.naziv,
+      }))
+      parentOptions.value = props.parentFolders.map((f) => ({
+        id: f.id_mape,
+        name: f.ime_mape,
+      }))
 
-    if (props.forcedParentId !== null) {
-      selectedParentId.value = props.forcedParentId
-    } else {
-      selectedParentId.value = null
-    }
+      if (props.forcedParentId !== null) {
+        selectedParentId.value = props.forcedParentId
+      } else {
+        selectedParentId.value = null
+      }
 
-    if (props.forcedKolegijId !== null) {
-      selectedKolegijId.value = props.forcedKolegijId
-    } else {
-      selectedKolegijId.value = null
+      if (props.forcedKolegijId !== null) {
+        selectedKolegijId.value = props.forcedKolegijId
+      } else {
+        selectedKolegijId.value = null
+      }
     }
   }
-})
+)
 
 watch(dialogOpen, (value) => {
   emit('update:modelValue', value)
 })
 
-function close () {
+function close() {
   dialogOpen.value = false
 }
 
-function submit () {
+function submit() {
   emit('create', {
     name: folderName.value,
     parentId: selectedParentId?.value?.id_mape || null,
-    kolegijId: selectedKolegijId.value
+    kolegijId: selectedKolegijId.value,
   })
   dialogOpen.value = false
 }

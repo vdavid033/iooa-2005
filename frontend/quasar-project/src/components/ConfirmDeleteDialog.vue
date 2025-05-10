@@ -8,35 +8,38 @@
         <div>Jeste li sigurni da želite obrisati mapu "{{ folder?.ime_mape }}"?</div>
       </q-card-section>
       <q-card-actions align="right">
-        <q-btn flat label="Odustani" color="grey-6" v-close-popup/>
-        <q-btn color="negative" label="Obriši" @click="confirmDelete"/>
+        <q-btn flat label="Odustani" color="grey-6" v-close-popup />
+        <q-btn color="negative" label="Obriši" @click="confirmDelete" />
       </q-card-actions>
     </q-card>
   </q-dialog>
 </template>
 
 <script setup>
-import {ref, watch} from 'vue'
+import { ref, watch } from 'vue'
 
-defineOptions({name: 'ConfirmDeleteDialog'})
+defineOptions({ name: 'ConfirmDeleteDialog' })
 
 const props = defineProps({
   modelValue: Boolean,
-  folder: Object
+  folder: Object,
 })
 
 const emit = defineEmits(['update:modelValue', 'confirm'])
 const dialogVisible = ref(false)
 
-watch(() => props.modelValue, (value) => {
-  dialogVisible.value = value
-})
+watch(
+  () => props.modelValue,
+  (value) => {
+    dialogVisible.value = value
+  }
+)
 
 watch(dialogVisible, (val) => {
   emit('update:modelValue', val)
 })
 
-function confirmDelete () {
+function confirmDelete() {
   emit('confirm', props.folder)
   dialogVisible.value = false
 }

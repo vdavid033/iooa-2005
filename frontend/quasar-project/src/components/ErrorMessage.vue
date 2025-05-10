@@ -6,13 +6,13 @@
 
 <script setup>
 defineOptions({
-  name: 'ErrorMessage'
+  name: 'ErrorMessage',
 })
 
 const props = defineProps({
   message: {
     type: String,
-    required: true
-  }
+    required: true,
+  },
 })
 </script>
