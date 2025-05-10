@@ -12,16 +12,20 @@
         />
 
         <q-toolbar-title>
-        PORUKE
+          PORUKE
         </q-toolbar-title>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
+        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer"/>
         <div class="q-toolbar-title">
-          <q-btn flat label="Početna" to="/" />
-          <q-btn flat label="Forum" to="/forum" />
-          <q-btn flat label="Obaveze" to="/kalendar-obaveze"><q-tooltip>Kalendar</q-tooltip></q-btn>
-          <q-btn flat label="Dogadaji" to="/kalendardog"><q-tooltip>Kalendar</q-tooltip></q-btn>
+          <q-btn flat label="Početna" to="/"/>
+          <q-btn flat label="Forum" to="/forum"/>
+          <q-btn flat label="Obaveze" to="/kalendar-obaveze">
+            <q-tooltip>Kalendar</q-tooltip>
+          </q-btn>
+          <q-btn flat label="Dogadaji" to="/kalendardog">
+            <q-tooltip>Kalendar</q-tooltip>
+          </q-btn>
         </div>
-        <q-toolbar-title> Quasar App </q-toolbar-title>
+        <q-toolbar-title> Quasar App</q-toolbar-title>
 
         <div>Quasar v{{ $q.version }}</div>
       </q-toolbar>
@@ -33,7 +37,7 @@
           Essential Links
         </q-item-label>
 
-        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
+        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link"/>
       </q-list>
     </q-drawer>
 
@@ -81,6 +85,7 @@ const linksList = [
     caption: '@quasarframework',
     icon: 'rss_feed',
     link: 'https://twitter.quasar.dev'
+  },
   {
     title: 'Poruke',
     caption: '',
@@ -104,7 +109,7 @@ const linksList = [
 
 const leftDrawerOpen = ref(false)
 
-function toggleLeftDrawer() {
+function toggleLeftDrawer () {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
 </script>
