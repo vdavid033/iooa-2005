@@ -1,83 +1,131 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
-const db = require('./db');
+const mysql = require('mysql2');
 
 const app = express();
 const PORT = 3000;
 
+// Konfiguracija baze podataka
+const db = mysql.createConnection({
+  host: 'student.veleri.hr',
+  user: 'iooa',
+  password: '11',
+  database: 'iooa_dm_veleri',
+});
+
+// Provjera veze s bazom
+db.connect(err => {
+  if (err) {
+    console.error('Greška pri spajanju na bazu:', err);
+    return;
+  }
+  console.log('Uspješno spojeno na bazu podataka');
+});
+
 app.use(cors());
 app.use(bodyParser.json());
 
-// ✅ Dohvaćanje svih korisnika osim trenutnog
-app.get('/api/korisnici/:trenutniKorisnikId', async (req, res) => {
-  try {
-    const [korisnici] = await db.query(
-      'SELECT id_korisnika, ime_korisnika, prezime_korisnika FROM korisnik WHERE id_korisnika != ?',
-      [req.params.trenutniKorisnikId]
-    );
-    res.json(korisnici);
-  } catch (err) {
-    res.status(500).json({ error: "Greška pri dohvaćanju korisnika!" });
-  }
+// Dohvaćanje korisnika s kojima je razmjenjene poruke
+app.get('/api/korisnici/:id', (req, res) => {
+  const korisnikId = req.params.id;
+
+  db.query(
+    `SELECT DISTINCT k.id_korisnika, k.ime_korisnika, k.prezime_korisnika
+     FROM korisnik k
+     JOIN poruke p ON (k.id_korisnika = p.posiljatelj OR k.id_korisnika = p.primatelj)
+     WHERE k.id_korisnika != ? AND (p.posiljatelj = ? OR p.primatelj = ?)
+     ORDER BY k.ime_korisnika ASC`,
+    [korisnikId, korisnikId, korisnikId],
+    (error, results) => {
+      if (error) {
+        console.error("SQL greška:", error);
+        return res.status(500).json({ 
+          error: "Greška u bazi podataka",
+          details: error.message 
+        });
+      }
+      res.json(results);
+    }
+  );
 });
 
-// ✅ Dohvaćanje poruka između dva korisnika
-app.get('/api/poruke/:korisnik1/:korisnik2', async (req, res) => {
-  try {
-    const [poruke] = await db.query(
-      `SELECT * FROM poruke 
-       WHERE (posiljatelj = ? AND primatelj = ?) 
-       OR (posiljatelj = ? AND primatelj = ?)
-       ORDER BY datum_vrijeme ASC`,
-      [req.params.korisnik1, req.params.korisnik2, req.params.korisnik2, req.params.korisnik1]
-    );
-    res.json(poruke);
-  } catch (err) {
-    res.status(500).json({ error: "Greška pri dohvaćanju poruka!" });
-  }
+// Dohvaćanje poruka između dva korisnika
+app.get('/api/poruke/:korisnik1/:korisnik2', (req, res) => {
+  const { korisnik1, korisnik2 } = req.params;
+  
+  db.query(
+    `SELECT * FROM poruke 
+     WHERE (posiljatelj = ? AND primatelj = ?) 
+     OR (posiljatelj = ? AND primatelj = ?)
+     ORDER BY datum_vrijeme ASC`,
+    [korisnik1, korisnik2, korisnik2, korisnik1],
+    (error, results) => {
+      if (error) {
+        console.error("SQL greška:", error);
+        return res.status(500).json({ 
+          error: "Greška pri dohvaćanju poruka",
+          details: error.message 
+        });
+      }
+      res.json(results);
+    }
+  );
 });
 
-// ✅ Slanje nove poruke
-app.post('/api/poruke', async (req, res) => {
-  try {
-    const { sadrzaj, posiljatelj, primatelj } = req.body;
-    const [result] = await db.query(
-      'INSERT INTO poruke (sadrzaj, posiljatelj, primatelj, datum_vrijeme) VALUES (?, ?, ?, NOW())',
-      [sadrzaj, posiljatelj, primatelj]
-    );
-    res.json({ success: true, id_poruke: result.insertId });
-  } catch (err) {
-    res.status(500).json({ error: "Greška pri slanju poruke!" });
-  }
+// Slanje nove poruke
+app.post('/api/poruke', (req, res) => {
+  const { sadrzaj, posiljatelj, primatelj } = req.body;
+  
+  db.query(
+    'INSERT INTO poruke (sadrzaj, posiljatelj, primatelj, datum_vrijeme) VALUES (?, ?, ?, NOW())',
+    [sadrzaj, posiljatelj, primatelj],
+    (error, results) => {
+      if (error) {
+        console.error("SQL greška:", error);
+        return res.status(500).json({ 
+          error: "Greška pri slanju poruke",
+          details: error.message 
+        });
+      }
+      res.json({ success: true, id_poruke: results.insertId });
+    }
+  );
 });
 
-// ✅ NOVO: Dohvaćanje zadnjih poruka za sve kontakte korisnika
-app.get('/api/sve-poruke/:trenutniKorisnikId', async (req, res) => {
-  try {
-    const [poruke] = await db.query(`
-      SELECT * FROM poruke p
-      JOIN (
-        SELECT 
-          LEAST(posiljatelj, primatelj) AS korisnik1,
-          GREATEST(posiljatelj, primatelj) AS korisnik2,
-          MAX(datum_vrijeme) AS maxDatum
-        FROM poruke
-        WHERE posiljatelj = ? OR primatelj = ?
-        GROUP BY korisnik1, korisnik2
-      ) zadnje ON 
-        LEAST(p.posiljatelj, p.primatelj) = zadnje.korisnik1 AND
-        GREATEST(p.posiljatelj, p.primatelj) = zadnje.korisnik2 AND
-        p.datum_vrijeme = zadnje.maxDatum
-    `, [req.params.trenutniKorisnikId, req.params.trenutniKorisnikId]);
-
-    res.json(poruke);
-  } catch (err) {
-    res.status(500).json({ error: "Greška pri dohvaćanju zadnjih poruka!" });
-  }
+// Dohvaćanje zadnjih poruka za sve kontakte
+app.get('/api/sve-poruke/:trenutniKorisnikId', (req, res) => {
+  const { trenutniKorisnikId } = req.params;
+  
+  db.query(
+    `SELECT p.* FROM poruke p
+     INNER JOIN (
+       SELECT 
+         LEAST(posiljatelj, primatelj) AS korisnik1,
+         GREATEST(posiljatelj, primatelj) AS korisnik2,
+         MAX(datum_vrijeme) AS maxDatum
+       FROM poruke
+       WHERE posiljatelj = ? OR primatelj = ?
+       GROUP BY korisnik1, korisnik2
+     ) zadnje ON 
+       (p.posiljatelj = zadnje.korisnik1 OR p.posiljatelj = zadnje.korisnik2) AND
+       (p.primatelj = zadnje.korisnik1 OR p.primatelj = zadnje.korisnik2) AND
+       p.datum_vrijeme = zadnje.maxDatum`,
+    [trenutniKorisnikId, trenutniKorisnikId],
+    (error, results) => {
+      if (error) {
+        console.error("SQL greška:", error);
+        return res.status(500).json({ 
+          error: "Greška pri dohvaćanju poruka",
+          details: error.message 
+        });
+      }
+      res.json(results);
+    }
+  );
 });
 
-// ✅ Pokretanje servera
+// Pokretanje servera
 app.listen(PORT, () => {
-  console.log(`🚀 Server je pokrenut na http://localhost:${PORT}`);
+  console.log(`🚀 Server pokrenut na http://localhost:${PORT}`);
 });

@@ -8,8 +8,8 @@
         </q-card-section>
 
         <q-card-section>
-          <q-btn label="NEW CHAT" icon="chat" class="q-mb-sm full-width" color="primary" />
-          <q-btn label="NEW GROUP" icon="group_add" class="full-width" color="secondary" />
+          <q-btn label="NOVI CHAT" icon="chat" class="q-mb-sm full-width" color="primary" />
+          <q-btn label="NOVA GRUPA" icon="group_add" class="full-width" color="secondary" />
         </q-card-section>
 
         <q-separator />
@@ -80,7 +80,7 @@
         <q-card-actions>
           <q-input
             v-model="newMessage"
-            placeholder="Type a message"
+            placeholder="Napiši poruku..."
             class="col"
             @keyup.enter="sendMessage"
             dense
@@ -94,61 +94,79 @@
 
 <script setup>
 import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
+import { jwtDecode } from "jwt-decode";
 
 // Varijable stanja
+const fullUser = ref({});
 const newMessage = ref('')
 const selectedChat = ref(null)
 const scrollAreaRef = ref(null)
 const chats = ref([])
 const poruke = ref([])
-const trenutniKorisnikId = 1 // Hardcodirano za sada (dodati login kasnije)
+const trenutniKorisnikId = ref(null)
+const token = localStorage.getItem("token");
 
 // Dohvaćanje podataka
 const fetchKorisnici = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/api/korisnici/${trenutniKorisnikId}`)
-    chats.value = await response.json()
-    await fetchSvePoruke()
+    const response = await fetch(`http://localhost:3000/api/korisnici/${trenutniKorisnikId.value}`);
+    const data = await response.json();
+
+    if (!response.ok) {
+      console.error('Greška u odgovoru API-ja:', data);
+      return;
+    }
+
+    chats.value = data;
   } catch (error) {
-    console.error('Greška pri dohvaćanju korisnika:', error)
+    console.error('Greška pri dohvaćanju korisnika:', error);
   }
-}
+};
 
 const fetchSvePoruke = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/api/sve-poruke/${trenutniKorisnikId}`)
-    poruke.value = await response.json()
+    const response = await fetch(`http://localhost:3000/api/sve-poruke/${trenutniKorisnikId.value}`);
+    if (!response.ok) {
+      console.error('Greška u odgovoru API-ja:', await response.text());
+      return;
+    }
+    const data = await response.json();
+    poruke.value = Array.isArray(data) ? data : [];
   } catch (error) {
-    console.error('Greška pri dohvaćanju svih poruka:', error)
+    console.error('Greška pri dohvaćanju poruka:', error);
   }
-}
+};
 
 const fetchPorukeZaKorisnika = async (korisnikId) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/poruke/${trenutniKorisnikId}/${korisnikId}`)
-    const novePoruke = await response.json()
+    const response = await fetch(`http://localhost:3000/api/poruke/${trenutniKorisnikId.value}/${korisnikId}`);
+    if (!response.ok) {
+      console.error('Greška u odgovoru API-ja:', await response.text());
+      return;
+    }
+    const novePoruke = await response.json();
     poruke.value = [
       ...poruke.value.filter(p => 
-        !(p.posiljatelj === trenutniKorisnikId && p.primatelj === korisnikId) &&
-        !(p.posiljatelj === korisnikId && p.primatelj === trenutniKorisnikId)
+        !(p.posiljatelj === trenutniKorisnikId.value && p.primatelj === korisnikId) &&
+        !(p.posiljatelj === korisnikId && p.primatelj === trenutniKorisnikId.value)
       ),
       ...novePoruke
-    ]
+    ];
   } catch (error) {
-    console.error('Greška pri dohvaćanju poruka:', error)
+    console.error('Greška pri dohvaćanju poruka:', error);
   }
-}
+};
 
 // Pomoćne funkcije
 const getMessagesForChat = (korisnikId) => {
   return poruke.value
     .filter(poruka => 
-      (poruka.posiljatelj === korisnikId && poruka.primatelj === trenutniKorisnikId) ||
-      (poruka.posiljatelj === trenutniKorisnikId && poruka.primatelj === korisnikId)
+      (poruka.posiljatelj === korisnikId && poruka.primatelj === trenutniKorisnikId.value) ||
+      (poruka.posiljatelj === trenutniKorisnikId.value && poruka.primatelj === korisnikId)
     )
     .map(poruka => ({
       ...poruka,
-      fromMe: poruka.posiljatelj === trenutniKorisnikId
+      fromMe: poruka.posiljatelj === trenutniKorisnikId.value
     }))
     .sort((a, b) => new Date(a.datum_vrijeme) - new Date(b.datum_vrijeme))
 }
@@ -198,7 +216,7 @@ const sendMessage = async () => {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         sadrzaj: newMessage.value,
-        posiljatelj: trenutniKorisnikId,
+        posiljatelj: trenutniKorisnikId.value,
         primatelj: selectedChat.value.id_korisnika
       })
     })
@@ -214,12 +232,24 @@ const scrollToBottom = () => {
   scrollAreaRef.value?.setScrollPosition('vertical', 9999, 300)
 }
 
+const decodeToken = (token) => { 
+  try { 
+    return jwtDecode(token);
+  } catch (error) {
+    console.error("Greška pri dekodiranju tokena:", error); 
+    return null; 
+  } 
+};
+
 // Inicijalno učitavanje
 onMounted(() => {
-  fetchKorisnici()
-})
+  fullUser.value = decodeToken(token);
+  trenutniKorisnikId.value = fullUser.value.id;
+  fetchKorisnici();
+  fetchSvePoruke();
+});
 
-// Polling mehanizam za automatsko dohvaćanje poruka
+// Automatsko osvježavanje poruka
 let pollingInterval = null
 
 const startPolling = () => {
