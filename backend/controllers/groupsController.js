@@ -192,7 +192,7 @@ exports.removeMember = async (req, res) => {
     const [group] = await db.query('SELECT id_grupe FROM grupa WHERE ime_grupe = ?', [groupName]);
 
     if (group.length === 0) {
-      return res.status(404).json({ error: 'Grupa nije pronađena' });
+      return res.status(404).json({ error: 'Grupa ne postoji.' });
     }
 
     const groupId = group[0].id_grupe;
@@ -206,18 +206,18 @@ exports.removeMember = async (req, res) => {
       if (newAdmin.length > 0) {
         const newAdminId = newAdmin[0].id_korisnika;
         await db.query('UPDATE korisnikova_grupa SET admin_status = true WHERE id_grupe = ? AND id_korisnika = ?', [groupId, newAdminId]);
-        console.log(`Novi administrator: ${newAdminId}`);
+        console.log(`Novi dodijeljeni administrator: ${newAdminId}`);
       }
     }
 
     // Uklanjanje člana iz grupe
     await db.query('DELETE FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?', [groupId, memberId]);
 
-    res.status(200).json({ message: 'Član uspješno uklonjen iz grupe' });
+    res.status(200).json({ message: 'Član je uspješno izbrisan iz grupe' });
 
   } catch (error) {
-    console.error('Greška pri uklanjanju člana iz grupe:', error.message);
-    res.status(500).json({ error: 'Greška pri uklanjanju člana', details: error.message });
+    console.error('Greška tijekom brisanja člana iz grupe:', error.message);
+    res.status(500).json({ error: 'Greška tijekom brisanja člana', details: error.message });
   }
 };
 
