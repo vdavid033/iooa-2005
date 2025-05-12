@@ -6,6 +6,7 @@ const PORT = 3000
 app.use(express.json())
 
 app.use('/api/folders', require('./routes/folderRoutes'))
+app.use('/api/documents', require('./routes/documentRoutes'))
 
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`)

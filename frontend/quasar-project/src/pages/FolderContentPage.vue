@@ -28,7 +28,12 @@
       </div>
       <div v-if="documents.length > 0" class="q-mt-xl">
         <h3 class="text-h6 q-mb-lg">Dokumenti</h3>
-        <file-grid :files="documents" />
+        <file-grid 
+          :files="documents"
+          :folder-id="folderId"
+          :is-admin="isAdmin"
+          @refresh="fetchDocuments"
+        />
       </div>
       <div
         v-if="subfolders.length === 0 && documents.length === 0"
@@ -38,6 +43,8 @@
       </div>
     </div>
   </q-page>
+  
+  <!-- Rest of your modals and dialogs -->
   <CreateFolderModal
     v-model="showCreateModal"
     :parent-folders="[currentFolder]"
@@ -53,7 +60,7 @@
     :folder="folderToDelete"
     @confirm="handleDeleteFolder"
   />
-</template>
+  </template>
 
 <script setup>
 import { computed, onMounted, ref, watch } from 'vue'
@@ -65,6 +72,7 @@ import ErrorMessage from 'components/ErrorMessage.vue'
 import CreateFolderModal from 'components/CreateFolderModal.vue'
 import EditFolderDialog from 'components/EditFolderDialog.vue'
 import ConfirmDeleteDialog from 'components/ConfirmDeleteDialog.vue'
+import { api } from 'boot/axios'
 
 defineOptions({
   name: 'FolderContentPage',
@@ -176,6 +184,19 @@ function handleRenameFolder(updated) {
 function handleDeleteFolder(folder) {
   folders.value = folders.value.filter((f) => f.id_mape !== folder.id_mape)
 }
+
+async function fetchDocuments() {
+  try {
+    const response = await api.get('/documents', {
+      params: { folderId: folderId.value }
+    })
+    documents.value = response.data
+  } catch (error) {
+    console.error('Error fetching documents:', error)
+  }
+}
+
+// Rest of your existing methods...
 
 onMounted(() => {
   fetchFolderContent()
