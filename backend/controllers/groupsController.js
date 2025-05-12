@@ -37,7 +37,7 @@ exports.createGroup = async (req, res) => {
     }
     console.log(`Creator ID ${creatorId} postoji.`);
 
-    // Provjeri da svi memberIds postoje
+    // Provjerava da svi memberIds postoje
     const uniqueMemberIds = [...new Set(memberIds.filter(id => id !== creatorId))];
     let validMemberIds = [];
     if (uniqueMemberIds.length > 0) {
@@ -52,20 +52,20 @@ exports.createGroup = async (req, res) => {
       }
     }
 
-    // 1. Stvori grupu
+    // 1. Stvaranje grupe
     const [groupResult] = await connection.query(
       'INSERT INTO grupa (ime_grupe, opis_grupe) VALUES (?, ?)',
       [name, description]
     );
     const groupId = groupResult.insertId;
 
-    // 2. Dodaj creatorId kao admin
+    // 2. Dodavanje creatorId kao admin
     await connection.query(
       'INSERT INTO korisnikova_grupa (id_grupe, id_korisnika, admin_status) VALUES (?, ?, ?)',
       [groupId, creatorId, true]
     );
 
-    // 3. Dodaj ostale članove kao ne-admin
+    // 3. Dodavanje ostalih članova kao ne-admin
     if (validMemberIds.length > 0) {
       const memberValues = validMemberIds.map(id => [groupId, id, false]);
       await connection.query(
@@ -74,7 +74,7 @@ exports.createGroup = async (req, res) => {
       );
     }
 
-    // Ako je sve prošlo, komitiraj transakciju
+    // Ako je sve prošlo, transakcija se commit-a
     await connection.commit();
     connection.release();
 
@@ -103,7 +103,7 @@ exports.sendMessage = async (req, res) => {
   }
 
   try {
-    // Provjera da grupa postoji
+    // Provjera dal grupa postoji
     const [group] = await db.query('SELECT id_grupe FROM grupa WHERE ime_grupe = ?', [groupName]);
     if (group.length === 0) {
       return res.status(404).json({ error: 'Grupa nije pronađena' });
@@ -112,7 +112,7 @@ exports.sendMessage = async (req, res) => {
     const groupId = group[0].id_grupe;
     console.log(`Grupa ID: ${groupId}`);
 
-    // Provjera da korisnik postoji u grupi
+    // Provjera dal korisnik postoji u grupi
     const [userGroupCheck] = await db.query(
       'SELECT id_korisnikova_grupa FROM korisnikova_grupa WHERE id_korisnika = ? AND id_grupe = ?',
       [senderId, groupId]
@@ -125,12 +125,12 @@ exports.sendMessage = async (req, res) => {
     const userGroupId = userGroupCheck[0].id_korisnikova_grupa;
     console.log(`Korisnikova grupa ID: ${userGroupId}`);
 
-    // Provjerite da li postoji `userGroupId`
+    // Provjerava da li postoji `userGroupId`
     if (!userGroupId) {
       return res.status(400).json({ error: 'Nevažeći ID korisničke grupe' });
     }
 
-    // Logiranje podataka koji se unose u grupnu_poruku
+    // ispis podataka koji se unose u grupnu_poruku u konzolu
     console.log(`Spremanje poruke - UserGroupId: ${userGroupId}, SenderId: ${senderId}, Content: ${content}`);
 
     // Spremanje poruke u grupu
@@ -141,7 +141,7 @@ exports.sendMessage = async (req, res) => {
 
     console.log('Rezultat unosa:', result); // Provjerite rezultat unosa u tablicu
 
-    // Provjera je li unos uspio
+    // Provjerava je li unos poruke uspio
     if (result.affectedRows > 0) {
       return res.status(201).json({ message: 'Poruka uspješno poslana' });
     } else {
@@ -197,7 +197,7 @@ exports.removeMember = async (req, res) => {
 
     const groupId = group[0].id_grupe;
 
-    // Provjera ako je uklonjeni član administrator, u tom slučaju moramo dodijeliti novi admin status
+    // Provjera ako je uklonjeni član administrator, u tom slučaju dodjeli se  novi admin status nekom od člana grupe
     const [adminCheck] = await db.query('SELECT admin_status FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?', [groupId, memberId]);
 
     if (adminCheck.length > 0 && adminCheck[0].admin_status === true) {
@@ -221,13 +221,13 @@ exports.removeMember = async (req, res) => {
   }
 };
 
-// Brisanje grupe
+
 // Brisanje grupe
 exports.deleteGroup = async (req, res) => {
   const { groupName } = req.params;
 
   try {
-    // 1. Provjera postoji li grupa s tim imenom
+    // 1. Provjera se postoji li grupa s tim imenom
     const [group] = await db.query(
       'SELECT id_grupe FROM grupa WHERE ime_grupe = ?',
       [groupName]
@@ -239,7 +239,7 @@ exports.deleteGroup = async (req, res) => {
 
     const groupId = group[0].id_grupe;
 
-    // 2. Dohvati sve ID-jeve korisnikova_grupa SAMO za ovu grupu
+    // 2. Dohvacaju se svi ID-jevi korisnikova_grupa samo za ovu grupu
     const [userGroups] = await db.query(
       'SELECT id_korisnikova_grupa FROM korisnikova_grupa WHERE id_grupe = ?',
       [groupId]
@@ -247,7 +247,7 @@ exports.deleteGroup = async (req, res) => {
 
     const userGroupIds = userGroups.map(row => row.id_korisnikova_grupa);
 
-    // 3. Ako ima povezanih poruka, obriši ih (ručno, iako postoji ON DELETE CASCADE, za dodatnu sigurnost)
+    // 3. Ako ima povezanih poruka brisu se
     if (userGroupIds.length > 0) {
       await db.query(
         'DELETE FROM grupna_poruka WHERE fk_korisnikove_grupe IN (?)',
@@ -255,13 +255,13 @@ exports.deleteGroup = async (req, res) => {
       );
     }
 
-    // 4. Obriši sve veze korisnika s ovom grupom
+    // 4. Brišu se sve veze korisnika s ovom grupom
     await db.query(
       'DELETE FROM korisnikova_grupa WHERE id_grupe = ?',
       [groupId]
     );
 
-    // 5. Obriši samu grupu
+    // 5. Briše se grupa
     await db.query(
       'DELETE FROM grupa WHERE id_grupe = ?',
       [groupId]
