@@ -2,6 +2,11 @@
 const express = require('express')
 const mysql = require('mysql2')
 const cors = require('cors')
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
+const config = require("./auth_config.js");
+const authJwt = require("./authJwt.js");
+
 
 const app = express()
 app.use(cors())
@@ -22,47 +27,44 @@ db.connect(err => {
   }
 })
 
-// POST: Spremi objavu + tagove
-app.post('/api/objave', (req, res) => {
-  const { naslov, sadrzaj, datum, fk_korisnik, fk_kategorija, tagovi } = req.body
+
+app.post('/api/objave', authJwt.verifyTokenUser, (req, res) => {
+
+  const { naslov, sadrzaj, datum, fk_kategorija, tagovi } = req.body;
+  const fk_korisnik = req.userId; // dolazi iz tokena
 
   if (!naslov || !sadrzaj || !datum || !fk_korisnik) {
-    return res.status(400).json({ error: 'Nedostaju potrebni podaci za objavu.' })
+    return res.status(400).json({ error: 'Nedostaju podaci.' });
   }
 
   const sqlObjava = `
     INSERT INTO objava (naslov_objave, sadrzaj_objave, datum_objave, fk_korisnik, fk_kategorija)
     VALUES (?, ?, ?, ?, ?)
-  `
+  `;
 
   db.query(sqlObjava, [naslov, sadrzaj, datum, fk_korisnik, fk_kategorija], (err, result) => {
-    if (err) {
-      console.error(' Greška pri spremanju objave:', err)
-      return res.status(500).json({ error: 'Greška pri unosu objave.' })
-    }
+    if (err) return res.status(500).json({ error: 'Greška pri unosu objave.' });
 
-    const id_objava = result.insertId
+    const id_objava = result.insertId;
 
     if (Array.isArray(tagovi) && tagovi.length > 0) {
-      const tagSql = `
-        INSERT INTO objava_tag (fk_objava, fk_tag)
-        VALUES ?
-      `
-      const tagVrijednosti = tagovi.map(tagId => [id_objava, tagId])
+      const tagSql = `INSERT INTO objava_tag (fk_objava, fk_tag) VALUES ?`;
+      const tagVrijednosti = tagovi.map(tagId => [id_objava, tagId]);
 
       db.query(tagSql, [tagVrijednosti], (tagErr) => {
         if (tagErr) {
-          console.error(' Greška pri spremanju tagova:', tagErr)
-          return res.status(500).json({ error: 'Objava spremljena, ali tagovi nisu.' })
+          console.error('Greška pri tagovima:', tagErr);
+          return res.status(500).json({ error: 'Objava spremljena, ali tagovi nisu.' });
         }
 
-        res.status(201).json({ message: 'Objava i tagovi spremljeni!', id_objava })
-      })
+        res.status(201).json({ message: 'Objava i tagovi spremljeni!', id_objava });
+      });
     } else {
-      res.status(201).json({ message: 'Objava spremljena bez tagova.', id_objava })
+      res.status(201).json({ message: 'Objava spremljena bez tagova.', id_objava });
     }
-  })
-})
+  });
+});
+
 
 // GET: Sve objave
 app.get('/api/objave', (req, res) => {
@@ -299,6 +301,50 @@ app.get('/api/objave/:id', (req, res) => {
     })
   })
 })
+
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body;
+
+  db.query("SELECT * FROM korisnik WHERE korisnicko_ime = ?", [username], (error, results) => {
+    if (error) return res.status(500).json({ success: false, message: error });
+
+    if (results.length === 0) {
+      return res.status(404).json({ success: false, message: "Korisnik ne postoji" });
+    }
+
+    const korisnik = results[0];
+
+    bcrypt.compare(String(password), String(korisnik.lozinka_korisnika), (err, isMatch) => {
+      if (err) return res.status(500).json({ success: false, message: err });
+
+      if (isMatch) {
+        const token = jwt.sign(
+          {
+            id: korisnik.id_korisnika,
+            ime: korisnik.ime_korisnika,
+            prezime: korisnik.prezime_korisnika,
+            uloga: korisnik.admin_status
+          },
+          config.secret,
+          { expiresIn: "2h" }
+        );
+        return res.status(200).json({ success: true, token });
+      } else {
+        return res.status(401).json({ success: false, message: "Krivo korisničko ime ili lozinka" });
+      }
+    });
+  });
+});
+
+app.get("/api/me", authJwt.verifyTokenUser, (req, res) => {
+  db.query("SELECT id_korisnika AS id, korisnicko_ime AS ime, admin_status AS uloga FROM korisnik WHERE id_korisnika = ?", [req.userId], (err, results) => {
+    if (err) return res.status(500).json({ error: "Greška u bazi" });
+    if (results.length === 0) return res.status(404).json({ error: "Korisnik nije pronađen" });
+    res.status(200).json(results[0]);
+  });
+});
+
+
 
 // Pokretanje servera
 const PORT = 3000

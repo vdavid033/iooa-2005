@@ -9,11 +9,12 @@ const routes = [
 
       { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
       { path: 'inbox', component: () => import('pages/InboxPage.vue') }, // <-- Dodano za Inbox
-      {path: 'poruke', component: () => import('pages/PorukeMain.vue') },
+      { path: 'poruke', component: () => import('pages/PorukeMain.vue') },
       { path: 'kalendardog', component: () => import('pages/KalendarDog.vue') },
       { path: 'kalendar-obaveze', component: KalendarObaveza },    
       { path: 'forum', component: () => import('pages/ForumPage.vue') },
-      { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue')}
+      { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue')},
+      { path: 'login', component: () => import('pages/LoginPage.vue')}
     ]
 
   },

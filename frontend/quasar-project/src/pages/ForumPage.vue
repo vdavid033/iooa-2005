@@ -176,16 +176,25 @@ async function fetchObjave() {
 async function savePost() {
   if (title.value && content.value && category.value) {
     try {
+      const token = localStorage.getItem('token')
+      if (!token) {
+        alert('Nisi prijavljen. Prijavi se prije objavljivanja.')
+        return
+      }
+
       const noviPodaci = {
         naslov: title.value,
         sadrzaj: content.value,
         datum: new Date().toISOString().slice(0, 19).replace('T', ' '),
-        fk_korisnik: 1, // promijeniti kad se doda autentikacija
         fk_kategorija: category.value?.value || null,
-        tagovi: tags.value.map(t => t.value) // dohvaćamo tagove po vrijednosti
+        tagovi: tags.value.map(t => t.value)
       }
 
-      await axios.post('http://localhost:3000/api/objave', noviPodaci)
+      await axios.post('http://localhost:3000/api/objave', noviPodaci, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
 
       $q.notify({
         type: 'positive',
@@ -203,10 +212,20 @@ async function savePost() {
       await fetchObjave()
     } catch (error) {
       console.error('Greška pri spremanju objave:', error)
-      alert('Greška pri spremanju. Provjeri backend.')
+      $q.notify({
+        type: 'negative',
+        message: 'Greška pri spremanju objave.',
+        timeout: 2500,
+        position: 'top-right'
+      })
     }
   } else {
-    alert('Popuni sva obavezna polja!')
+    $q.notify({
+      type: 'warning',
+      message: 'Popuni sva obavezna polja!',
+      timeout: 2500,
+      position: 'top-right'
+    })
   }
 }
 
