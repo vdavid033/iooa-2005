@@ -14,7 +14,7 @@
       <q-card-section>
         <div class="text-h5">{{ post.naslov }}</div>
         <div class="text-subtitle2 text-grey">
-          Korisnik #{{ post.id_korisnika }} | {{ post.kategorija }} | {{ formatDate(post.datum_objave) }}
+          Korisnik: {{ post.username || 'Nepoznat' }} | {{ post.kategorija }} | {{ formatDate(post.datum_objave) }}
         </div>
         <div class="q-mt-md" v-html="post.sadrzaj"></div>
         <div class="q-mt-sm">

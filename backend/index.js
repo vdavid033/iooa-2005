@@ -237,38 +237,57 @@ app.post('/api/comments', (req, res) => {
 
 // GET: Dohvati komentare za objavu
 app.get('/api/comments/:id_objava', (req, res) => {
-  const id_objava = req.params.id_objava
+  const id_objava = req.params.id_objava;
 
   const sql = `
-    SELECT * FROM komentar
-    WHERE id_objava = ?
-    ORDER BY datum_komentara DESC
-  `
+    SELECT 
+      k.id_komentar,
+      k.id_objava,
+      k.id_korisnika,
+      k.sadrzaj_komentara,
+      k.datum_komentara,
+      u.korisnicko_ime AS username
+    FROM komentar k
+    LEFT JOIN korisnik u ON k.id_korisnika = u.id_korisnika
+    WHERE k.id_objava = ?
+    ORDER BY k.datum_komentara DESC
+  `;
 
   db.query(sql, [id_objava], (err, results) => {
     if (err) {
-      console.error(' Greška pri dohvaćanju komentara:', err)
-      return res.status(500).json({ error: 'Greška u bazi.' })
+      console.error('❌ Greška pri dohvaćanju komentara:', err);
+      return res.status(500).json({ error: 'Greška u bazi.' });
     }
 
-    res.status(200).json(results)
-  })
-})
+    const komentari = results.map(r => ({
+      id_komentar: r.id_komentar,
+      id_objava: r.id_objava,
+      id_korisnika: r.id_korisnika,
+      sadrzaj_komentara: r.sadrzaj_komentara,
+      datum_komentara: r.datum_komentara,
+      username: r.username || null
+    }));
+
+    res.status(200).json(komentari);
+  });
+});
+
 app.get('/api/objave/:id', (req, res) => {
   const id = req.params.id
 
   const sql = `
     SELECT 
-      o.id_objava AS id,
-      o.naslov_objave AS naslov,
-      o.sadrzaj_objave AS sadrzaj,
-      o.datum_objave,
-      k.korisnicko_ime AS author,
-      kf.ime_kategorija_forum AS kategorija
-    FROM objava o
-    LEFT JOIN korisnik k ON o.fk_korisnik = k.id_korisnika
-    LEFT JOIN kategorija_forum kf ON o.fk_kategorija = kf.id_kategorija_forum
-    WHERE o.id_objava = ?
+  o.id_objava AS id,
+  o.naslov_objave AS naslov,
+  o.sadrzaj_objave AS sadrzaj,
+  o.datum_objave,
+  o.fk_korisnik AS id_korisnika,
+  k.korisnicko_ime AS username,
+  kf.ime_kategorija_forum AS kategorija
+FROM objava o
+LEFT JOIN korisnik k ON o.fk_korisnik = k.id_korisnika
+LEFT JOIN kategorija_forum kf ON o.fk_kategorija = kf.id_kategorija_forum
+WHERE o.id_objava = ?
   `
 
   db.query(sql, [id], (err, results) => {

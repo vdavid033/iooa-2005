@@ -22,7 +22,7 @@
       <q-list bordered separator>
         <q-item v-for="(comment, index) in comments" :key="index">
           <q-item-section>
-            <q-item-label>Korisnik #{{ comment.id_korisnika }}</q-item-label>
+           <q-item-label>Korisnik: {{ comment.username || ('#' + comment.id_korisnika) }}</q-item-label>
             <q-item-label caption>{{ comment.sadrzaj_komentara }}</q-item-label>
             <q-item-label class="text-caption text-grey">
               {{ formatDate(comment.datum_komentara) }}
