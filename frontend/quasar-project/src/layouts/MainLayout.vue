@@ -13,6 +13,23 @@
       <q-tooltip>Kalendar</q-tooltip>
     </q-btn>
   </div>
+
+    <!-- Desna strana: Login / Logout -->
+    <q-space />
+      <q-btn
+        v-if="!isAuthenticated"
+        flat
+        icon="login"
+        label="Login"
+        to="/login"
+        />
+      <q-btn
+        v-else
+        flat
+        icon="logout"
+        label="Logout"
+        @click="logout"
+        />
 </q-toolbar>
 
     </q-header>

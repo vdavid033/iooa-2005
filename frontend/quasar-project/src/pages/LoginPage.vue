@@ -39,7 +39,7 @@
         />
         <div>
           <q-btn label="Submit" type="submit" color="primary" @click="login()"/>
-          <q-btn label="Reset" type="reset" color="primary" flat class="q-ml-sm" />
+          <q-btn label="Reset" type="button" color="primary" flat class="q-ml-sm" @click="resetForm" />
         </div>
       </q-form>
     </q-card>  
@@ -100,4 +100,10 @@ async function login() {
     localStorage.removeItem("token");
     window.location.reload();
   }
+
+  // metoda za resetiranje - dodano
+  const resetForm = () => {
+    name.value = '';
+    passwd.value = '';
+  };
 </script>

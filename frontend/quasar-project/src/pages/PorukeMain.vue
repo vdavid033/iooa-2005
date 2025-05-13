@@ -241,13 +241,31 @@ const decodeToken = (token) => {
   } 
 };
 
-// Inicijalno učitavanje
+// Inicijalno učitavanje - obavijest o prijavi za prikaz poruka
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
 onMounted(() => {
-  fullUser.value = decodeToken(token);
-  trenutniKorisnikId.value = fullUser.value.id;
-  fetchKorisnici();
-  fetchSvePoruke();
-});
+  if (!token) {
+    alert("Morate biti prijavljeni da biste vidjeli poruke.")
+    router.push('/login')
+    return
+  }
+
+  const decoded = decodeToken(token)
+  if (!decoded || !decoded.id) {
+    alert("Nevažeći token. Prijavite se ponovno.")
+    router.push('/login')
+    return
+  }
+
+  fullUser.value = decoded
+  trenutniKorisnikId.value = fullUser.value.id
+
+  fetchKorisnici()
+  fetchSvePoruke()
+})
 
 // Automatsko osvježavanje poruka
 let pollingInterval = null
