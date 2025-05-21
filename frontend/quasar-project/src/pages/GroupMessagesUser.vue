@@ -89,13 +89,16 @@
 import { ref, onMounted } from 'vue'
 import axios from 'axios'
 
-const users = ref([
-  { id: 1, name: 'Alice', avatar: 'https://i.pravatar.cc/150?img=1' },
-  { id: 2, name: 'Bob', avatar: 'https://i.pravatar.cc/150?img=2' },
-  { id: 3, name: 'Charlie', avatar: 'https://i.pravatar.cc/150?img=3' },
-  { id: 4, name: 'David', avatar: 'https://i.pravatar.cc/150?img=4' },
-  { id: 5, name: 'Mama', avatar: 'https://i.pravatar.cc/150?img=5' }
-])
+const users = ref([])
+
+async function fetchUsers() {
+  try {
+    const res = await axios.get('http://localhost:3000/api/groups/users/all')
+    users.value = res.data
+  } catch (err) {
+    console.error('Greška pri dohvaćanju korisnika:', err)
+  }
+}
 const groups = ref([]) // ← stvarne grupe se dohvaćaju s backend-a
 const currentGroup = ref(null)
 const messages = ref([]) // ← poruke su odvojene, više se ne čuvaju u currentGroup
@@ -193,5 +196,9 @@ function cancelGroupCreation() {
 function closeMembersDrawer() {
   membersDrawer.value = false
 }
+
+onMounted(() => {
+  fetchUsers()
+})
 
 </script>

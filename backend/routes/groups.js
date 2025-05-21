@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/groupsController');
 
+//Dohvat korisnika
+router.get('/users/all', controller.getAllUsers);
+
+
 //Dohvati grupne poruke
 router.get('/:groupName/messages', controller.getGroupMessages); // sad koristi isti naziv kao na vrhu
 
