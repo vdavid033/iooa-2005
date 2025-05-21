@@ -1,14 +1,26 @@
 <template>
-  <q-page padding>
+  <q-page padding class="bg-white">
     <!-- Forma za unos nove objave -->
-    <q-card class="q-pa-md q-mb-lg">
+    <q-card class="q-pa-sm q-mb-lg bg-blue-1 text-dark shadow-2 form-card">
       <q-card-section>
-        <div class="text-h6">Kreiraj novu objavu</div>
+        <div class="text-h6 text-primary">Kreiraj novu objavu</div>
       </q-card-section>
 
       <q-card-section>
-        <q-input v-model="title" label="Naslov objave" filled />
-        <q-editor v-model="content" label="Sadržaj" class="q-mt-md" />
+        <q-input
+          v-model="title"
+          label="Naslov objave"
+          filled
+          color="primary"
+          dense
+        />
+        <q-editor
+          v-model="content"
+          label="Sadržaj"
+          class="q-mt-sm"
+          min-height="80px"
+          height="120px"
+        />
 
         <q-select
           v-model="category"
@@ -17,23 +29,29 @@
           option-value="value"
           label="Kategorija"
           filled
-          class="q-mt-md"
+          color="primary"
+          class="q-mt-sm"
+          dense
         />
 
         <q-select
           v-model="tags"
           :options="availableTags"
+          option-label="label"
+          option-value="value"
           label="Tagovi"
           multiple
           filled
-          class="q-mt-md"
+          color="primary"
+          class="q-mt-sm"
+          dense
           :hint="'Maksimalno 5 tagova'"
           :rules="[val => val.length <= 5 || 'Dozvoljeno je do 5 tagova.']"
         />
       </q-card-section>
 
       <q-card-actions align="right">
-        <q-btn label="Spremi" color="primary" @click="savePost" />
+        <q-btn label="Spremi" color="primary" glossy @click="savePost" />
       </q-card-actions>
     </q-card>
 
@@ -41,59 +59,77 @@
     <div class="q-mb-md">
       <div class="row items-center q-gutter-sm">
         <q-select
-        v-model="selectedTags"
-       :options="availableTags"
-        option-label="label"
-        option-value="label"
-        label="Filtriraj po tagovima"
-        multiple
-        filled
-        emit-value
-        map-options
-        style="flex: 1"
+          v-model="selectedTags"
+          :options="availableTags"
+          option-label="label"
+          option-value="label"
+          label="Filtriraj po tagovima"
+          multiple
+          filled
+          emit-value
+          map-options
+          color="primary"
+          dense
+          style="flex: 1"
         />
 
-        <q-btn
-          label="Filtriraj"
-          color="primary"
-          @click="filterPosts"
-        />
+        <q-btn label="Filtriraj" color="primary" glossy @click="filterPosts" />
       </div>
     </div>
 
     <!-- Lista objava -->
-    <div v-for="post in paginatedPostsFiltered" :key="post.id" class="q-mb-md">
-      <q-card clickable @click="goToPost(post.id)" class="q-pa-sm">
-        <q-card-section class="row items-center justify-between">
-          <div>
-            <q-avatar icon="person" size="sm" />
-            <span class="q-ml-sm text-subtitle2">{{ post.author }}</span>
-          </div>
-          <div class="text-grey text-caption">&lt;{{ post.category }}&gt;</div>
-        </q-card-section>
+    <div
+      v-for="post in paginatedPostsFiltered"
+      :key="post.id"
+      class="q-mb-md"
+    >
+      <div class="post-card-wrapper">
+        <q-card
+          clickable
+          @click="goToPost(post.id)"
+          class="q-pa-sm post-card shadow-1 bg-white text-dark"
+        >
+          <q-card-section class="row items-center justify-between">
+            <div>
+              <q-avatar
+                icon="person"
+                size="sm"
+                color="primary"
+                text-color="white"
+              />
+              <span class="q-ml-sm text-subtitle2">{{ post.author }}</span>
+            </div>
+            <div class="column items-end">
+              <div class="text-blue-9 text-caption">&lt;{{ post.category }}&gt;</div>
+              <div class="text-grey-7 text-caption">{{ formatDate(post.date) }}</div>
+            </div>
+          </q-card-section>
 
-        <q-card-section>
-          <div class="text-h6">{{ post.title }}</div>
-          <div class="text-body2 q-mt-xs">{{ post.preview }}</div>
-        </q-card-section>
+          <q-card-section>
+            <div class="text-h6 text-primary">{{ post.title }}</div>
+            <div class="text-body2 q-mt-xs">{{ post.preview }}</div>
+          </q-card-section>
 
-        <q-card-section class="row items-center justify-between">
-        <div class="text-blue">
-        <span v-for="tag in post.tags" :key="tag" class="q-mr-sm">#{{ tag }}</span>
-        </div>
+          <q-card-section class="row items-center justify-between">
+            <div class="text-blue-9">
+              <span v-for="tag in post.tags" :key="tag" class="q-mr-sm">
+                #{{ tag }}
+              </span>
+            </div>
 
-     <q-btn
-      flat
-      dense
-      round
-     @click.stop="goToPost(post.id)"
-     class="row items-center q-gutter-xs">
-    <q-icon name="chat_bubble_outline" />
-    <span>{{ post.comments }}</span>
-  </q-btn>
-</q-card-section>
-
-      </q-card>
+            <q-btn
+              flat
+              dense
+              round
+              @click.stop="goToPost(post.id)"
+              class="row items-center q-gutter-xs text-blue"
+            >
+              <q-icon name="chat_bubble_outline" />
+              <span>{{ post.comments }}</span>
+            </q-btn>
+          </q-card-section>
+        </q-card>
+      </div>
     </div>
 
     <q-pagination
@@ -106,6 +142,47 @@
     />
   </q-page>
 </template>
+
+<script>
+export default {
+  data() {
+    return {
+      title: '',
+      content: '',
+      category: null,
+      tags: [],
+      selectedTags: [],
+      page: 1,
+      categories: [],
+      availableTags: [],
+      paginatedPostsFiltered: [],
+    };
+  },
+  methods: {
+    savePost() {
+      // Tvoja funkcija za spremanje posta
+    },
+    filterPosts() {
+      // Tvoja funkcija za filtriranje posta
+    },
+    goToPost(postId) {
+      // Navigacija na detalje posta
+    },
+    formatDate(dateString) {
+      const options = {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+      };
+      return new Date(dateString)
+        .toLocaleString('hr-HR', options)
+        .replace(',', ' u');
+    },
+  },
+};
+</script>
 
 <script setup>
 import { ref, computed, onMounted } from 'vue'
@@ -264,4 +341,52 @@ async function filterPosts () {
 function goToPost(id) {
   router.push(`/objava/${id}`)
 }
+
 </script>
+<style scoped>
+/* Cijela stranica ostaje bijela */
+.q-page.bg-white {
+  background-color: white;
+}
+
+/* Plava pozadina forme */
+.q-card.bg-blue-1 {
+  background-color: #e3f2fd !important; /* svijetloplava Quasar nijansa */
+}
+
+/* Stil za wrapper oko svake objave */
+.post-card-wrapper {
+  position: relative;
+}
+
+/* Plava crta s desne strane kartice */
+.post-card-wrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 6px;
+  height: 100%;
+  background-color: #1976d2; /* Quasar primary blue */
+  border-top-right-radius: 4px;
+  border-bottom-right-radius: 4px;
+}
+
+/* Kartica objave */
+.post-card {
+  transition: box-shadow 0.3s ease, transform 0.2s ease;
+  border-radius: 8px;
+}
+
+/* Hover efekt */
+.post-card:hover {
+  box-shadow: 0 6px 18px rgba(25, 118, 210, 0.25);
+  transform: translateY(-2px);
+  cursor: pointer;
+}
+
+.form-card {
+  border-radius: 10px;
+}
+
+</style>
