@@ -194,15 +194,4 @@ function closeMembersDrawer() {
   membersDrawer.value = false
 }
 
-onMounted(() => {
-  // Ovo možeš zamijeniti dohvatom grupa s backend-a ako postoji
-  groups.value = [
-    {
-      name: 'Obitelj',
-      members: [users.value[4], { id: userId, name: 'Ja', avatar: 'https://i.pravatar.cc/150?img=6' }]
-    }
-  ]
-  currentGroup.value = groups.value[0]
-  fetchMessages()
-})
 </script>
