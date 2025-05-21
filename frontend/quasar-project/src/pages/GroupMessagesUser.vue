@@ -110,8 +110,23 @@ const newGroupName = ref('')
 const selectedUserIds = ref([])
 const userId = 1 // testni user ID, zamijeni po potrebi
 
+async function fetchGroups() {
+  try {
+    const res = await axios.get(`http://localhost:3000/api/groups/${userId}`)
+    groups.value = res.data.map(group => ({
+      id: group.id_grupe,
+      name: group.ime_grupe,
+      description: group.opis_grupe,
+      admin: group.admin_status
+    }))
+  } catch (err) {
+    console.error('Greška pri dohvaćanju grupa:', err)
+  }
+}
+
 function selectGroup(group) {
   currentGroup.value = group
+  fetchGroupMembers(group.name)
   fetchMessages() // ← dohvaćamo poruke s backend-a kad se odabere grupa
 }
 
@@ -128,6 +143,15 @@ async function fetchMessages() {
     }))
   } catch (err) {
     console.error('Greška pri dohvaćanju poruka:', err)
+  }
+}
+
+async function fetchGroupMembers(groupName) {
+  try {
+    const res = await axios.get(`http://localhost:3000/api/groups/${groupName}/members`)
+    currentGroup.value.members = res.data
+  } catch (err) {
+    console.error('Greška pri dohvaćanju članova grupe:', err)
   }
 }
 
@@ -168,7 +192,7 @@ async function createGroup() {
     // Nakon uspješnog kreiranja, dodaj grupu lokalno
     const newGroup = {
       name: res.data.ime_grupe,
-      members: [...selectedMembers, { id: userId, name: 'Ja', avatar: 'https://i.pravatar.cc/150?img=6' }]
+      members: [...selectedMembers]
     }
 
     groups.value.push(newGroup)
@@ -199,6 +223,7 @@ function closeMembersDrawer() {
 
 onMounted(() => {
   fetchUsers()
+  fetchGroups()
 })
 
 </script>

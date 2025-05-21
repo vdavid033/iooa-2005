@@ -21,17 +21,48 @@ exports.getAllUsers = async (req, res) => {
   }
 };
 
+// Dohvaća sve korisnike iz baze podataka koji pripadaju odabranoj grupi
+exports.getGroupMembers = async (req, res) => {
+  const groupName = req.params.groupName;
+
+  try {
+    const [rows] = await db.execute(`
+      SELECT k.id_korisnika AS id, 
+             CONCAT(k.ime_korisnika, ' ', k.prezime_korisnika) AS name
+      FROM korisnikova_grupa kg
+      JOIN korisnik k ON kg.id_korisnika = k.id_korisnika
+      JOIN grupa g ON kg.id_grupe = g.id_grupe
+      WHERE g.ime_grupe = ?
+    `, [groupName]);
+
+    // Add placeholder avatar URLs
+    const members = rows.map(member => ({
+      ...member,
+      avatar: `https://i.pravatar.cc/150?u=${member.id}`
+    }));
+
+    res.json(members);
+  } catch (err) {
+    console.error('Greška pri dohvaćanju članova grupe:', err);
+    res.status(500).json({ error: 'Neuspješno dohvaćanje članova grupe' });
+  }
+};
+
 // Dohvaća sve grupe iz baze podataka
 exports.getGroups = async (req, res) => {
-  console.log("GET /api/groups pozvan");
+  const userId = req.params.userId;
   try {
-    const [groups] = await db.query("SELECT * FROM grupa");
+    const [groups] = await db.execute(`
+      SELECT g.id_grupe, g.ime_grupe, g.opis_grupe, kg.admin_status
+      FROM korisnikova_grupa kg
+      JOIN grupa g ON kg.id_grupe = g.id_grupe
+      WHERE kg.id_korisnika = ?
+    `, [userId]);
+
     res.json(groups);
-  } catch (error) {
-    console.error("Greška pri dohvaćanju grupa:", error.message);
-    res
-      .status(500)
-      .json({ error: "Greška pri dohvaćanju grupa", details: error.message });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch user groups' });
   }
 };
 
