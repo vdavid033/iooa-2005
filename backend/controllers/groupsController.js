@@ -1,6 +1,26 @@
 // Uvoz db modula za pristup bazi podataka
 const db = require("../data/db");
 
+// Dohvaća sve korisnike iz baze podataka
+exports.getAllUsers = async (req, res) => {
+  try {
+    const [rows] = await db.execute(`
+      SELECT id_korisnika AS id, 
+             CONCAT(ime_korisnika, ' ', prezime_korisnika) AS name
+      FROM korisnik
+    `);
+    // Add avatar placeholder to match expected frontend structure
+    const users = rows.map(user => ({
+      ...user,
+      avatar: `https://i.pravatar.cc/150?u=${user.id}` // Using `u` param for uniqueness
+    }));
+    res.json(users);
+  } catch (err) {
+    console.error('Greška pri dohvaćanju korisnika:', err);
+    res.status(500).json({ error: 'Neuspješno dohvaćanje korisnika' });
+  }
+};
+
 // Dohvaća sve grupe iz baze podataka
 exports.getGroups = async (req, res) => {
   console.log("GET /api/groups pozvan");
