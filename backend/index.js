@@ -235,10 +235,11 @@ app.get('/api/tagovi', (req, res) => {
 })
 
 // POST: Spremi komentar
-app.post('/api/comments', (req, res) => {
-  const { id_objava, id_korisnika, sadrzaj_komentara } = req.body
+app.post('/api/comments', authJwt.verifyTokenUser, (req, res) => {
+  const { id_objava, sadrzaj_komentara } = req.body
+  const id_korisnika = req.userId  // ✅ iz tokena
 
-  if (!id_objava || !id_korisnika || !sadrzaj_komentara) {
+  if (!id_objava || !sadrzaj_komentara || !id_korisnika) {
     return res.status(400).json({ error: 'Nedostaju podaci.' })
   }
 
@@ -246,11 +247,13 @@ app.post('/api/comments', (req, res) => {
     INSERT INTO komentar (id_objava, id_korisnika, sadrzaj_komentara, datum_komentara)
     VALUES (?, ?, ?, NOW())
   `
+
   db.query(sql, [id_objava, id_korisnika, sadrzaj_komentara], (err, result) => {
     if (err) {
-      console.error(' Greška pri unosu komentara:', err)
+      console.error('❌ Greška pri unosu komentara:', err)
       return res.status(500).json({ error: 'Greška pri unosu komentara.' })
     }
+
     res.status(201).json({ message: 'Komentar spremljen!', id_komentar: result.insertId })
   })
 })
