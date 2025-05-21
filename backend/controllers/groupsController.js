@@ -1,15 +1,17 @@
 // Uvoz db modula za pristup bazi podataka
-const db = require('../data/db');
+const db = require("../data/db");
 
 // Dohvaća sve grupe iz baze podataka
 exports.getGroups = async (req, res) => {
   console.log("GET /api/groups pozvan");
   try {
-    const [groups] = await db.query('SELECT * FROM grupa');
+    const [groups] = await db.query("SELECT * FROM grupa");
     res.json(groups);
   } catch (error) {
-    console.error('Greška pri dohvaćanju grupa:', error.message);
-    res.status(500).json({ error: 'Greška pri dohvaćanju grupa', details: error.message });
+    console.error("Greška pri dohvaćanju grupa:", error.message);
+    res
+      .status(500)
+      .json({ error: "Greška pri dohvaćanju grupa", details: error.message });
   }
 };
 
@@ -19,7 +21,7 @@ exports.createGroup = async (req, res) => {
 
   if (!name || !description || !creatorId) {
     return res.status(400).json({
-      error: 'Neispravan zahtjev. Ime, opis i creatorId su obavezni.'
+      error: "Neispravan zahtjev. Ime, opis i creatorId su obavezni.",
     });
   }
 
@@ -29,47 +31,49 @@ exports.createGroup = async (req, res) => {
   try {
     // Provjera da creatorId postoji
     const [creatorCheck] = await connection.query(
-      'SELECT id_korisnika FROM korisnik WHERE id_korisnika = ?',
+      "SELECT id_korisnika FROM korisnik WHERE id_korisnika = ?",
       [creatorId]
     );
     if (creatorCheck.length === 0) {
-      throw new Error('Korisnik (creatorId) ne postoji.');
+      throw new Error("Korisnik (creatorId) ne postoji.");
     }
     console.log(`Creator ID ${creatorId} postoji.`);
 
     // Provjerava da svi memberIds postoje
-    const uniqueMemberIds = [...new Set(memberIds.filter(id => id !== creatorId))];
+    const uniqueMemberIds = [
+      ...new Set(memberIds.filter((id) => id !== creatorId)),
+    ];
     let validMemberIds = [];
     if (uniqueMemberIds.length > 0) {
       const [existingMembers] = await connection.query(
-        'SELECT id_korisnika FROM korisnik WHERE id_korisnika IN (?)',
+        "SELECT id_korisnika FROM korisnik WHERE id_korisnika IN (?)",
         [uniqueMemberIds]
       );
-      validMemberIds = existingMembers.map(m => m.id_korisnika);
+      validMemberIds = existingMembers.map((m) => m.id_korisnika);
 
       if (validMemberIds.length !== uniqueMemberIds.length) {
-        throw new Error('Neki korisnici u memberIds ne postoje.');
+        throw new Error("Neki korisnici u memberIds ne postoje.");
       }
     }
 
     // 1. Stvaranje grupe
     const [groupResult] = await connection.query(
-      'INSERT INTO grupa (ime_grupe, opis_grupe) VALUES (?, ?)',
+      "INSERT INTO grupa (ime_grupe, opis_grupe) VALUES (?, ?)",
       [name, description]
     );
     const groupId = groupResult.insertId;
 
     // 2. Dodavanje creatorId kao admin
     await connection.query(
-      'INSERT INTO korisnikova_grupa (id_grupe, id_korisnika, admin_status) VALUES (?, ?, ?)',
+      "INSERT INTO korisnikova_grupa (id_grupe, id_korisnika, admin_status) VALUES (?, ?, ?)",
       [groupId, creatorId, true]
     );
 
     // 3. Dodavanje ostalih članova kao ne-admin
     if (validMemberIds.length > 0) {
-      const memberValues = validMemberIds.map(id => [groupId, id, false]);
+      const memberValues = validMemberIds.map((id) => [groupId, id, false]);
       await connection.query(
-        'INSERT INTO korisnikova_grupa (id_grupe, id_korisnika, admin_status) VALUES ?',
+        "INSERT INTO korisnikova_grupa (id_grupe, id_korisnika, admin_status) VALUES ?",
         [memberValues]
       );
     }
@@ -79,17 +83,18 @@ exports.createGroup = async (req, res) => {
     connection.release();
 
     res.status(201).json({
-      message: 'Grupa uspješno kreirana sa članovima',
+      message: "Grupa uspješno kreirana sa članovima",
       id_grupe: groupId,
       ime_grupe: name,
-      opis_grupe: description
+      opis_grupe: description,
     });
-
   } catch (error) {
     await connection.rollback();
     connection.release();
-    console.error('Greška pri stvaranju grupe s članovima:', error.message);
-    res.status(500).json({ error: 'Greška pri stvaranju grupe', details: error.message });
+    console.error("Greška pri stvaranju grupe s članovima:", error.message);
+    res
+      .status(500)
+      .json({ error: "Greška pri stvaranju grupe", details: error.message });
   }
 };
 
@@ -99,27 +104,32 @@ exports.sendMessage = async (req, res) => {
   const { senderId, content } = req.body;
 
   if (!senderId || !content) {
-    return res.status(400).json({ error: 'SenderId i sadržaj poruke su obavezni' });
+    return res
+      .status(400)
+      .json({ error: "SenderId i sadržaj poruke su obavezni" });
   }
 
   try {
     // Provjera dal grupa postoji
-    const [group] = await db.query('SELECT id_grupe FROM grupa WHERE ime_grupe = ?', [groupName]);
+    const [group] = await db.query(
+      "SELECT id_grupe FROM grupa WHERE ime_grupe = ?",
+      [groupName]
+    );
     if (group.length === 0) {
-      return res.status(404).json({ error: 'Grupa nije pronađena' });
+      return res.status(404).json({ error: "Grupa nije pronađena" });
     }
-    
+
     const groupId = group[0].id_grupe;
     console.log(`Grupa ID: ${groupId}`);
 
     // Provjera dal korisnik postoji u grupi
     const [userGroupCheck] = await db.query(
-      'SELECT id_korisnikova_grupa FROM korisnikova_grupa WHERE id_korisnika = ? AND id_grupe = ?',
+      "SELECT id_korisnikova_grupa FROM korisnikova_grupa WHERE id_korisnika = ? AND id_grupe = ?",
       [senderId, groupId]
     );
 
     if (userGroupCheck.length === 0) {
-      return res.status(400).json({ error: 'Korisnik nije član ove grupe.' });
+      return res.status(400).json({ error: "Korisnik nije član ove grupe." });
     }
 
     const userGroupId = userGroupCheck[0].id_korisnikova_grupa;
@@ -127,30 +137,35 @@ exports.sendMessage = async (req, res) => {
 
     // Provjerava da li postoji `userGroupId`
     if (!userGroupId) {
-      return res.status(400).json({ error: 'Nevažeći ID korisničke grupe' });
+      return res.status(400).json({ error: "Nevažeći ID korisničke grupe" });
     }
 
     // ispis podataka koji se unose u grupnu_poruku u konzolu
-    console.log(`Spremanje poruke - UserGroupId: ${userGroupId}, SenderId: ${senderId}, Content: ${content}`);
+    console.log(
+      `Spremanje poruke - UserGroupId: ${userGroupId}, SenderId: ${senderId}, Content: ${content}`
+    );
 
     // Spremanje poruke u grupu
     const [result] = await db.query(
-      'INSERT INTO grupna_poruka (fk_korisnikove_grupe, fk_posiljatelja, sadrzaj_grupne_poruke, datum_i_vrijeme_grupne_poruke) VALUES (?, ?, ?, NOW())',
+      "INSERT INTO grupna_poruka (fk_korisnikove_grupe, fk_posiljatelja, sadrzaj_grupne_poruke, datum_i_vrijeme_grupne_poruke) VALUES (?, ?, ?, NOW())",
       [userGroupId, senderId, content]
     );
 
-    console.log('Rezultat unosa:', result); // Provjerite rezultat unosa u tablicu
+    console.log("Rezultat unosa:", result); // Provjerite rezultat unosa u tablicu
 
     // Provjerava je li unos poruke uspio
     if (result.affectedRows > 0) {
-      return res.status(201).json({ message: 'Poruka uspješno poslana' });
+      return res.status(201).json({ message: "Poruka uspješno poslana" });
     } else {
-      return res.status(500).json({ error: 'Došlo je do greške prilikom slanja poruke.' });
+      return res
+        .status(500)
+        .json({ error: "Došlo je do greške prilikom slanja poruke." });
     }
-
   } catch (error) {
-    console.error('Greška pri slanju poruke:', error.message);
-    res.status(500).json({ error: 'Greška pri slanju poruke', details: error.message });
+    console.error("Greška pri slanju poruke:", error.message);
+    res
+      .status(500)
+      .json({ error: "Greška pri slanju poruke", details: error.message });
   }
 };
 
@@ -160,27 +175,34 @@ exports.addMembers = async (req, res) => {
   const { memberIds } = req.body;
 
   if (!memberIds || memberIds.length === 0) {
-    return res.status(400).json({ error: 'MemberIds su obavezni' });
+    return res.status(400).json({ error: "MemberIds su obavezni" });
   }
 
   try {
-    const [group] = await db.query('SELECT id_grupe FROM grupa WHERE ime_grupe = ?', [groupName]);
+    const [group] = await db.query(
+      "SELECT id_grupe FROM grupa WHERE ime_grupe = ?",
+      [groupName]
+    );
 
     if (group.length === 0) {
-      return res.status(404).json({ error: 'Grupa nije pronađena' });
+      return res.status(404).json({ error: "Grupa nije pronađena" });
     }
 
     const groupId = group[0].id_grupe;
 
     // Dodavanje članova u grupu
-    const memberValues = memberIds.map(id => [groupId, id, false]);
-    await db.query('INSERT INTO korisnikova_grupa (id_grupe, id_korisnika, admin_status) VALUES ?', [memberValues]);
+    const memberValues = memberIds.map((id) => [groupId, id, false]);
+    await db.query(
+      "INSERT INTO korisnikova_grupa (id_grupe, id_korisnika, admin_status) VALUES ?",
+      [memberValues]
+    );
 
-    res.status(200).json({ message: 'Članovi uspješno dodani' });
-
+    res.status(200).json({ message: "Članovi uspješno dodani" });
   } catch (error) {
-    console.error('Greška pri dodavanju članova:', error.message);
-    res.status(500).json({ error: 'Greška pri dodavanju članova', details: error.message });
+    console.error("Greška pri dodavanju članova:", error.message);
+    res
+      .status(500)
+      .json({ error: "Greška pri dodavanju članova", details: error.message });
   }
 };
 
@@ -189,38 +211,53 @@ exports.removeMember = async (req, res) => {
   const { groupName, memberId } = req.params;
 
   try {
-    const [group] = await db.query('SELECT id_grupe FROM grupa WHERE ime_grupe = ?', [groupName]);
+    const [group] = await db.query(
+      "SELECT id_grupe FROM grupa WHERE ime_grupe = ?",
+      [groupName]
+    );
 
     if (group.length === 0) {
-      return res.status(404).json({ error: 'Grupa ne postoji.' });
+      return res.status(404).json({ error: "Grupa ne postoji." });
     }
 
     const groupId = group[0].id_grupe;
 
     // Provjera ako je uklonjeni član administrator, u tom slučaju dodjeli se  novi admin status nekom od člana grupe
-    const [adminCheck] = await db.query('SELECT admin_status FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?', [groupId, memberId]);
+    const [adminCheck] = await db.query(
+      "SELECT admin_status FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?",
+      [groupId, memberId]
+    );
 
     if (adminCheck.length > 0 && adminCheck[0].admin_status === true) {
       // Ako je administrator, treba dodijeliti novi admin
-      const [newAdmin] = await db.query('SELECT id_korisnika FROM korisnikova_grupa WHERE id_grupe = ? AND admin_status = false LIMIT 1', [groupId]);
+      const [newAdmin] = await db.query(
+        "SELECT id_korisnika FROM korisnikova_grupa WHERE id_grupe = ? AND admin_status = false LIMIT 1",
+        [groupId]
+      );
       if (newAdmin.length > 0) {
         const newAdminId = newAdmin[0].id_korisnika;
-        await db.query('UPDATE korisnikova_grupa SET admin_status = true WHERE id_grupe = ? AND id_korisnika = ?', [groupId, newAdminId]);
+        await db.query(
+          "UPDATE korisnikova_grupa SET admin_status = true WHERE id_grupe = ? AND id_korisnika = ?",
+          [groupId, newAdminId]
+        );
         console.log(`Novi dodijeljeni administrator: ${newAdminId}`);
       }
     }
 
     // Uklanjanje člana iz grupe
-    await db.query('DELETE FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?', [groupId, memberId]);
+    await db.query(
+      "DELETE FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?",
+      [groupId, memberId]
+    );
 
-    res.status(200).json({ message: 'Član je uspješno izbrisan iz grupe' });
-
+    res.status(200).json({ message: "Član je uspješno izbrisan iz grupe" });
   } catch (error) {
-    console.error('Greška tijekom brisanja člana iz grupe:', error.message);
-    res.status(500).json({ error: 'Greška tijekom brisanja člana', details: error.message });
+    console.error("Greška tijekom brisanja člana iz grupe:", error.message);
+    res
+      .status(500)
+      .json({ error: "Greška tijekom brisanja člana", details: error.message });
   }
 };
-
 
 // Brisanje grupe
 exports.deleteGroup = async (req, res) => {
@@ -229,50 +266,92 @@ exports.deleteGroup = async (req, res) => {
   try {
     // 1. Provjera se postoji li grupa s tim imenom
     const [group] = await db.query(
-      'SELECT id_grupe FROM grupa WHERE ime_grupe = ?',
+      "SELECT id_grupe FROM grupa WHERE ime_grupe = ?",
       [groupName]
     );
 
     if (group.length === 0) {
-      return res.status(404).json({ error: 'Grupa nije pronađena' });
+      return res.status(404).json({ error: "Grupa nije pronađena" });
     }
 
     const groupId = group[0].id_grupe;
 
     // 2. Dohvacaju se svi ID-jevi korisnikova_grupa samo za ovu grupu
     const [userGroups] = await db.query(
-      'SELECT id_korisnikova_grupa FROM korisnikova_grupa WHERE id_grupe = ?',
+      "SELECT id_korisnikova_grupa FROM korisnikova_grupa WHERE id_grupe = ?",
       [groupId]
     );
 
-    const userGroupIds = userGroups.map(row => row.id_korisnikova_grupa);
+    const userGroupIds = userGroups.map((row) => row.id_korisnikova_grupa);
 
     // 3. Ako ima povezanih poruka brisu se
     if (userGroupIds.length > 0) {
       await db.query(
-        'DELETE FROM grupna_poruka WHERE fk_korisnikove_grupe IN (?)',
+        "DELETE FROM grupna_poruka WHERE fk_korisnikove_grupe IN (?)",
         [userGroupIds]
       );
     }
 
     // 4. Brišu se sve veze korisnika s ovom grupom
-    await db.query(
-      'DELETE FROM korisnikova_grupa WHERE id_grupe = ?',
-      [groupId]
-    );
+    await db.query("DELETE FROM korisnikova_grupa WHERE id_grupe = ?", [
+      groupId,
+    ]);
 
     // 5. Briše se grupa
-    await db.query(
-      'DELETE FROM grupa WHERE id_grupe = ?',
-      [groupId]
+    await db.query("DELETE FROM grupa WHERE id_grupe = ?", [groupId]);
+
+    res
+      .status(200)
+      .json({ message: "Grupa i sve povezane poruke uspješno izbrisane" });
+  } catch (error) {
+    console.error("Greška pri brisanju grupe:", error.message);
+    res.status(500).json({
+      error: "Greška pri brisanju grupe",
+      details: error.message,
+    });
+  }
+};
+
+// Novi endpoint za dohvaćanje svih poruka iz grupe
+exports.getGroupMessages = async (req, res) => {
+  const { groupName } = req.params;
+
+  try {
+    // 1. Pronađi ID grupe po imenu
+    const [group] = await db.query(
+      "SELECT id_grupe FROM grupa WHERE ime_grupe = ?",
+      [groupName]
     );
 
-    res.status(200).json({ message: 'Grupa i sve povezane poruke uspješno izbrisane' });
+    if (group.length === 0) {
+      return res.status(404).json({ error: "Grupa nije pronađena" });
+    }
+
+    const groupId = group[0].id_grupe;
+
+    // 2. Dohvati sve poruke u toj grupi, zajedno s imenom pošiljatelja
+    const [messages] = await db.query(
+      `
+      SELECT 
+      gp.id_grupne_poruke,
+       gp.sadrzaj_grupne_poruke,
+      gp.datum_i_vrijeme_grupne_poruke,
+      k.ime_korisnika AS ime_korisnika,
+      k.id_korisnika
+      FROM grupna_poruka gp
+      JOIN korisnikova_grupa kg ON gp.fk_korisnikove_grupe = kg.id_korisnikova_grupa
+      JOIN korisnik k ON gp.fk_posiljatelja = k.id_korisnika
+      WHERE kg.id_grupe = ?
+      ORDER BY gp.datum_i_vrijeme_grupne_poruke ASC
+      `,
+      [groupId]
+      );
+
+    res.json(messages);
   } catch (error) {
-    console.error('Greška pri brisanju grupe:', error.message);
-    res.status(500).json({
-      error: 'Greška pri brisanju grupe',
-      details: error.message
-    });
+    console.error("Greška pri dohvaćanju poruka:", error.message);
+    res
+      .status(500)
+      .json({ error: "Greška pri dohvaćanju poruka", details: error.message });
   }
 };

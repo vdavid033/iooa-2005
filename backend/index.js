@@ -1,32 +1,29 @@
-// Uvoz potrebnih modula
-//const express = require('express');
-const bodyParser = require('body-parser'); // Za parsiranje JSON tijela
-const mysql = require('mysql2'); 
-//const app = express();
-//const port = process.env.PORT || 3000; // Port na kojem će server slušati
+// Uvoz glavnog Express modula koji se koristi za izgradnju web servera
+const express = require('express');
+const cors = require('cors')
+// Kreiranje Express aplikacije (instanca servera)
+const app = express();
 
-// Uvoz rute (routes) za grupe
+// Definiranje porta na kojem će server slušati HTTP zahtjeve (3000 je lokalni standard)
+const PORT = 3000;
+app.use(cors());     
+// Middleware koji omogućuje Expressu da automatski parsira JSON tijela zahtjeva
+// (zamjenjuje potrebu za "body-parser" paketom)
+app.use(express.json());
+
+// Uvoz rute za rad s grupama (grupne poruke, članovi, CRUD grupe)
 const groupsRoute = require('./routes/groups');
 
-// Middleware za parsiranje JSON tijela
-app.use(bodyParser.json());  // Omogućava parsiranje JSON-a u tijelu zahtjeva
+// Uvoz rute za rad s folderima (vjerojatno organizacija datoteka ili mape u aplikaciji)
+const foldersRoute = require('./routes/folderRoutes');
 
-// Postavljanje ruta
-app.use('/api/groups', groupsRoute);  
+// Registracija rute za sve zahtjeve koji počinju s /api/groups (npr. GET /api/groups/:id/messages)
+app.use('/api/groups', groupsRoute);
 
-// Pokretanje servera
-/*app.listen(port, () => {
-  console.log(`Server pokrenut na portu ${port}`);
-});*/
-// API
-const express = require('express')
-const app = express()
-const PORT = 3000
+// Registracija rute za sve zahtjeve koji počinju s /api/folders
+app.use('/api/folders', foldersRoute);
 
-app.use(express.json())
-
-app.use('/api/folders', require('./routes/folderRoutes'))
-
+// Pokretanje Express servera na definiranom portu, i ispis poruke da je sve spremno
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`)
-})
+  console.log(`Server is running on port ${PORT}`);
+});
