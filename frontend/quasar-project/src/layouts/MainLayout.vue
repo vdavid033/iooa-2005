@@ -64,7 +64,7 @@ const linksList = [
     title: 'Grupne poruke',
     caption: 'chat.quasar.dev',
     icon: 'chat',
-    link: 'https://chat.quasar.dev',
+    link: 'http://localhost:9000/groups/',
   },
   {
     title: 'Forum',
