@@ -13,7 +13,7 @@
                 active-class="bg-primary text-white">
           <q-item-section><q-item-label>{{ group.name }}</q-item-label></q-item-section>
           <q-item-section side>
-            <q-btn dense flat round icon="logout" size="sm" color="negative" @click.stop="leaveGroup(index)" />
+            <q-btn dense flat round icon="delete" size="sm" color="negative" @click.stop="deleteGroup(group.name, index)" />
           </q-item-section>
         </q-item>
       </q-list>
@@ -87,6 +87,10 @@
 
 <script setup>
 import { ref, onMounted } from 'vue'
+
+import { useQuasar } from 'quasar'
+const $q = useQuasar()
+
 import axios from 'axios'
 
 const users = ref([])
@@ -200,5 +204,33 @@ function closeMembersDrawer() {
 onMounted(() => {
   fetchUsers()
 })
+
+/* BRISANJE KOMPLETNE GRUPE */
+async function deleteGroup(groupName, index) {
+  try {
+    const response = await axios.delete(`http://localhost:3000/api/groups/${groupName}`)
+    console.log(response.data.message)
+
+    // Ukloni grupu iz prikaza
+    groups.value.splice(index, 1)
+
+    if (currentGroup.value?.name === groupName) {
+      currentGroup.value = null
+      messages.value = []
+    }
+
+    $q.notify({
+      type: 'positive',
+      message: 'Grupa je uspješno obrisana.'
+    })
+  } catch (err) {
+    console.error('Greška pri brisanju grupe:', err)
+
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.error || 'Došlo je do greške pri brisanju grupe.'
+    })
+  }
+}
 
 </script>
