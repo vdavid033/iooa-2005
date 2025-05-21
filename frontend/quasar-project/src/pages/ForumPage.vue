@@ -78,14 +78,21 @@
         </q-card-section>
 
         <q-card-section class="row items-center justify-between">
-          <div class="text-blue">
-            <span v-for="tag in post.tags" :key="tag" class="q-mr-sm">#{{ tag }}</span>
-          </div>
-          <div class="row items-center q-gutter-sm">
-            <q-icon name="chat_bubble_outline" />
-            <span>{{ post.comments }}</span>
-          </div>
-        </q-card-section>
+        <div class="text-blue">
+        <span v-for="tag in post.tags" :key="tag" class="q-mr-sm">#{{ tag }}</span>
+        </div>
+
+     <q-btn
+      flat
+      dense
+      round
+     @click.stop="goToPost(post.id)"
+     class="row items-center q-gutter-xs">
+    <q-icon name="chat_bubble_outline" />
+    <span>{{ post.comments }}</span>
+  </q-btn>
+</q-card-section>
+
       </q-card>
     </div>
 

@@ -110,13 +110,33 @@ app.get('/api/objave', (req, res) => {
         tagMap[fk_objava].push(naziv_tag)
       })
 
-      const finalResults = results.map(post => ({
-        ...post,
-        tags: tagMap[post.id] || [],
-        comments: 0 
-      }))
+      // Novi SQL koji dohvaća broj komentara po objavi
+const komentariSql = `
+  SELECT id_objava, COUNT(*) AS broj_komentara
+  FROM komentar
+  GROUP BY id_objava
+`
 
-      res.json(finalResults)
+db.query(komentariSql, (komErr, komResults) => {
+  if (komErr) {
+    console.error('❌ Greška pri dohvaćanju broja komentara:', komErr)
+    return res.status(500).json({ error: 'Greška pri komentarima.' })
+  }
+
+  const komentarMap = {}
+  komResults.forEach(({ id_objava, broj_komentara }) => {
+    komentarMap[id_objava] = broj_komentara
+  })
+
+  const finalResults = results.map(post => ({
+    ...post,
+    tags: tagMap[post.id] || [],
+    comments: komentarMap[post.id] || 0  // 💬 stvarni broj komentara
+  }))
+
+  res.json(finalResults)
+})
+
     })
   })
 })
