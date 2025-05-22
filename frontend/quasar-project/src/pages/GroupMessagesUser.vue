@@ -15,6 +15,10 @@
           <q-item-section side>
             <q-btn dense flat round icon="delete" size="sm" color="negative" @click.stop="deleteGroup(group.name, index)" />
           </q-item-section>
+          <q-item-section side>
+            <q-btn dense flat round icon="logout" size="sm" color="orange"
+              @click.stop="leaveGroup(group.id, index)" />
+          </q-item-section>
         </q-item>
       </q-list>
     </q-drawer>
@@ -27,9 +31,16 @@
       </q-toolbar>
       <q-list>
         <q-item v-for="(member, index) in currentGroup?.members || []" :key="index">
-          <q-item-section avatar><q-avatar><img :src="member.avatar" /></q-avatar></q-item-section>
-          <q-item-section><q-item-label>{{ member.name }}</q-item-label></q-item-section>
-        </q-item>
+          <q-item-section avatar>
+            <q-avatar><img :src="member.avatar" /></q-avatar>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ member.name }}</q-item-label>
+            </q-item-section>
+          <q-item-section>
+          <q-btn icon="person_remove" color="negative" dense flat round @click="removeMemberFromGroup(member.id_korisnika)" v-if="currentGroup?.admin && member.id_korisnika !== userId"/>
+        </q-item-section>
+      </q-item>
       </q-list>
     </q-drawer>
 
@@ -67,6 +78,7 @@
         </q-card-section>
         <q-card-section>
           <q-input v-model="newGroupName" label="Ime grupe" />
+          <q-input v-model="newGroupDescription" label="Opis grupe" type="textarea" class="q-mt-sm" />
           <div class="text-subtitle2 q-mt-md q-mb-xs">Označi članove:</div>
           <q-list>
             <q-item v-for="user in users" :key="user.id" clickable v-ripple>
@@ -113,6 +125,7 @@ const createGroupDialog = ref(false)
 const newGroupName = ref('')
 const selectedUserIds = ref([])
 const userId = 1 // testni user ID, zamijeni po potrebi
+const newGroupDescription = ref('')
 
 async function fetchGroups() {
   try {
@@ -123,6 +136,7 @@ async function fetchGroups() {
       description: group.opis_grupe,
       admin: group.admin_status
     }))
+    console.log('Groups:', groups.value);
   } catch (err) {
     console.error('Greška pri dohvaćanju grupa:', err)
   }
@@ -175,6 +189,7 @@ async function sendMessage() {
 
 function promptCreateGroup() {
   newGroupName.value = ''
+  newGroupDescription.value = ''
   selectedUserIds.value = []
   createGroupDialog.value = true
 }
@@ -188,7 +203,7 @@ async function createGroup() {
   try {
     const res = await axios.post('http://localhost:3000/api/groups', {
       name: newGroupName.value,
-      description: 'Opis grupe', // možeš staviti tekst input kasnije ako želiš
+      description: newGroupDescription.value || 'Opis grupe',
       creatorId: userId,
       memberIds
     })
@@ -207,12 +222,46 @@ async function createGroup() {
   }
 }
 
-function leaveGroup(index) {
-  if (groups.value[index] === currentGroup.value) {
-    currentGroup.value = newGroup
-    messages.value = []
+async function leaveGroup(groupId, index) {
+  // groupId here is the 'id' property from your group object
+  try {
+    await axios.post('http://localhost:3000/api/groups/leave', {
+      userId: userId,
+      groupId: groupId
+    });
+
+    groups.value.splice(index, 1);
+
+    if (currentGroup.value?.id === groupId) {
+      currentGroup.value = null;
+    }
+
+    console.log('Napustili ste grupu.');
+  } catch (err) {
+    console.error('Greška pri napuštanju grupe:', err);
   }
-  groups.value.splice(index, 1)
+}
+
+async function removeMemberFromGroup(memberId) {
+  try {
+    const res = await axios.delete(`http://localhost:3000/api/groups/${currentGroup.value.name}/members/${memberId}`);
+    
+    // Show backend's success message
+    console.log("Odgovor servera:", res.data);
+    $q.notify({
+      type: 'positive',
+      message: res.data.message || 'Član je uklonjen.'
+    });
+
+    // Refresh the member list to reflect the deletion
+    await fetchGroupMembers(currentGroup.value.name);
+  } catch (err) {
+    console.error("Greška pri uklanjanju člana:", err);
+    $q.notify({
+      type: 'negative',
+      message: err.response?.data?.error || 'Došlo je do greške pri uklanjanju člana.'
+    });
+  }
 }
 
 function cancelGroupCreation() {

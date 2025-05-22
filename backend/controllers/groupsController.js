@@ -257,6 +257,79 @@ exports.addMembers = async (req, res) => {
   }
 };
 
+exports.leaveGroup = async (req, res) => {
+  const { userId, groupId } = req.body;
+
+  if (!userId || !groupId) {
+    return res.status(400).json({ error: "userId i groupId su obavezni." });
+  }
+
+  const connection = await db.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    // 1. Provjeri je li korisnik admin
+    const [userEntry] = await connection.query(
+      `SELECT admin_status FROM korisnikova_grupa 
+       WHERE id_korisnika = ? AND id_grupe = ?`,
+      [userId, groupId]
+    );
+
+    if (userEntry.length === 0) {
+      throw new Error("Korisnik nije član ove grupe.");
+    }
+
+    const isAdmin = userEntry[0].admin_status === 1;
+
+    // 2. Obriši korisnika iz grupe
+    await connection.query(
+      `DELETE FROM korisnikova_grupa 
+       WHERE id_korisnika = ? AND id_grupe = ?`,
+      [userId, groupId]
+    );
+
+    // 3. Provjeri ima li još članova u grupi
+    const [remainingMembers] = await connection.query(
+      `SELECT id_korisnikova_grupa FROM korisnikova_grupa 
+       WHERE id_grupe = ? ORDER BY id_korisnikova_grupa ASC`,
+      [groupId]
+    );
+
+    if (remainingMembers.length === 0) {
+      // 4. Ako je korisnik bio zadnji, obriši grupu
+      await connection.query(
+        `DELETE FROM grupa WHERE id_grupe = ?`,
+        [groupId]
+      );
+      await connection.commit();
+      connection.release();
+
+      return res.status(200).json({ message: "Grupa je izbrisana jer je ostala bez članova." });
+    }
+
+    // 5. Ako je bio admin, postavi novog admina
+    if (isAdmin) {
+      const newAdminId = remainingMembers[0].id_korisnikova_grupa;
+
+      await connection.query(
+        `UPDATE korisnikova_grupa SET admin_status = 1 
+         WHERE id_korisnikova_grupa = ?`,
+        [newAdminId]
+      );
+    }
+
+    await connection.commit();
+    connection.release();
+
+    res.status(200).json({ message: "Uspješno ste napustili grupu." });
+  } catch (err) {
+    await connection.rollback();
+    connection.release();
+    console.error("Greška pri napuštanju grupe:", err.message);
+    res.status(500).json({ error: "Greška pri napuštanju grupe", details: err.message });
+  }
+};
+
 // Uklanjanje člana iz grupe
 exports.removeMember = async (req, res) => {
   const { groupName, memberId } = req.params;
@@ -296,12 +369,14 @@ exports.removeMember = async (req, res) => {
     }
 
     // Uklanjanje člana iz grupe
-    await db.query(
+    console.log(`Brisanje člana: memberId=${memberId}, groupId=${groupId}`);
+    const result = await db.query(
       "DELETE FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?",
       [groupId, memberId]
     );
-
+    console.log("DELETE result:", result);
     res.status(200).json({ message: "Član je uspješno izbrisan iz grupe" });
+    
   } catch (error) {
     console.error("Greška tijekom brisanja člana iz grupe:", error.message);
     res

@@ -26,5 +26,7 @@ router.post('/:groupName/messages', validateMessageInput, controller.sendMessage
 router.get('/:groupName/members', controller.getGroupMembers);
 router.post('/:groupName/members', controller.addMembers);  // Dodavanje članova u grupu
 router.delete('/:groupName/members/:memberId', controller.removeMember); // Micanje člana iz grupe
+router.post('/leave', controller.leaveGroup); // Izlazak iz grupe
+
 
 module.exports = router;
