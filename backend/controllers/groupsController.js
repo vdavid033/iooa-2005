@@ -416,7 +416,6 @@ exports.removeMember = async (req, res) => {
       "DELETE FROM korisnikova_grupa WHERE id_grupe = ? AND id_korisnika = ?",
       [groupId, memberId]
     );
-    console.log("DELETE result:", result);
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ error: "Član nije pronađen u grupi ili je već uklonjen." });
