@@ -1,28 +1,40 @@
 <template>
   <div class="q-pa-md">
     <q-card>
-      <q-card-section class="row justify-between items-center">
-        <q-btn flat icon="chevron_left" @click="prevMonth" />
-        <div class="text-h6">{{ currentMonthYear }}</div>
-        <q-btn flat icon="chevron_right" @click="nextMonth" />
-      </q-card-section>
+  <q-card-section class="row justify-between items-center">
+    <q-btn flat icon="chevron_left" @click="prevMonth" />
+    <div class="text-h6">{{ currentMonthYear }}</div>
+    <q-btn flat icon="chevron_right" @click="nextMonth" />
+  </q-card-section>
 
-      <div style="padding: 20px" class="q-gutter-sm q-mt-sm calendar-grid">
-        <div
-          v-for="day in daysInMonth"
-          :key="day.date"
-          class="calendar-day"
-          :class="{
-            'highlight-today': isToday(day.date),
-            'disabled-day': isPast(day.date),
-          }"
-          @click="handleDateClick(day.date)"
-        >
-          {{ day.date.getDate() }}
-        </div>
-      </div>
+  <!-- Dodano: Nazivi dana -->
+  <div class="calendar-weekdays">
+    <div v-for="day in ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']" :key="day" class="weekday">
+      {{ day }}
+    </div>
+  </div>
+
+  <!-- Mjesec -->
+  <div style="padding: 20px" class="q-gutter-sm q-mt-sm calendar-grid">
+    <!-- Popunjavanje praznih slotova na početku mjeseca -->
+    <div v-for="n in leadingEmptyDays" :key="'empty-' + n" class="calendar-day empty-day"></div>
+
+    <!-- Dani mjeseca -->
+    <div
+      v-for="day in daysInMonth"
+      :key="day.date"
+      class="calendar-day"
+      :class="{
+        'highlight-today': isToday(day.date),
+        'disabled-day': isPast(day.date),
+        'weekend-day': isWeekend(day.date),
+      }"
+      @click="handleDateClick(day.date)"
+    >
+      {{ day.date.getDate() }}
+    </div>
+  </div>
     </q-card>
-
     <q-dialog v-model="showEventModal">
       <q-card style="min-width: 400px">
         <q-card-section>
@@ -194,9 +206,21 @@ const daysInMonth = computed(() => {
   }))
 })
 
+const firstDayOfMonth = computed(() => {
+  const year = currentDate.value.getFullYear()
+  const month = currentDate.value.getMonth()
+  return new Date(year, month, 1)
+})
+
+const leadingEmptyDays = computed(() => {
+  let weekday = firstDayOfMonth.value.getDay() // 0 (Ned) do 6 (Sub)
+  if (weekday === 0) weekday = 7 // Pretvori Ned u 7 za europski redoslijed
+  return weekday - 1 // Ponedjeljak = 0 praznih slotova
+})
+
 const fetchEventsForDate = async () => {
   try {
-    const res = await axios.get(`http://localhost:3000/api/events/${selectedDateFormatted.value}`)
+    const res = await axios.get(`http://localhost:3001/api/events/${selectedDateFormatted.value}`)
     const fetched = res.data
 
     // Kategorizacija po nazivu kategorije
@@ -245,7 +269,7 @@ const saveEvent = async () => {
   }
 
   try {
-    await axios.post('http://localhost:3000/api/events', eventData)
+    await axios.post('http://localhost:3001/api/events', eventData)
     showEventModal.value = false
     form.value = { headline: '', description: '', location: '', category:null}
     fetchEventsForDate()
@@ -256,7 +280,7 @@ const saveEvent = async () => {
 
 const deleteEvent = async () => {
   try {
-    await axios.delete(`http://localhost:3000/api/events/${selectedEvent.value.id}`)
+    await axios.delete(`http://localhost:3001/api/events/${selectedEvent.value.id}`)
     showEventDetailModal.value = false
     fetchEventsForDate()
   } catch (err) {
@@ -288,6 +312,11 @@ const getCategoryId = (name) => {
   return 1
 }
 
+const isWeekend = (dateObj) => {
+  const day = dateObj.getDay() // 0 = Ned, 6 = Sub
+  return day === 0 || day === 6
+}
+
 const prevMonth = () => {
   currentDate.value = new Date(currentDate.value.setMonth(currentDate.value.getMonth() - 1))
 }
@@ -317,8 +346,25 @@ const isPast = (dayDate) => {
 <style scoped>
 .calendar-grid {
   display: grid;
-  grid-template-columns: repeat(11, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 8px;
+}
+
+.calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: bold;
+  margin-top: 10px;
+}
+
+.weekday {
+  padding: 8px 0;
+}
+
+.weekend-day {
+  color: red;
+  font-weight: bold;
 }
 
 .calendar-day {
@@ -349,5 +395,10 @@ const isPast = (dayDate) => {
   margin-bottom: 10px;
   font-weight: 500 !important;
   font-size: 28px !important;
+}
+
+.empty-day {
+  background: transparent;
+  pointer-events: none;
 }
 </style>
