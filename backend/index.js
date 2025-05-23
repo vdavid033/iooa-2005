@@ -1,29 +1,70 @@
-// Uvoz glavnog Express modula koji se koristi za izgradnju web servera
-const express = require('express');
-const cors = require('cors')
-// Kreiranje Express aplikacije (instanca servera)
+const express = require("express");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const config = require("./auth_config.js");
+const authJwt = require("./authJwt.js");
+const connection = require("./db.js");
+
+const groupsRoute = require("./routes/groups");
+const foldersRoute = require("./routes/folderRoutes");
+
 const app = express();
-
-// Definiranje porta na kojem će server slušati HTTP zahtjeve (3000 je lokalni standard)
 const PORT = 3000;
-app.use(cors());     
-// Middleware koji omogućuje Expressu da automatski parsira JSON tijela zahtjeva
-// (zamjenjuje potrebu za "body-parser" paketom)
+
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-// Uvoz rute za rad s grupama (grupne poruke, članovi, CRUD grupe)
-const groupsRoute = require('./routes/groups');
+// LOGIN ROUTE
+app.post("/api/login", (req, res) => {
+  const { username, password } = req.body;
 
-// Uvoz rute za rad s folderima (vjerojatno organizacija datoteka ili mape u aplikaciji)
-const foldersRoute = require('./routes/folderRoutes');
+  connection.query(
+    "SELECT * FROM korisnik WHERE korisnicko_ime = ?",
+    [username],
+    (error, results) => {
+      if (error) {
+        return res.status(500).json({ success: false, message: error });
+      }
 
-// Registracija rute za sve zahtjeve koji počinju s /api/groups (npr. GET /api/groups/:id/messages)
-app.use('/api/groups', groupsRoute);
+      if (results.length === 0) {
+        return res.status(404).json({ success: false, message: "Korisnik ne postoji" });
+      }
 
-// Registracija rute za sve zahtjeve koji počinju s /api/folders
-app.use('/api/folders', foldersRoute);
+      const user = results[0];
 
-// Pokretanje Express servera na definiranom portu, i ispis poruke da je sve spremno
+      bcrypt.compare(String(password), String(user.lozinka_korisnika), (err, isMatch) => {
+        if (err) {
+          return res.status(500).json({ success: false, message: err });
+        }
+
+        if (!isMatch) {
+          return res.status(401).json({ success: false, message: "Krivo korisničko ime ili lozinka" });
+        }
+
+        const token = jwt.sign(
+          {
+            id: user.id_korisnika,
+            ime: user.ime_korisnika,
+            prezime: user.prezime_korisnika,
+            uloga: user.admin_status,
+          },
+          config.secret,
+          { expiresIn: '30m' }
+        );
+
+        res.status(200).json({ success: true, token });
+      });
+    }
+  );
+});
+
+// Other routes
+app.use("/api/groups", groupsRoute);
+app.use("/api/folders", foldersRoute);
+
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });

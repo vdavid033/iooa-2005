@@ -12,7 +12,7 @@
                 :active="currentGroup?.name === group.name"
                 active-class="bg-primary text-white">
           <q-item-section><q-item-label>{{ group.name }}</q-item-label></q-item-section>
-          <q-item-section side v-if="group.admin === 1">
+          <q-item-section side v-if="group.isAdmin">
             <q-btn dense flat round icon="delete" size="sm" color="negative" @click.stop="deleteGroup(group.name, index)" />
           </q-item-section>
           <q-item-section side>
@@ -21,6 +21,9 @@
           </q-item-section>
         </q-item>
       </q-list>
+      <div style="display: flex; justify-content: center; width: 100%;">
+        <q-btn icon="logout" label="ODJAVA" flat round dense @click="logout" class="q-ml-sm" />
+      </div>
     </q-drawer>
 
     <!-- RIGHT: Članovi grupe -->
@@ -38,12 +41,12 @@
             <q-item-label>{{ member.name }}</q-item-label>
             </q-item-section>
           <q-item-section>
-          <q-btn icon="person_remove" color="negative" dense flat round @click="removeMemberFromGroup(member.id)" v-if="currentGroup?.admin && member.id_korisnika !== userId"/>
+          <q-btn icon="person_remove" color="negative" dense flat round @click="removeMemberFromGroup(member.id)" v-if="currentGroup?.isAdmin && member.id_korisnika !== userId"/>
         </q-item-section>
       </q-item>
       </q-list>
-      <div style="display: flex; justify-content: center; padding: 10px 0; background-color: royalblue;">
-      <q-btn v-if="currentGroup?.admin === 1" flat round dense icon="person_add" color="white" @click="addMembersDialog = true" />
+      <div v-if="currentGroup?.isAdmin" style="display: flex; justify-content: center; padding: 10px 0; background-color: royalblue;" >
+      <q-btn v-if="currentGroup?.isAdmin" flat round dense icon="person_add" color="white" @click="addMembersDialog = true" />
       </div>
     </q-drawer>
 
@@ -84,7 +87,7 @@
           <q-input v-model="newGroupDescription" label="Opis grupe" type="textarea" class="q-mt-sm" />
           <div class="text-subtitle2 q-mt-md q-mb-xs">Označi članove:</div>
           <q-list>
-            <q-item v-for="user in users" :key="user.id" clickable v-ripple>
+            <q-item v-for="user in users.filter(u => u.id !== userId)" :key="user.id" clickable v-ripple>
               <q-item-section avatar><q-avatar><img :src="user.avatar" /></q-avatar></q-item-section>
               <q-item-section><q-item-label>{{ user.name }}</q-item-label></q-item-section>
               <q-item-section side><q-checkbox v-model="selectedUserIds" :val="user.id" /></q-item-section>
@@ -139,6 +142,18 @@ const $q = useQuasar()
 
 import axios from 'axios'
 
+axios.interceptors.request.use(config => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+import { jwtDecode } from "jwt-decode";
+
+import { useRouter } from 'vue-router'
+
 const users = ref([])
 
 async function fetchUsers() {
@@ -158,13 +173,34 @@ const newMessage = ref('')
 const createGroupDialog = ref(false)
 const newGroupName = ref('')
 const selectedUserIds = ref([])
-const userId = 1 // testni user ID, zamijeni po potrebi
+const router = useRouter()
+const token = localStorage.getItem("token");
+let userId = null;
+if (!token) {
+  // Redirect if no token
+  router.push("/login");
+} else {
+  try {
+    const decoded = jwtDecode(token);
+    userId = decoded.id;
+  } catch (error) {
+    console.error("Invalid token");
+    router.push("/login");
+  }
+}
 const newGroupDescription = ref('')
 const addMembersDialog = ref(false);
 const selectedUserIdsToAdd = ref([]);
 const usersToAdd = computed(() => {
   return users.value.filter(u => !currentGroup.value?.members?.some(m => m.id === u.id));
 });
+
+function logout() {
+  // Clear token or user data from storage
+  localStorage.removeItem('token')
+  // Redirect to login page
+  router.push('/login')
+}
 
 async function addSelectedMembersToGroup() {
   try {
@@ -191,7 +227,7 @@ async function fetchGroups() {
       id: group.id_grupe,
       name: group.ime_grupe,
       description: group.opis_grupe,
-      admin: group.admin_status
+      isAdmin: group.admin_status === 1
     }))
     console.log('Groups:', groups.value);
   } catch (err) {
@@ -268,7 +304,8 @@ async function createGroup() {
     // Nakon uspješnog kreiranja, dodaj grupu lokalno
     const newGroup = {
       name: res.data.ime_grupe,
-      members: [...selectedMembers]
+      members: [...selectedMembers],
+      isAdmin: true
     }
 
     groups.value.push(newGroup)
@@ -300,11 +337,8 @@ async function leaveGroup(groupId, index) {
 }
 
 async function removeMemberFromGroup(memberId) {
-  console.log("Received memberId:", memberId);
   try {
     const res = await axios.delete(`http://localhost:3000/api/groups/${currentGroup.value.name}/members/${memberId}`);
-    console.log("Deleting member:", memberId);
-    console.log("Group name:", currentGroup.value.name);
     
     // Show backend's success message
     console.log("Odgovor servera:", res.data);
@@ -335,9 +369,11 @@ function closeMembersDrawer() {
 }
 
 onMounted(() => {
-  fetchUsers()
-  fetchGroups()
-})
+  if (userId) {
+    fetchUsers();
+    fetchGroups();
+  }
+});
 
 /* BRISANJE KOMPLETNE GRUPE */
 async function deleteGroup(groupName, index) {

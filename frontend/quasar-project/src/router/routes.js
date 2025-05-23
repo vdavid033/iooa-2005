@@ -16,7 +16,7 @@ const routes = [
       { path: 'forum', component: () => import('pages/ForumPage.vue') },
       { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue') },
       { path: 'groups', component: () => import('pages/GroupMessagesUser.vue') },
-      { path: 'groups-admin', component: () => import('pages/GroupMessagesAdmin.vue') }
+      { path: 'login', component: () => import('pages/LoginPage.vue') }
     ],
   },
 
