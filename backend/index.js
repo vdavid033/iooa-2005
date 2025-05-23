@@ -52,7 +52,7 @@ app.post("/api/login", (req, res) => {
             uloga: user.admin_status,
           },
           config.secret,
-          { expiresIn: '30m' }
+          { expiresIn: '3h' }
         );
 
         res.status(200).json({ success: true, token });
