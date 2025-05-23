@@ -330,9 +330,51 @@ exports.leaveGroup = async (req, res) => {
   }
 };
 
+// Dodavanje novih članova u grupu
+exports.addMembersToGroup = async (req, res) => {
+  const { groupId } = req.params;
+  const { userIds} = req.body;
+
+  if (!groupId || !Array.isArray(userIds) || userIds.length === 0) {
+    return res.status(400).json({ error: "Nedostaje groupId ili lista korisnika." });
+  }
+
+  const connection = await db.getConnection();
+  await connection.beginTransaction();
+
+  try {
+    // 1. Provjera da grupa postoji
+    const [group] = await connection.query(
+      `SELECT * FROM grupa WHERE id_grupe = ?`,
+      [groupId]
+    );
+    if (group.length === 0) {
+      throw new Error("Grupa ne postoji.");
+    }
+
+    // 3. Dodaj korisnike u grupu (admin_status = 0)
+    const values = userIds.map(id => [id, groupId, 0]);
+    await connection.query(
+      `INSERT IGNORE INTO korisnikova_grupa (id_korisnika, id_grupe, admin_status) VALUES ?`,
+      [values]
+    );
+
+    await connection.commit();
+    connection.release();
+    res.status(200).json({ message: "Članovi su dodani u grupu." });
+
+  } catch (err) {
+    await connection.rollback();
+    connection.release();
+    console.error("Greška pri dodavanju članova:", err.message);
+    res.status(500).json({ error: "Greška pri dodavanju članova", details: err.message });
+  }
+};
+
 // Uklanjanje člana iz grupe
 exports.removeMember = async (req, res) => {
   const { groupName, memberId } = req.params;
+  console.log("Params received:", req.params);
 
   try {
     const [group] = await db.query(
@@ -375,6 +417,11 @@ exports.removeMember = async (req, res) => {
       [groupId, memberId]
     );
     console.log("DELETE result:", result);
+
+    if (result.affectedRows === 0) {
+      return res.status(404).json({ error: "Član nije pronađen u grupi ili je već uklonjen." });
+    }
+
     res.status(200).json({ message: "Član je uspješno izbrisan iz grupe" });
     
   } catch (error) {

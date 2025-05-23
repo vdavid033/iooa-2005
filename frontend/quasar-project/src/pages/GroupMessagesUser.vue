@@ -12,7 +12,7 @@
                 :active="currentGroup?.name === group.name"
                 active-class="bg-primary text-white">
           <q-item-section><q-item-label>{{ group.name }}</q-item-label></q-item-section>
-          <q-item-section side>
+          <q-item-section side v-if="group.admin === 1">
             <q-btn dense flat round icon="delete" size="sm" color="negative" @click.stop="deleteGroup(group.name, index)" />
           </q-item-section>
           <q-item-section side>
@@ -30,7 +30,7 @@
         <q-btn flat round icon="close" @click="closeMembersDrawer" class="q-ml-auto" />
       </q-toolbar>
       <q-list>
-        <q-item v-for="(member, index) in currentGroup?.members || []" :key="index">
+        <q-item v-for="(member, index) in (currentGroup?.members ? currentGroup.members.filter(m => m.id !== userId) : [])" :key="index">
           <q-item-section avatar>
             <q-avatar><img :src="member.avatar" /></q-avatar>
           </q-item-section>
@@ -38,10 +38,13 @@
             <q-item-label>{{ member.name }}</q-item-label>
             </q-item-section>
           <q-item-section>
-          <q-btn icon="person_remove" color="negative" dense flat round @click="removeMemberFromGroup(member.id_korisnika)" v-if="currentGroup?.admin && member.id_korisnika !== userId"/>
+          <q-btn icon="person_remove" color="negative" dense flat round @click="removeMemberFromGroup(member.id)" v-if="currentGroup?.admin && member.id_korisnika !== userId"/>
         </q-item-section>
       </q-item>
       </q-list>
+      <div style="display: flex; justify-content: center; padding: 10px 0; background-color: royalblue;">
+      <q-btn v-if="currentGroup?.admin === 1" flat round dense icon="person_add" color="white" @click="addMembersDialog = true" />
+      </div>
     </q-drawer>
 
     <!-- SREDINA: Glavni prikaz poruka -->
@@ -95,10 +98,41 @@
       </q-card>
     </q-dialog>
   </q-layout>
+
+  <q-dialog v-model="addMembersDialog">
+  <q-card>
+    <q-card-section>
+      <div class="text-h6">Dodaj članove u grupu</div>
+    </q-card-section>
+
+    <!-- DIALOG: Dodavanje osoba u grupu ako je korisnik admin -->
+    <q-card-section>
+      <div class="text-subtitle2 q-mb-xs">Označi korisnike za dodavanje:</div>
+      <q-list>
+        <q-item v-for="user in usersToAdd" :key="user.id" clickable v-ripple>
+          <q-item-section avatar>
+            <q-avatar><img :src="user.avatar" /></q-avatar>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ user.name }}</q-item-label>
+          </q-item-section>
+          <q-item-section side>
+            <q-checkbox v-model="selectedUserIdsToAdd" :val="user.id" />
+          </q-item-section>
+        </q-item>
+      </q-list>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="Otkaži" color="primary" @click="addMembersDialog = false" />
+      <q-btn flat label="Dodaj" color="primary" @click="addSelectedMembersToGroup" />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 
 import { useQuasar } from 'quasar'
 const $q = useQuasar()
@@ -126,6 +160,29 @@ const newGroupName = ref('')
 const selectedUserIds = ref([])
 const userId = 1 // testni user ID, zamijeni po potrebi
 const newGroupDescription = ref('')
+const addMembersDialog = ref(false);
+const selectedUserIdsToAdd = ref([]);
+const usersToAdd = computed(() => {
+  return users.value.filter(u => !currentGroup.value?.members?.some(m => m.id === u.id));
+});
+
+async function addSelectedMembersToGroup() {
+  try {
+    await axios.post(`http://localhost:3000/api/groups/${currentGroup.value.id}/members`, {
+      userIds: selectedUserIdsToAdd.value
+    });
+
+    $q.notify({ type: 'positive', message: 'Članovi su dodani u grupu.' });
+
+    addMembersDialog.value = false;
+    selectedUserIdsToAdd.value = [];
+
+    await fetchGroupMembers(currentGroup.value.name);
+  } catch (err) {
+    console.error(err);
+    $q.notify({ type: 'negative', message: 'Greška pri dodavanju članova.' });
+  }
+}
 
 async function fetchGroups() {
   try {
@@ -243,8 +300,11 @@ async function leaveGroup(groupId, index) {
 }
 
 async function removeMemberFromGroup(memberId) {
+  console.log("Received memberId:", memberId);
   try {
     const res = await axios.delete(`http://localhost:3000/api/groups/${currentGroup.value.name}/members/${memberId}`);
+    console.log("Deleting member:", memberId);
+    console.log("Group name:", currentGroup.value.name);
     
     // Show backend's success message
     console.log("Odgovor servera:", res.data);
