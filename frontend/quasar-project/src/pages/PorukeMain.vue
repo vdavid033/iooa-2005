@@ -1,5 +1,34 @@
 <template>
   <q-page class="row q-pa-md">
+    <!-- Novi Chat Dialog -->
+    <q-dialog v-model="showNewChatDialog" persistent>
+      <q-card style="min-width: 300px; max-width: 500px">
+        <q-card-section>
+          <div class="text-h6">Započni novi chat</div>
+          <q-input dense debounce="300" v-model="searchTerm" placeholder="Pretraži korisnike..." />
+        </q-card-section>
+
+        <q-separator />
+
+        <q-list bordered>
+          <q-item v-for="user in filteredNewChatUsers" :key="user.id_korisnika" clickable @click="startChat(user)">
+            <q-item-section>
+              <q-item-label>{{ user.ime_korisnika }} {{ user.prezime_korisnika }}</q-item-label>
+            </q-item-section>
+          </q-item>
+          <q-item v-if="filteredNewChatUsers.length === 0">
+            <q-item-section>Nema dostupnih korisnika.</q-item-section>
+          </q-item>
+        </q-list>
+
+        <q-separator />
+
+        <q-card-actions align="right">
+          <q-btn flat label="Zatvori" v-close-popup />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
     <!-- Sidebar s kontaktima -->
     <div class="col-3 q-pr-md">
       <q-card>
@@ -8,7 +37,7 @@
         </q-card-section>
 
         <q-card-section>
-          <q-btn label="NOVI CHAT" icon="chat" class="q-mb-sm full-width" color="primary" />
+          <q-btn label="NOVI CHAT" icon="chat" class="q-mb-sm full-width" color="primary" @click="openNewChatDialog" />
           <q-btn label="NOVA GRUPA" icon="group_add" class="full-width" color="secondary" />
         </q-card-section>
 
@@ -93,74 +122,93 @@
 </template>
 
 <script setup>
-import { ref, onMounted, nextTick, watch, onUnmounted } from 'vue'
-import { jwtDecode } from "jwt-decode";
+import { ref, onMounted, nextTick, watch, onUnmounted, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { jwtDecode } from "jwt-decode"
+
+const router = useRouter()
 
 // Varijable stanja
-const fullUser = ref({});
+const fullUser = ref({})
 const newMessage = ref('')
 const selectedChat = ref(null)
 const scrollAreaRef = ref(null)
 const chats = ref([])
 const poruke = ref([])
 const trenutniKorisnikId = ref(null)
-const token = localStorage.getItem("token");
+const token = localStorage.getItem("token")
+
+// Novo za dijalog
+const showNewChatDialog = ref(false)
+const allUsers = ref([])
+const searchTerm = ref("")
+
+const openNewChatDialog = async () => {
+  showNewChatDialog.value = true
+  try {
+    const res = await fetch("http://localhost:3000/api/svi-korisnici")
+    const data = await res.json()
+    if (Array.isArray(data)) {
+      const currentChatIds = chats.value.map(c => c.id_korisnika)
+      allUsers.value = data.filter(user =>
+        user.id_korisnika !== trenutniKorisnikId.value &&
+        !currentChatIds.includes(user.id_korisnika)
+      )
+    }
+  } catch (err) {
+    console.error("Greška pri dohvaćanju svih korisnika:", err)
+  }
+}
+
+const filteredNewChatUsers = computed(() => {
+  return allUsers.value.filter(user =>
+    `${user.ime_korisnika} ${user.prezime_korisnika}`.toLowerCase().includes(searchTerm.value.toLowerCase())
+  )
+})
+
+const startChat = (user) => {
+  selectedChat.value = user
+  fetchPorukeZaKorisnika(user.id_korisnika)
+  showNewChatDialog.value = false
+}
 
 // Dohvaćanje podataka
 const fetchKorisnici = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/api/korisnici/${trenutniKorisnikId.value}`);
-    const data = await response.json();
-
-    if (!response.ok) {
-      console.error('Greška u odgovoru API-ja:', data);
-      return;
-    }
-
-    chats.value = data;
+    const response = await fetch(`http://localhost:3000/api/korisnici/${trenutniKorisnikId.value}`)
+    chats.value = await response.json()
   } catch (error) {
-    console.error('Greška pri dohvaćanju korisnika:', error);
+    console.error('Greška pri dohvaćanju korisnika:', error)
   }
-};
+}
 
 const fetchSvePoruke = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/api/sve-poruke/${trenutniKorisnikId.value}`);
-    if (!response.ok) {
-      console.error('Greška u odgovoru API-ja:', await response.text());
-      return;
-    }
-    const data = await response.json();
-    poruke.value = Array.isArray(data) ? data : [];
+    const response = await fetch(`http://localhost:3000/api/sve-poruke/${trenutniKorisnikId.value}`)
+    const data = await response.json()
+    poruke.value = Array.isArray(data) ? data : []
   } catch (error) {
-    console.error('Greška pri dohvaćanju poruka:', error);
+    console.error('Greška pri dohvaćanju poruka:', error)
   }
-};
+}
 
 const fetchPorukeZaKorisnika = async (korisnikId) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/poruke/${trenutniKorisnikId.value}/${korisnikId}`);
-    if (!response.ok) {
-      console.error('Greška u odgovoru API-ja:', await response.text());
-      return;
-    }
-    const novePoruke = await response.json();
-    poruke.value = [
-      ...poruke.value.filter(p => 
-        !(p.posiljatelj === trenutniKorisnikId.value && p.primatelj === korisnikId) &&
-        !(p.posiljatelj === korisnikId && p.primatelj === trenutniKorisnikId.value)
-      ),
-      ...novePoruke
-    ];
+    const response = await fetch(`http://localhost:3000/api/poruke/${trenutniKorisnikId.value}/${korisnikId}`)
+    const novePoruke = await response.json()
+    poruke.value = poruke.value.filter(p =>
+      !(p.posiljatelj === trenutniKorisnikId.value && p.primatelj === korisnikId) &&
+      !(p.posiljatelj === korisnikId && p.primatelj === trenutniKorisnikId.value)
+    ).concat(novePoruke)
   } catch (error) {
-    console.error('Greška pri dohvaćanju poruka:', error);
+    console.error('Greška pri dohvaćanju poruka:', error)
   }
-};
+}
 
 // Pomoćne funkcije
 const getMessagesForChat = (korisnikId) => {
   return poruke.value
-    .filter(poruka => 
+    .filter(poruka =>
       (poruka.posiljatelj === korisnikId && poruka.primatelj === trenutniKorisnikId.value) ||
       (poruka.posiljatelj === trenutniKorisnikId.value && poruka.primatelj === korisnikId)
     )
@@ -175,9 +223,7 @@ const getLastMessagePreview = (korisnikId) => {
   const messages = getMessagesForChat(korisnikId)
   if (messages.length === 0) return 'Nema poruka!'
   const lastMsg = messages[messages.length - 1]
-  return lastMsg.sadrzaj.length > 15 
-    ? lastMsg.sadrzaj.substring(0, 25) + '...' 
-    : lastMsg.sadrzaj
+  return lastMsg.sadrzaj.length > 25 ? lastMsg.sadrzaj.substring(0, 25) + '...' : lastMsg.sadrzaj
 }
 
 const getLastMessageTime = (korisnikId) => {
@@ -187,7 +233,6 @@ const getLastMessageTime = (korisnikId) => {
 }
 
 const formatTime = (datumVrijeme) => {
-  if (!datumVrijeme) return ''
   const date = new Date(datumVrijeme)
   const now = new Date()
   const yesterday = new Date(now)
@@ -201,13 +246,7 @@ const formatTime = (datumVrijeme) => {
   return date.toLocaleDateString()
 }
 
-// Interakcije
-const selectChat = async (chat) => {
-  selectedChat.value = chat
-  await fetchPorukeZaKorisnika(chat.id_korisnika)
-  nextTick(() => scrollToBottom())
-}
-
+// Slanje poruke
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedChat.value) return
   try {
@@ -232,19 +271,15 @@ const scrollToBottom = () => {
   scrollAreaRef.value?.setScrollPosition('vertical', 9999, 300)
 }
 
-const decodeToken = (token) => { 
-  try { 
-    return jwtDecode(token);
+// Inicijalizacija
+const decodeToken = (token) => {
+  try {
+    return jwtDecode(token)
   } catch (error) {
-    console.error("Greška pri dekodiranju tokena:", error); 
-    return null; 
-  } 
-};
-
-// Inicijalno učitavanje - obavijest o prijavi za prikaz poruka
-import { useRouter } from 'vue-router'
-
-const router = useRouter()
+    console.error("Greška pri dekodiranju tokena:", error)
+    return null
+  }
+}
 
 onMounted(() => {
   if (!token) {
@@ -267,9 +302,8 @@ onMounted(() => {
   fetchSvePoruke()
 })
 
-// Automatsko osvježavanje poruka
+// Polling
 let pollingInterval = null
-
 const startPolling = () => {
   stopPolling()
   pollingInterval = setInterval(async () => {
@@ -287,11 +321,8 @@ const stopPolling = () => {
 }
 
 watch(selectedChat, (newChat) => {
-  if (newChat) {
-    startPolling()
-  } else {
-    stopPolling()
-  }
+  if (newChat) startPolling()
+  else stopPolling()
 })
 
 onUnmounted(() => {
