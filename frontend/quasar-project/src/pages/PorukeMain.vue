@@ -246,6 +246,13 @@ const formatTime = (datumVrijeme) => {
   return date.toLocaleDateString()
 }
 
+// Dodano: odabir kontakta iz liste
+const selectChat = async (chat) => {
+  selectedChat.value = chat
+  await fetchPorukeZaKorisnika(chat.id_korisnika)
+  nextTick(() => scrollToBottom())
+}
+
 // Slanje poruke
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedChat.value) return
