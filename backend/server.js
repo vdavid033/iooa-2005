@@ -26,7 +26,24 @@ db.connect(err => {
 app.use(cors());
 app.use(bodyParser.json());
 
-// Dohvaćanje korisnika s kojima je razmjenjene poruke
+// Nova ruta: Dohvaćanje svih korisnika (za novi chat)
+app.get('/api/svi-korisnici', (req, res) => {
+  db.query(
+    `SELECT id_korisnika, ime_korisnika, prezime_korisnika FROM korisnik ORDER BY ime_korisnika ASC`,
+    (error, results) => {
+      if (error) {
+        console.error("SQL greška:", error);
+        return res.status(500).json({
+          error: "Greška pri dohvaćanju korisnika",
+          details: error.message
+        });
+      }
+      res.json(results);
+    }
+  );
+});
+
+// Dohvaćanje korisnika s kojima je razmijenjene poruke
 app.get('/api/korisnici/:id', (req, res) => {
   const korisnikId = req.params.id;
 
