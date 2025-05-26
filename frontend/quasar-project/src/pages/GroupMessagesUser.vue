@@ -203,6 +203,16 @@ function logout() {
 }
 
 async function addSelectedMembersToGroup() {
+  if (!currentGroup.value?.id) {
+    console.warn('Group ID is missing. Cannot add members.');
+    $q.notify({ type: 'negative', message: 'Grupa nije ispravno postavljena.' });
+    return;
+  }
+
+  console.log('Group ID:', currentGroup.value.id);
+  console.log('Group Name:', currentGroup.value.name);
+  console.log('User IDs to add:', selectedUserIdsToAdd.value);
+
   try {
     await axios.post(`http://localhost:3000/api/groups/${currentGroup.value.id}/members`, {
       userIds: selectedUserIdsToAdd.value
@@ -215,7 +225,7 @@ async function addSelectedMembersToGroup() {
 
     await fetchGroupMembers(currentGroup.value.name);
   } catch (err) {
-    console.error(err);
+    console.error('Error adding members:', err);
     $q.notify({ type: 'negative', message: 'Greška pri dodavanju članova.' });
   }
 }
@@ -288,31 +298,50 @@ function promptCreateGroup() {
 }
 
 async function createGroup() {
-  if (!newGroupName.value.trim()) return
+  if (!newGroupName.value.trim()) {
+    console.warn('Naziv grupe je prazan.');
+    return;
+  }
 
-  const selectedMembers = users.value.filter(user => selectedUserIds.value.includes(user.id))
-  const memberIds = selectedMembers.map(u => u.id)
+  const selectedMembers = users.value.filter(user => selectedUserIds.value.includes(user.id));
+  const memberIds = selectedMembers.map(u => u.id);
+
+  if (!memberIds.length) {
+    console.warn('Nema odabranih članova.');
+  }
+
+  if (!userId) {
+    console.warn('Korisnički ID nije definiran.');
+  }
+
+  const payload = {
+    name: newGroupName.value,
+    description: newGroupDescription.value || 'Opis grupe',
+    creatorId: userId,
+    memberIds
+  };
+
+  console.log('Kreiranje grupe sa sljedećim podacima:', payload);
 
   try {
-    const res = await axios.post('http://localhost:3000/api/groups', {
-      name: newGroupName.value,
-      description: newGroupDescription.value || 'Opis grupe',
-      creatorId: userId,
-      memberIds
-    })
+    const res = await axios.post('http://localhost:3000/api/groups', payload);
+
+    console.log('Odgovor servera:', res.data);
 
     // Nakon uspješnog kreiranja, dodaj grupu lokalno
     const newGroup = {
-      name: res.data.ime_grupe,
+      id: res.data.id_grupe, // <== ADD THIS LINE
+      name: res.data.ime_grupe || payload.name,
       members: [...selectedMembers],
       isAdmin: true
-    }
+    };
 
-    groups.value.push(newGroup)
-    currentGroup.value = newGroup
-    createGroupDialog.value = false
+    groups.value.push(newGroup);
+    currentGroup.value = newGroup;
+    createGroupDialog.value = false;
+    console.log('Grupa je uspješno dodana lokalno.');
   } catch (err) {
-    console.error('Greška pri kreiranju grupe:', err)
+    console.error('Greška pri kreiranju grupe:', err);
   }
 }
 

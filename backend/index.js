@@ -59,20 +59,17 @@ app.post('/logout', (req, res) => {
 
 app.use('/api/folders', require('./routes/folderRoutes'))
 app.use('/api/documents', require('./routes/documentRoutes'))
-const express = require("express");
-const cors = require("cors");
+
+/*const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 const config = require("./auth_config.js");
 const authJwt = require("./authJwt.js");
-const connection = require("./db.js");
+const connection = require("./db.js");*/
 
 const groupsRoute = require("./routes/groups");
 const foldersRoute = require("./routes/folderRoutes");
-
-const app = express();
-const PORT = 3000;
 
 app.use(cors());
 app.use(express.json());
