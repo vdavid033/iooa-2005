@@ -131,12 +131,19 @@ function getDensityClass(datum) {
 
 onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/obaveze')
+const token = localStorage.getItem('token')
+const response = await axios.get('http://localhost:3000/api/obaveze', {
+  headers: {
+    Authorization: `Bearer ${token}`
+  }
+})
+
     const data = response.data
 
     const grupirane = {}
     data.forEach((ob) => {
-      const datum = date.formatDate(ob.datum_obaveze, 'YYYY-MM-DD')
+      const datum = date.formatDate(new Date(ob.datum_obaveze), 'YYYY-MM-DD')
+
       if (!grupirane[datum]) {
         grupirane[datum] = []
       }
@@ -155,10 +162,15 @@ function isToday(datum) {
 
 async function obrisiObavezu(idObaveze, datum) {
   try {
-    const response = await axios.delete(`http://localhost:3000/api/obaveza-brisanje/${idObaveze}`);
+    const token = localStorage.getItem('token')
+    const response = await axios.delete(`http://localhost:3000/api/obaveza-brisanje/${idObaveze}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
     if (response.status === 200) {
       alert("Obaveza uspješno obrisana.");
-      // Ažuriraj lokalni state
       obaveze.value[datum] = obaveze.value[datum].filter((o) => o.id_obaveze !== idObaveze);
       if (obaveze.value[datum].length === 0) {
         delete obaveze.value[datum];

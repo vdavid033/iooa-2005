@@ -43,7 +43,12 @@ const tipoviObaveza = ref([])
 
 onMounted(async () => {
   try {
-    const response = await axios.get('http://localhost:3000/api/tipoviObaveza')
+    const token = localStorage.getItem('token')
+    const response = await axios.get('http://localhost:3000/api/tipoviObaveza', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
     tipoviObaveza.value = response.data
   } catch (error) {
     console.error('Greška pri dohvaćanju tipova obaveza:', error)
@@ -52,6 +57,7 @@ onMounted(async () => {
 
 const submitForm = async () => {
   try {
+    const token = localStorage.getItem('token')
     const payload = {
       datum_obaveze: datum.value,
       vrijeme_pocetka: vrijeme.value,
@@ -62,9 +68,15 @@ const submitForm = async () => {
       fk_tip_obaveze: tipObaveze.value,
     }
 
-    const response = await axios.post('http://localhost:3000/api/unosObaveze', payload)
+    const response = await axios.post('http://localhost:3000/api/unosObaveze', payload, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
     console.log('Obaveza unesena:', response.data)
-    // Reset forma
+
+    // Reset forme
     naziv.value = ''
     datum.value = ''
     vrijeme.value = ''

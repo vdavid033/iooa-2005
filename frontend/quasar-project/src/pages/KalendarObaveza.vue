@@ -47,16 +47,21 @@ const selektiraneObaveze = ref(null)
 
 async function dohvatiDetaljeObaveze(obaveza) {
   try {
-    const response = await axios.get('http://localhost:3000/api/obaveze');
-    const sveObaveze = response.data;
+    const token = localStorage.getItem('token')
+    const response = await axios.get('http://localhost:3000/api/obaveze', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    const sveObaveze = response.data
 
     // Filtriramo obaveze koje imaju tačan datum
-    const obavezeZaDatum = sveObaveze.filter(ob => ob.datum_obaveze === obaveza.datum_obaveze);
+    const obavezeZaDatum = sveObaveze.filter(ob => ob.datum_obaveze === obaveza.datum_obaveze)
 
-    return obavezeZaDatum;
+    return obavezeZaDatum
   } catch (err) {
-    console.error('Greška pri dohvaćanju detalja obaveze:', err);
-    return [];
+    console.error('Greška pri dohvaćanju detalja obaveze:', err)
+    return []
   }
 }
 
@@ -74,10 +79,14 @@ function prikaziDetaljeObaveze({ datum, obaveza }) {
 }
 
 async function prikaziObavezeZaDan(datum) {
- selektiranDatum.value = datum
+  selektiranDatum.value = datum
   try {
+    const token = localStorage.getItem('token')
     const response = await axios.get(`http://localhost:3000/api/obavezaDetalji`, {
-      params: { datum_obaveze: datum }
+      params: { datum_obaveze: datum },
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
     })
     selektiraneObaveze.value = response.data
     showDetalji.value = true

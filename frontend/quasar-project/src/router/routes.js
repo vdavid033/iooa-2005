@@ -13,6 +13,8 @@ const routes = [
       { path: 'kalendar-obaveze', component: KalendarObaveza },
       { path: 'forum', component: () => import('pages/ForumPage.vue') },
       { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue') },
+      { path: 'register', component: () => import('pages/RegisterPage.vue') },
+      { path: 'login', component: () => import('pages/LoginPage.vue') }
     ],
   },
 

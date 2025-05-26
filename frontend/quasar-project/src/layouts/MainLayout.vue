@@ -20,10 +20,27 @@
           <q-btn flat label="Forum" to="/forum" />
           <q-btn flat label="Obaveze" to="/kalendar-obaveze"><q-tooltip>Kalendar</q-tooltip></q-btn>
           <q-btn flat label="Dogadaji" to="/kalendardog"><q-tooltip>Kalendar</q-tooltip></q-btn>
-        </div>
-        <q-toolbar-title> Quasar App </q-toolbar-title>
+          
+            <q-btn
+    v-if="!isLoggedIn"
+    flat
+    label="Login"
+    to="/login"
+  />
 
-        <div>Quasar v{{ $q.version }}</div>
+  <q-btn
+    v-else
+    flat
+    label="Logout"
+    @click="logout"
+  />
+        </div>
+       
+        <q-space />
+
+<div v-if="isLoggedIn" class="q-mr-sm text-white">
+  {{ korisnickoIme }}
+</div>
       </q-toolbar>
     </q-header>
 
@@ -46,7 +63,8 @@
 <script setup>
 import { ref } from 'vue'
 import EssentialLink from 'components/EssentialLink.vue'
-
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
 defineOptions({
   name: 'MainLayout',
 })
@@ -78,4 +96,21 @@ const leftDrawerOpen = ref(false)
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+const router = useRouter()
+
+const isLoggedIn = computed(() => {
+  return !!localStorage.getItem('korisnik')
+})
+
+const korisnickoIme = computed(() => {
+  const korisnik = JSON.parse(localStorage.getItem('korisnik'))
+  return korisnik?.korisnickoime || ''
+})
+
+function logout() {
+  localStorage.removeItem('korisnik')
+  router.push('/')
+}
+
 </script>
