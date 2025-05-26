@@ -46,6 +46,19 @@
           <q-input v-model="form.headline" label="Naslov" filled />
           <q-input v-model="form.description" label="Opis" type="textarea" filled />
           <q-input v-model="form.location" label="Lokacija" filled />
+
+          <q-select
+            v-model="form.category"
+            :options="categoryOptions"
+            label="Kategorija"
+            option-value="value"
+            option-label="label"
+            emit-value
+            map-options
+            filled
+            class="q-mt-md"
+          />
+
         </q-card-section>
 
         <q-card-actions align="right">
@@ -61,16 +74,6 @@
       <q-card style="min-width: 900px">
         <q-card-section>
           <div class="text-h6">Događaji za: {{ selectedDateFormatted }}</div>
-          <q-select
-  v-model="form.category"
-  :options="categoryOptions"
-  label="Kategorija"
-  option-value="value"
-  option-label="label"
-  emit-value
-  map-options
-  filled
-/>
         </q-card-section>
 
         <q-card-section style="padding: 0 24px">
@@ -302,14 +305,14 @@ const editEvent = () => {
 }
 
 const saveEvent = async () => {
-  console.log('form.category:', form.value.category) // 👈 OVDJE
+  console.log('form.category:', form.value.category)
   const eventData = {
     headline: form.value.headline,
     description: form.value.description,
     location: form.value.location,
     categoryId: form.value.category,
     date: selectedDateFormatted.value,
-    time: '12:00:00', // možeš kasnije omogućiti unos
+    time: '12:00:00', // hardkodano zasad
     userId: 1 // koristi stvarni korisnički ID
   }
 
