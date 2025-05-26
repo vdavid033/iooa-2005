@@ -6,6 +6,7 @@
     "jsonwebtoken": "^9.0.2",
     "jwt-decode": "^4.0.0",
     "mysql2": "^3.14.1",
+    "axios": "^1.9.0",
     "quasar": "^2.18.1",
     "vue": "^3.5.13"
   }
