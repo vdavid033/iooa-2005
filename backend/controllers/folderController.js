@@ -6,7 +6,7 @@ exports.getRootFolders = async (req, res) => {
         res.json(folders)
     } catch (err) {
         console.error(err)
-        res.status(500).json({message: 'Error fetching root folders'})
+        res.status(500).json({message: 'Došlo je do greške prilikom učitavanja mapa.'})
     }
 }
 
@@ -16,21 +16,20 @@ exports.getSubfolders = async (req, res) => {
         res.json(folders)
     } catch (err) {
         console.error(err)
-        res.status(500).json({message: 'Error fetching subfolders'})
+        res.status(500).json({message: 'Došlo je do greške prilikom učitavanja podmapa.'})
     }
 }
 
 exports.createFolder = async (req, res) => {
     try {
-        const {ime_mape, id_parent_mapa, fk_kolegija} = req.body
+        const {ime_mape, id_parent_mapa} = req.body
         if (!ime_mape) return res.status(400).json({message: 'Ime mape je obavezno'})
-        if (!fk_kolegija) return res.status(400).json({message: 'Mapa mora pripadati određenom kolegiju'})
 
-        const newMap = await folderService.createFolder({ime_mape, id_parent_mapa, fk_kolegija})
+        const newMap = await folderService.createFolder({ime_mape, id_parent_mapa})
         res.status(201).json(newMap)
     } catch (err) {
         console.error(err)
-        res.status(500).json({message: 'Error creating folder'})
+        res.status(500).json({message: 'Dogodila se greška prilikom kreiranja mape.'})
     }
 }
 
@@ -45,7 +44,7 @@ exports.renameFolder = async (req, res) => {
         res.json({message: 'Mapa je ažurirana', mapa: updated})
     } catch (err) {
         console.error(err)
-        res.status(500).json({message: 'Error updating folder'})
+        res.status(500).json({message: 'Dogodila se greška prilikom preimenovanja mape.'})
     }
 }
 
@@ -57,6 +56,6 @@ exports.deleteFolder = async (req, res) => {
         res.json({message: `Mapa '${deleted.ime_mape}' je obrisana`})
     } catch (err) {
         console.error(err)
-        res.status(500).json({message: 'Error deleting folder'})
+        res.status(500).json({message: 'Dogodila se greška prilikom brisanja mape.'})
     }
 }

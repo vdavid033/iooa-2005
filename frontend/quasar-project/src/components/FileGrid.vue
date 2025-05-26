@@ -1,167 +1,199 @@
 <template>
-  <q-card class="file-explorer">
-    <!-- Search komponenta -->
-    <q-toolbar class="bg-grey-2 q-px-md q-py-sm">
-      <q-input
-        v-model="searchQuery"
-        dense
-        outlined
-        clearable
-        placeholder="Search files..."
-        class="full-width"
-        @keyup.enter="executeSearch"
-        @update:model-value="onSearchInputChange"
-      >
-        <template v-slot:prepend>
-          <q-icon name="search" @click="executeSearch" class="cursor-pointer"/>
-        </template>
-      </q-input>
-    </q-toolbar>
+  <div>
+    <!-- Upload button for admin -->
+    <q-btn
+      v-if="isAdmin"
+      color="primary"
+      icon="cloud_upload"
+      label="Upload dokument"
+      @click="showUploadDialog = true"
+      class="q-mb-md"
+    />
 
-    <!-- Lista fileova -->
-    <q-list bordered separator>
-      <template v-if="isSearching">
-        <file-item
-          v-for="item in searchResults"
-          :key="item.path"
-          :item="item"
-          @click="handleSearchItemClick"
-        />
+    <!-- File list -->
+    <q-table
+      :rows="files"
+      :columns="columns"
+      row-key="id_dokumenta"
+      flat
+      bordered
+    >
+      <template v-slot:body-cell-actions="props">
+        <q-td :props="props">
+          <q-btn
+            icon="download"
+            flat
+            round
+            dense
+            @click="downloadDocument(props.row)"
+          />
+          <q-btn
+            v-if="isAdmin"
+            icon="delete"
+            flat
+            round
+            dense
+            @click="confirmDelete(props.row)"
+            class="q-ml-sm"
+          />
+        </q-td>
       </template>
-      <template v-else>
-        <file-item
-          v-for="item in files"
-          :key="item.path"
-          :item="item"
-          @click="handleItemClick"
-        />
-      </template>
-    </q-list>
+    </q-table>
 
-    <!-- Prazna poruka kada nema rezultata -->
-    <div v-if="isSearching && searchResults.length === 0" class="q-pa-md text-center text-grey">
-      No results found for "{{ searchQuery }}"
-    </div>
-  </q-card>
+    <!-- Upload dialog -->
+    <q-dialog v-model="showUploadDialog">
+      <q-card style="min-width: 400px">
+        <q-card-section>
+          <div class="text-h6">Upload dokumenta</div>
+        </q-card-section>
+
+        <q-card-section>
+          <q-file
+            v-model="fileToUpload"
+            label="Odaberi dokument"
+            outlined
+            accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Odustani" color="primary" v-close-popup />
+          <q-btn 
+            flat 
+            label="Upload" 
+            color="primary" 
+            @click="uploadFile"
+            :disable="!fileToUpload"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <!-- Delete confirmation dialog -->
+    <q-dialog v-model="showDeleteConfirm">
+      <q-card>
+        <q-card-section>
+          <div class="text-h6">Brisanje dokumenta</div>
+          <div class="q-mt-sm">Jeste li sigurni da želite obrisati dokument "{{ documentToDelete?.ime_dokumenta }}"?</div>
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn flat label="Odustani" color="primary" v-close-popup />
+          <q-btn flat label="Obriši" color="negative" @click="deleteDocument" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+  </div>
 </template>
 
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue';
-import FileItem from './FileItem.vue';
-import fileApi from '../services/fileApi.js';
+import { ref } from 'vue'
+import { api } from 'boot/axios'
+import { useQuasar } from 'quasar'
 
-// Props
 const props = defineProps({
-  rootPath: {type: String, default: '/'}
-});
+  files: {
+    type: Array,
+    default: () => []
+  },
+  folderId: {
+    type: [String, Number],
+    required: true
+  },
+  isAdmin: {
+    type: Boolean,
+    default: false
+  }
+})
 
-// Stanje
-const currentPath = ref(props.rootPath);
-const files = ref([]);
-const searchQuery = ref('');
-const searchResult = ref([]);
-const isLoading = ref(false);
-const error = ref(null);
+const emit = defineEmits(['refresh'])
 
-// Computed properties
-const isSearching = computed(() => searchQuery.value.length > 0);
+const $q = useQuasar()
+const showUploadDialog = ref(false)
+const fileToUpload = ref(null)
+const showDeleteConfirm = ref(false)
+const documentToDelete = ref(null)
 
-// Metode
-const fetchFiles = async () => {
+const columns = [
+  {
+    name: 'ime_dokumenta',
+    required: true,
+    label: 'Naziv dokumenta',
+    align: 'left',
+    field: row => row.ime_dokumenta,
+    sortable: true
+  },
+  {
+    name: 'datum_kreiranja',
+    label: 'Datum kreiranja',
+    field: row => new Date(row.datum_kreiranja).toLocaleString(),
+    sortable: true
+  },
+  {
+    name: 'actions',
+    label: 'Akcije',
+    field: '',
+    align: 'right'
+  }
+]
+
+async function uploadFile() {
+  if (!fileToUpload.value) return
+  
+  const formData = new FormData()
+  formData.append('file', fileToUpload.value)
+  formData.append('folderId', props.folderId)
+
   try {
-    isLoading.value = true;
-    error.value = null;
-    files.value = await fileApi.getFiles(currentPath.value);
-  } catch (err) {
-    error.value = 'Failed to load files';
-    console.error(err);
-  } finally {
-    isLoading.value = false;
+    await api.post('/documents/upload', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+    
+    $q.notify({
+      type: 'positive',
+      message: 'Dokument uspješno uploadan'
+    })
+    
+    showUploadDialog.value = false
+    fileToUpload.value = null
+    emit('refresh')
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Greška pri uploadu dokumenta'
+    })
+    console.error(error)
   }
-};
+}
 
-/*const handleSearch = async () => {
-  if (!searchQuery.value) {
-    searchResults.value = [];
-    return;
-  }
+function downloadDocument(document) {
+  window.open(`/api/documents/download/${document.id_dokumenta}`, '_blank')
+}
 
+function confirmDelete(document) {
+  documentToDelete.value = document
+  showDeleteConfirm.value = true
+}
+
+async function deleteDocument() {
   try {
-    isLoading.value = true;
-    searchResults.value = await fileApi.searchFiles(searchQuery.value);
-  } catch (err) {
-    error.value = 'Search failed';
-    console.error(err);
-  } finally {
-    isLoading.value = false;
+    await api.delete(`/documents/${documentToDelete.value.id_dokumenta}`)
+    
+    $q.notify({
+      type: 'positive',
+      message: 'Dokument uspješno obrisan'
+    })
+    
+    showDeleteConfirm.value = false
+    emit('refresh')
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: 'Greška pri brisanju dokumenta'
+    })
+    console.error(error)
   }
-};*/
-
-const handleItemClick = (item) => {
-  if (item.type === 'dir') {
-    currentPath.value = item.path;
-    fetchFiles();
-  } else {
-    // Handle file click (e.g., open preview, download, etc.)
-    console.log('File clicked:', item);
-  }
-};
-
-const handleSearchItemClick = (item) => {
-  if (item.type === 'dir') {
-    currentPath.value = item.path;
-    searchQuery.value = '';
-    fetchFiles();
-  } else {
-    // Handle file click from search results
-    console.log('File clicked from search:', item);
-  }
-};
-
-const onSearchInputChange = (value) => {
-  searchQuery.value = value;
-  if (searchQuery.value.trim().length > 2) {
-    searchResult.value = [];
-    executeSearch();
-  }
-};
-
-const executeSearch = () => {
-  if (searchQuery.value.trim().length > 0) {
-    handleSearch(searchQuery.value);
-  } else {
-
-    console.log('Please enter search term');
-  }
-};
-
-const handleSearch = async (value) => {
-  //alert('tu sam');
-  searchResult.value = await fileApi.searchFiles(value);
-
-};
-
-// Lifecycle hooks
-onMounted(() => {
-  fetchFiles();
-});
-
-// Watch for rootPath changes
-watch(() => props.rootPath, (newPath) => {
-  currentPath.value = newPath;
-  fetchFiles();
-});
-
+}
 </script>
-
-<style scoped>
-.file-explorer {
-  width: 100%;
-  max-width: 800px;
-  margin: 0 auto;
-}
-
-.search-input {
-  min-width: 250px;
-}
-</style>
