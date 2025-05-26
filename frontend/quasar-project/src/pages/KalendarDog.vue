@@ -28,6 +28,7 @@
         'highlight-today': isToday(day.date),
         'disabled-day': isPast(day.date),
         'weekend-day': isWeekend(day.date),
+        'has-event' : day.hasEvent
       }"
       @click="handleDateClick(day.date)"
     >
@@ -49,7 +50,8 @@
 
         <q-card-actions align="right">
           <q-btn flat label="Odustani" @click="cancelCreateEvent" />
-          <q-btn color="primary" label="Spremi" @click="saveEvent" />
+          <q-btn color="primary" :label="isEditMode ? 'Spremi izmjene' : 'Spremi'" @click="isEditMode ? updateEvent() : saveEvent()"/>
+
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -125,7 +127,7 @@
           </div>
         </q-card-section>
 
-        <q-card-actions align="center">
+        <q-card-actions align="center" v-if="!isSelectedDatePast">
           <q-btn color="primary" label="Kreiraj događaj" @click="openCreateEventModal" />
         </q-card-actions>
       </q-card>
@@ -151,7 +153,8 @@
 
         <q-card-actions align="between">
           <!-- NOVO: Gumb za brisanje -->
-          <q-btn color="negative" flat label="Obriši" @click="deleteEvent" />
+           <q-btn color="primary" flat label="Uredi" v-if="canDeleteEvent" @click="editEvent"/>
+          <q-btn color="negative" flat label="Obriši" v-if="!isSelectedDatePast && canDeleteEvent" @click="deleteEvent" />
           <q-btn flat label="Zatvori" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -160,14 +163,29 @@
 </template>
 
 <script setup>
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onMounted } from 'vue'
 import { date } from 'quasar'
 import axios from 'axios'
+import { jwtDecode } from 'jwt-decode'
 
 const currentDate = ref(new Date())
 const showDateModal = ref(false)
 const showEventModal = ref(false)
 const selectedDate = ref(null)
+const loggedInUserId = ref(null)
+const isEditMode = ref(false)
+
+onMounted(() => {
+  const token = localStorage.getItem('token')
+  if (token) {
+    try {
+      const decoded = jwtDecode(token)
+      loggedInUserId.value = decoded.id
+    } catch (e) {
+      console.error('Greška pri dekodiranju tokena:', e)
+    }
+  }
+})
 
 const form = ref({
   headline: '',
@@ -201,9 +219,15 @@ const daysInMonth = computed(() => {
   const month = currentDate.value.getMonth()
   const numDays = new Date(year, month + 1, 0).getDate()
 
-  return [...Array(numDays)].map((_, i) => ({
-    date: new Date(year, month, i + 1),
-  }))
+  return [...Array(numDays)].map((_, i) => {
+    const dateObj = new Date(year, month, i + 1)
+    const formatted = date.formatDate(dateObj, 'YYYY-MM-DD') // OVO JE KLJUČNO
+
+    return {
+      date: dateObj,
+      hasEvent: highlightedDates.value.includes(formatted)
+    }
+  })
 })
 
 const firstDayOfMonth = computed(() => {
@@ -216,6 +240,15 @@ const leadingEmptyDays = computed(() => {
   let weekday = firstDayOfMonth.value.getDay() // 0 (Ned) do 6 (Sub)
   if (weekday === 0) weekday = 7 // Pretvori Ned u 7 za europski redoslijed
   return weekday - 1 // Ponedjeljak = 0 praznih slotova
+})
+
+const isSelectedDatePast = computed(() => {
+  if (!selectedDate.value) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const selected = new Date(selectedDate.value)
+  selected.setHours(0, 0, 0, 0)
+  return selected < today
 })
 
 const fetchEventsForDate = async () => {
@@ -235,9 +268,7 @@ const fetchEventsForDate = async () => {
 }
 
 const handleDateClick = (dateObj) => {
-  if (!isPast(dateObj)) {
     selectDate(dateObj)
-  }
 }
 
 const selectDate = (dateObj) => {
@@ -254,6 +285,20 @@ const openCreateEventModal = () => {
 const cancelCreateEvent = () => {
   showEventModal.value = false
   showDateModal.value = true
+  isEditMode.value = false
+}
+
+const editEvent = () => {
+  isEditMode.value = true
+  showEventDetailModal.value = false
+  showEventModal.value = true
+
+  form.value = {
+    headline: selectedEvent.value.headline,
+    description: selectedEvent.value.description,
+    location: selectedEvent.value.location,
+    category: categoryOptions.find(c => c.label === selectedEvent.value.category)?.value || null
+  }
 }
 
 const saveEvent = async () => {
@@ -288,6 +333,27 @@ const deleteEvent = async () => {
   }
 }
 
+const updateEvent = async () => {
+  const eventData = {
+    headline: form.value.headline,
+    description: form.value.description,
+    location: form.value.location,
+    categoryId: form.value.category,
+    date: selectedDateFormatted.value,
+    time: '12:00:00' // ili kasnije omogući uređivanje vremena
+  }
+
+  try {
+    await axios.put(`http://localhost:3001/api/events/${selectedEvent.value.id}`, eventData)
+    showEventModal.value = false
+    isEditMode.value = false
+    form.value = { headline: '', description: '', location: '', category: null }
+    fetchEventsForDate()
+  } catch (err) {
+    console.error('Greška pri ažuriranju događaja:', err)
+  }
+}
+
 const showEventDetailModal = ref(false)
 const selectedEvent = ref({
   id: null,
@@ -295,15 +361,32 @@ const selectedEvent = ref({
   category: '',
   description: '',
   location: '',
+  userId: null
 })
 
 const openEventDetails = (event, category) => {
   selectedEvent.value = {
     ...event,
     category: category,
+    userId: event.userId
   }
   showEventDetailModal.value = true
 }
+
+const canDeleteEvent = computed(() => {
+  if (!selectedEvent.value || !selectedEvent.value.userId || !loggedInUserId.value) return false
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+
+  const eventDate = new Date(selectedDate.value)
+  eventDate.setHours(0, 0, 0, 0)
+
+  return (
+    selectedEvent.value.userId === loggedInUserId.value &&
+    eventDate >= today
+  )
+})
 
 const getCategoryId = (name) => {
   if (name === 'Zabava') return 1
@@ -311,6 +394,27 @@ const getCategoryId = (name) => {
   if (name === 'Volontiranje') return 3
   return 1
 }
+
+const highlightedDates = ref([])
+
+const fetchHighlightedDates = async () => {
+  const year = currentDate.value.getFullYear().toString()
+  const month = (currentDate.value.getMonth() + 1).toString().padStart(2, '0')
+
+  try {
+    const res = await axios.get(`http://localhost:3001/api/events/dates/${year}/${month}`)
+    console.log('Dohvaćeni datumi s događajima:', res.data)
+    highlightedDates.value = res.data.map(d =>
+  date.formatDate(new Date(d), 'YYYY-MM-DD')
+)
+  } catch (err) {
+    console.error('Greška prilikom dohvaćanja datuma s događajima:', err)
+  }
+}
+
+watch(currentDate, () => {
+  fetchHighlightedDates()
+}, { immediate: true })
 
 const isWeekend = (dateObj) => {
   const day = dateObj.getDay() // 0 = Ned, 6 = Sub
@@ -385,11 +489,11 @@ const isPast = (dayDate) => {
   font-weight: bold;
 }
 
-.disabled-day {
+/*.disabled-day {
   background-color: #ddd;
   color: #999;
   pointer-events: none;
-}
+}*/
 
 .text-subtitle2 {
   margin-bottom: 10px;
@@ -401,4 +505,10 @@ const isPast = (dayDate) => {
   background: transparent;
   pointer-events: none;
 }
+
+.has-event {
+  background-color: #2196f3;
+  color: #FFFFFF;
+}
+
 </style>
