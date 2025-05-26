@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const controller = require('../controllers/groupsController');
+const validateMessageInput = require('../middlewares/validateMessageInput')
 
 //Dohvat korisnika
 router.get('/users/all', controller.getAllUsers);
@@ -17,8 +18,6 @@ router.get('/:groupName/messages', controller.getGroupMessages); // sad koristi 
 
 // Poruke
 //router.post('/:groupName/messages', controller.sendMessage); // Slanje poruke u grupu
-const validateMessageInput = require('../middlewares/validateMessageInput')
-
 router.post('/:groupName/messages', validateMessageInput, controller.sendMessage)
 
 
