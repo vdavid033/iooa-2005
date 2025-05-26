@@ -3,7 +3,24 @@
 
     <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze"/>
 
-    <q-btn @click="toggleUnos" label="Unesi novu obavezu" color="primary" class="q-mt-md" />
+    <q-btn
+  v-if="isAdmin()"
+  @click="toggleUnos"
+  label="Unesi novu obavezu"
+  color="primary"
+  class="q-mt-md"
+/>
+
+<q-dialog v-model="showUnos" v-if="isAdmin()">
+  <q-card style="max-width: 30%; width: 100%">
+    <q-card-section>
+      <UnosObaveze />
+    </q-card-section>
+    <q-card-actions>
+      <q-btn @click="showUnos = false" label="Zatvori" color="secondary" class="q-ma-md" />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
 
     <q-dialog v-model="showUnos">
       <q-card style="max-width: 30%; width: 100%">
@@ -35,6 +52,9 @@ import axios from 'axios'
 import KalendarObaveza from 'src/components/KalendarObaveza.vue'
 import UnosObaveze from 'src/components/UnosObaveze.vue'
 import DetaljiObaveze from 'src/components/DetaljiObaveze.vue'
+import { useUser } from 'src/composables/useUser'
+const { isAdmin, loadUserFromToken } = useUser()
+loadUserFromToken()
 
 const showUnos = ref(false)
 const showDetalji = ref(false)
@@ -48,16 +68,18 @@ const selektiraneObaveze = ref(null)
 async function dohvatiDetaljeObaveze(obaveza) {
   try {
     const token = localStorage.getItem('token')
-    const response = await axios.get('http://localhost:3000/api/obaveze', {
+    const url = isAdmin() 
+      ? 'http://localhost:3000/api/obaveze' 
+      : 'http://localhost:3000/api/obaveze-korisnik'
+
+    const response = await axios.get(url, {
       headers: {
         Authorization: `Bearer ${token}`
       }
     })
     const sveObaveze = response.data
 
-    // Filtriramo obaveze koje imaju tačan datum
     const obavezeZaDatum = sveObaveze.filter(ob => ob.datum_obaveze === obaveza.datum_obaveze)
-
     return obavezeZaDatum
   } catch (err) {
     console.error('Greška pri dohvaćanju detalja obaveze:', err)

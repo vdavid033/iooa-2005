@@ -12,35 +12,35 @@
         />
 
         <q-toolbar-title>
-        PORUKE
+          PORUKE
         </q-toolbar-title>
-        <q-btn flat dense round icon="menu" aria-label="Menu" @click="toggleLeftDrawer" />
-        <div class="q-toolbar-title">
-          <q-btn flat label="Početna" to="/" />
-          <q-btn flat label="Forum" to="/forum" />
-          <q-btn flat label="Obaveze" to="/kalendar-obaveze"><q-tooltip>Kalendar</q-tooltip></q-btn>
-          <q-btn flat label="Dogadaji" to="/kalendardog"><q-tooltip>Kalendar</q-tooltip></q-btn>
-          
-            <q-btn
-    v-if="!isLoggedIn"
-    flat
-    label="Login"
-    to="/login"
-  />
 
+<div class="q-toolbar-title">
+  <q-btn flat label="Početna" to="/" />
+  <q-btn flat label="Forum" to="/forum" />
+  <q-btn flat label="Obaveze" to="/kalendar-obaveze">
+    <template v-slot:tooltip>Kalendar</template>
+  </q-btn>
+  <q-btn flat label="Događaji" to="/kalendardog">
+    <template v-slot:tooltip>Kalendar</template>
+  </q-btn>
+
+  <template v-if="!isLoggedIn">
+    <q-btn flat label="Login" to="/login" />
+    <q-btn flat label="Register" to="/register" />
+  </template>
   <q-btn
     v-else
     flat
     label="Logout"
     @click="logout"
   />
-        </div>
-       
-        <q-space />
-
-<div v-if="isLoggedIn" class="q-mr-sm text-white">
-  {{ korisnickoIme }}
 </div>
+  <q-space />
+
+        <div v-if="isLoggedIn" class="q-mr-sm text-white">
+          {{ korisnickoIme }}
+        </div>
       </q-toolbar>
     </q-header>
 
@@ -50,7 +50,11 @@
           Essential Links
         </q-item-label>
 
-        <EssentialLink v-for="link in linksList" :key="link.title" v-bind="link" />
+        <EssentialLink
+          v-for="link in linksList"
+          :key="link.title"
+          v-bind="link"
+        />
       </q-list>
     </q-drawer>
 

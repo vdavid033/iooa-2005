@@ -131,12 +131,12 @@ function getDensityClass(datum) {
 
 onMounted(async () => {
   try {
-const token = localStorage.getItem('token')
-const response = await axios.get('http://localhost:3000/api/obaveze', {
-  headers: {
-    Authorization: `Bearer ${token}`
-  }
-})
+    const token = localStorage.getItem('token')
+    const response = await axios.get('http://localhost:3000/api/sve-obaveze', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
 
     const data = response.data
 
