@@ -36,7 +36,7 @@ watch(
   (value) => {
     dialogVisible.value = value
     if (value) {
-      name.value = props.folder?.ime_mape || ''
+      name.value = props.folder.ime_mape
     }
   }
 )

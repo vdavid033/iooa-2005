@@ -10,10 +10,10 @@ async function getSubfolders (parentId) {
     return rows
 }
 
-async function createFolder ({ime_mape, id_parent_mapa = null, fk_kolegija}) {
+async function createFolder ({ime_mape, id_parent_mapa = null}) {
     const [result] = await db.query(
-        'INSERT INTO mapa (ime_mape, id_parent_mapa, fk_kolegija) VALUES (?, ?, ?)',
-        [ime_mape, id_parent_mapa, fk_kolegija]
+        'INSERT INTO mapa (ime_mape, id_parent_mapa) VALUES (?, ?)',
+        [ime_mape, id_parent_mapa]
     )
 
     const [rows] = await db.query('SELECT * FROM mapa WHERE id_mape = ?', [result.insertId])

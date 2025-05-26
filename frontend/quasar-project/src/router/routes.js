@@ -6,6 +6,7 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
+      { path: 'login', component: () => import('pages/LoginPage.vue') },
       { path: 'folders', component: () => import('pages/FoldersPage.vue') },
       { path: 'folders/:folderId', component: () => import('pages/FolderContentPage.vue') },
       { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
