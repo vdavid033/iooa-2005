@@ -15,17 +15,10 @@ const routes = [
       { path: 'kalendardog', component: () => import('pages/KalendarDog.vue') },
       { path: 'kalendar-obaveze', component: KalendarObaveza },
       { path: 'forum', component: () => import('pages/ForumPage.vue') },
-<<<<<<< HEAD
-      { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue')},
-      { path: 'login', component: () => import('pages/LoginPage.vue')}
-    ]
-
-=======
       { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue') },
       { path: 'groups', component: () => import('pages/GroupMessagesUser.vue') },
       { path: 'login', component: () => import('pages/LoginPage.vue') }
     ],
->>>>>>> development
   },
 
   // Always leave this as last one,
