@@ -11,12 +11,14 @@ router.get('/:date', (req, res) => {
       d.opis_dogadjaja AS description,
       d.lokacija_dogadjaja AS location,
       k.naziv_kategorije_dogadjaja AS category,
-      k.boja_kategorije_dogadjaja AS color,
       d.datum_dogadjaja AS date,
       d.vrijeme_pocetka_dogadjaja AS time,
-      d.fk_korisnika AS userId
+      d.fk_korisnika AS userId,
+      u.ime_korisnika AS firstName,
+      u.prezime_korisnika AS lastName
     FROM dogadjaj d
     JOIN kategorija_dogadjaja k ON d.fk_kategorije_dogadjaja = k.id_kategorije_dogadjaja
+    JOIN korisnik u ON d.fk_korisnika = u.id_korisnika
     WHERE d.datum_dogadjaja = ?
   `;
   db.query(sql, [req.params.date], (err, results) => {

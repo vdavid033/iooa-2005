@@ -36,7 +36,7 @@
     </div>
   </div>
     </q-card>
-    <q-dialog v-model="showEventModal">
+    <q-dialog v-model="showEventModal" @hide="resetEventModalState">
       <q-card style="min-width: 400px">
         <q-card-section>
           <div class="text-h6">Dodaj događaj: {{ selectedDateFormatted }}</div>
@@ -152,12 +152,21 @@
           <div class="q-mt-sm">
             <strong>Lokacija:</strong> {{ selectedEvent.location || 'Nije unesena' }}
           </div>
+          <div class="q-mt-sm">
+            <strong>Vrijeme početka:</strong>
+            {{ selectedEvent.time ? selectedEvent.time.slice(0, 5)+'h' : 'Nije uneseno' }}
+          </div>
+
+          <div class="q-mt-sm">
+          <strong>Organizator:</strong> {{ selectedEvent.organizator || 'Nepoznat' }}
+          </div>
+
         </q-card-section>
 
         <q-card-actions align="between">
           <!-- NOVO: Gumb za brisanje -->
-           <q-btn color="primary" flat label="Uredi" v-if="canDeleteEvent" @click="editEvent"/>
-          <q-btn color="negative" flat label="Obriši" v-if="!isSelectedDatePast && canDeleteEvent" @click="deleteEvent" />
+           <q-btn color="primary" flat label="Uredi" v-if="!isEventInPast && canDeleteEvent" @click="editEvent"/>
+          <q-btn color="negative" flat label="Obriši" v-if="!isEventInPast && canDeleteEvent" @click="deleteEvent" />
           <q-btn flat label="Zatvori" v-close-popup />
         </q-card-actions>
       </q-card>
@@ -288,7 +297,7 @@ const openCreateEventModal = () => {
 const cancelCreateEvent = () => {
   showEventModal.value = false
   showDateModal.value = true
-  isEditMode.value = false
+  resetEventModalState()
 }
 
 const editEvent = () => {
@@ -302,6 +311,11 @@ const editEvent = () => {
     location: selectedEvent.value.location,
     category: categoryOptions.find(c => c.label === selectedEvent.value.category)?.value || null
   }
+}
+
+const resetEventModalState = () => {
+  isEditMode.value = false
+  form.value = { headline: '', description: '', location: '', category: null }
 }
 
 const saveEvent = async () => {
@@ -364,14 +378,18 @@ const selectedEvent = ref({
   category: '',
   description: '',
   location: '',
-  userId: null
+  time: '',
+  userId: null,
+  organizator: ''
 })
 
 const openEventDetails = (event, category) => {
   selectedEvent.value = {
     ...event,
     category: category,
-    userId: event.userId
+    userId: event.userId,
+    time: event.time,
+    organizator: `${event.firstName} ${event.lastName}`
   }
   showEventDetailModal.value = true
 }
@@ -448,6 +466,19 @@ const isPast = (dayDate) => {
   target.setHours(0, 0, 0, 0)
   return target < today
 }
+const isEventInPast = computed(() => {
+  if (!selectedDate.value || !selectedEvent.value.time) return false
+
+  const now = new Date()
+
+  const [hours, minutes] = selectedEvent.value.time.slice(0, 5).split(':').map(Number)
+
+  const eventDateTime = new Date(selectedDate.value)
+  eventDateTime.setHours(hours, minutes, 0, 0)
+
+  return now > eventDateTime
+})
+
 </script>
 
 <style scoped>
