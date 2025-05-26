@@ -2,7 +2,9 @@
   <q-dialog v-model="dialogOpen">
     <q-card style="min-width: 400px">
       <q-card-section>
-        <div class="text-h6">Kreiraj novu mapu</div>
+        <div class="text-h6">
+          {{ !parentId ? 'Kreiraj kolegij' : 'Kreiraj podmapu' }}
+        </div>
       </q-card-section>
       <q-card-section class="q-pt-none">
         <q-form @submit.prevent="submit">
@@ -16,32 +18,14 @@
               autofocus
             />
           </div>
-          <div class="q-mb-md" v-if="!hideParentSelect">
+          <div class="q-mb-md" v-if="parentId">
             <q-select
-              v-model="selectedParentId"
-              :options="parentOptions"
-              label="Parent mapa"
-              option-value="id"
-              option-label="name"
-              dense
-              outlined
-              emit-value
-              map-options
-              readonly
-            />
-          </div>
-          <div class="q-mb-md">
-            <q-select
-              v-model="selectedKolegijId"
-              :options="kolegijiOptions"
+              v-model="kolegijName"
+              :options="kolegiji"
               label="Kolegij"
-              option-value="id"
-              option-label="name"
               dense
               outlined
-              emit-value
-              map-options
-              :readonly="forcedParentId !== null"
+              readonly
             />
           </div>
           <div class="row justify-end q-gutter-sm">
@@ -55,7 +39,7 @@
 </template>
 
 <script setup>
-import { computed, ref, watch } from 'vue'
+import { ref, watch } from 'vue'
 
 defineOptions({
   name: 'CreateFolderModal',
@@ -66,21 +50,13 @@ const props = defineProps({
     type: Boolean,
     required: true,
   },
-  parentFolders: {
-    type: Array,
-    default: () => [],
+  parentId: {
+    type: [Number, String],
+    default: null,
   },
   kolegiji: {
     type: Array,
     default: () => [],
-  },
-  forcedParentId: {
-    type: [String, Number],
-    default: null,
-  },
-  forcedKolegijId: {
-    type: [String, Number],
-    default: null,
   },
 })
 
@@ -88,11 +64,7 @@ const emit = defineEmits(['update:modelValue', 'create'])
 
 const dialogOpen = ref(false)
 const folderName = ref('')
-const selectedParentId = ref(null)
-const selectedKolegijId = ref(null)
-const parentOptions = ref([])
-const kolegijiOptions = ref([])
-const hideParentSelect = computed(() => props.forcedParentId === null)
+const kolegijName = ref('')
 
 watch(
   () => props.modelValue,
@@ -100,25 +72,11 @@ watch(
     dialogOpen.value = value
     if (value) {
       folderName.value = ''
-      kolegijiOptions.value = props.kolegiji.map((k) => ({
-        id: k.id,
-        name: k.naziv,
-      }))
-      parentOptions.value = props.parentFolders.map((f) => ({
-        id: f.id_mape,
-        name: f.ime_mape,
-      }))
+      kolegijName.value = ''
 
-      if (props.forcedParentId !== null) {
-        selectedParentId.value = props.forcedParentId
-      } else {
-        selectedParentId.value = null
-      }
-
-      if (props.forcedKolegijId !== null) {
-        selectedKolegijId.value = props.forcedKolegijId
-      } else {
-        selectedKolegijId.value = null
+      if (props.parentId && props.kolegiji.length) {
+        const found = props.kolegiji.find((k) => k.id_mape === Number(props.parentId))
+        kolegijName.value = found?.ime_mape || 'Nepoznat kolegij'
       }
     }
   }
@@ -135,8 +93,7 @@ function close() {
 function submit() {
   emit('create', {
     name: folderName.value,
-    parentId: selectedParentId?.value?.id_mape || null,
-    kolegijId: selectedKolegijId.value,
+    parentId: props.parentId ?? null,
   })
   dialogOpen.value = false
 }
