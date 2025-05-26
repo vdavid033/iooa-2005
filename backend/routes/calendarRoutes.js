@@ -4,12 +4,12 @@ const authJwt = require('../authJwt');
 const db = require('../db');
 
 // Dohvati sve obaveze za prijavljenog korisnika
-router.get('/obaveze', authJwt.verifyTokenUser, (req, res) => {
-  const sql = 'SELECT * FROM obaveza WHERE fk_korisnika = ?';
-  db.query(sql, [req.userId], (err, results) => {
+router.get('/sve-obaveze', authJwt.verifyTokenUser, (req, res) => {
+  const sql = 'SELECT * FROM obaveza';
+  db.query(sql, (err, results) => {
     if (res.headersSent) return;
     if (err) {
-      console.error("Greška pri dohvaćanju obaveza:", err);
+      console.error("Greška pri dohvaćanju svih obaveza:", err);
       res.status(500).json({ error: "Greška pri dohvaćanju podataka." });
     } else {
       res.status(200).json(results);
@@ -18,7 +18,7 @@ router.get('/obaveze', authJwt.verifyTokenUser, (req, res) => {
 });
 
 // Dodaj novu obavezu
-router.post('/unosObaveze', authJwt.verifyTokenUser, (req, res) => {
+router.post('/unosObaveze', verifyTokenAdmin, (req, res) => {
   const { datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze } = req.body;
   const sql = "INSERT INTO obaveza (datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze, fk_korisnika) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
   const values = [datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze, req.userId];

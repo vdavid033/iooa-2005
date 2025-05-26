@@ -78,3 +78,6 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
+
+const registerRoute = require('./routes/register') // napravi ovu datoteku ako već ne postoji
+app.use('/regaKorisnika', registerRoute)
