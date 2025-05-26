@@ -146,7 +146,7 @@ const searchTerm = ref("")
 const openNewChatDialog = async () => {
   showNewChatDialog.value = true
   try {
-    const res = await fetch("http://localhost:3000/api/svi-korisnici")
+    const res = await fetch("http://localhost:3000/api/messages/svi-korisnici")
     const data = await res.json()
     if (Array.isArray(data)) {
       const currentChatIds = chats.value.map(c => c.id_korisnika)
@@ -175,7 +175,7 @@ const startChat = (user) => {
 // Dohvaćanje podataka
 const fetchKorisnici = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/api/korisnici/${trenutniKorisnikId.value}`)
+    const response = await fetch(`http://localhost:3000/api/messages/korisnici/${trenutniKorisnikId.value}`)
     chats.value = await response.json()
   } catch (error) {
     console.error('Greška pri dohvaćanju korisnika:', error)
@@ -184,7 +184,7 @@ const fetchKorisnici = async () => {
 
 const fetchSvePoruke = async () => {
   try {
-    const response = await fetch(`http://localhost:3000/api/sve-poruke/${trenutniKorisnikId.value}`)
+    const response = await fetch(`http://localhost:3000/api/messages/sve-poruke/${trenutniKorisnikId.value}`)
     const data = await response.json()
     poruke.value = Array.isArray(data) ? data : []
   } catch (error) {
@@ -194,7 +194,7 @@ const fetchSvePoruke = async () => {
 
 const fetchPorukeZaKorisnika = async (korisnikId) => {
   try {
-    const response = await fetch(`http://localhost:3000/api/poruke/${trenutniKorisnikId.value}/${korisnikId}`)
+    const response = await fetch(`http://localhost:3000/api/messages/poruke/${trenutniKorisnikId.value}/${korisnikId}`)
     const novePoruke = await response.json()
     poruke.value = poruke.value.filter(p =>
       !(p.posiljatelj === trenutniKorisnikId.value && p.primatelj === korisnikId) &&
@@ -257,7 +257,7 @@ const selectChat = async (chat) => {
 const sendMessage = async () => {
   if (!newMessage.value.trim() || !selectedChat.value) return
   try {
-    await fetch('http://localhost:3000/api/poruke', {
+    await fetch('http://localhost:3000/api/messages/poruke', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
