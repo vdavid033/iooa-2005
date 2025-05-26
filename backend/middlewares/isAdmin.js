@@ -1,31 +1,20 @@
-const db = require('../data/db')
+const jwt = require('jsonwebtoken')
+const config = require('../auth_config')
 
 module.exports = async (req, res, next) => {
-    const korisnickoIme = req.headers['korisnicko_ime']
+    const authHeader = req.headers['authorization']
+    const token = authHeader && authHeader.split(' ')[1]
 
-    if (!korisnickoIme) {
-        return res.status(400).json({message: 'Nedostaje korisnicko_ime u request zaglavlju'})
-    }
+    if (!token) return res.status(403).json({message: 'Token nije poslan'})
 
     try {
-        const [rows] = await db.query(
-            'SELECT admin_status FROM korisnik WHERE korisnicko_ime = ?',
-            [korisnickoIme]
-        )
-
-        if (!rows.length) {
-            return res.status(404).json({message: 'Korisnik nije pronađen'})
+        const decoded = jwt.verify(token, config.secret)
+        if (decoded.uloga !== 1) {
+            return res.status(403).json({message: 'Samo admin ima pristup'})
         }
-
-        const isAdmin = rows[0].admin_status === 1
-
-        if (!isAdmin) {
-            return res.status(403).json({message: 'Zabranjeno – samo admin'})
-        }
-
+        req.user = decoded
         next()
     } catch (err) {
-        console.error('Greška u isAdmin middlewareu:', err)
-        res.status(500).json({message: 'Unutarnja serverska greška'})
+        return res.status(401).json({message: 'Neispravan token'})
     }
 }

@@ -3,7 +3,7 @@
     <h1 class="text-h5">Kolegiji (Root mape)</h1>
     <div class="row items-center justify-end q-mb-lg">
       <q-btn
-        v-if="isAdmin"
+        v-if="isAdmin()"
         color="primary"
         icon="add"
         label="Kreiraj mapu"
@@ -18,7 +18,7 @@
       <folder-grid
         :folders="folders"
         :on-folder-click="openFolder"
-        :is-admin="isAdmin"
+        :is-admin="isAdmin()"
         @edit-folder="editFolder"
         @delete-folder="confirmDelete"
       />
@@ -44,6 +44,7 @@ import ErrorMessage from 'components/ErrorMessage.vue'
 import CreateFolderModal from 'components/CreateFolderModal.vue'
 import ConfirmDeleteDialog from 'components/ConfirmDeleteDialog.vue'
 import EditFolderDialog from 'components/EditFolderDialog.vue'
+import { useUser } from 'src/composables/useUser'
 
 defineOptions({
   name: 'FoldersPage',
@@ -54,7 +55,7 @@ const $q = useQuasar()
 const folders = ref([])
 const isLoading = ref(false)
 const errorMessage = ref('')
-const isAdmin = true
+const { isAdmin, loadUserFromToken } = useUser()
 const showCreateModal = ref(false)
 const folderToEdit = ref(null)
 const folderToDelete = ref(null)
@@ -167,6 +168,7 @@ async function handleDeleteFolder(folder) {
 }
 
 onMounted(() => {
+  loadUserFromToken()
   fetchRootFolders()
 })
 </script>

@@ -3,7 +3,7 @@
     <h1 class="text-h5 q-mb-lg">Sadržaj mape</h1>
     <div class="row items-center justify-end q-gutter-sm">
       <q-btn
-        v-if="isAdmin"
+        v-if="isAdmin()"
         color="primary"
         icon="add"
         label="Kreiraj mapu"
@@ -21,7 +21,7 @@
         <folder-grid
           :folders="subfolders"
           :on-folder-click="openFolder"
-          :is-admin="isAdmin"
+          :is-admin="isAdmin()"
           @edit-folder="editFolder"
           @delete-folder="confirmDelete"
         />
@@ -31,7 +31,7 @@
         <file-grid
           :files="documents"
           :folder-id="folderId"
-          :is-admin="isAdmin"
+          :is-admin="isAdmin()"
           @refresh="fetchDocuments"
         />
       </div>
@@ -69,6 +69,7 @@ import ErrorMessage from 'components/ErrorMessage.vue'
 import CreateFolderModal from 'components/CreateFolderModal.vue'
 import EditFolderDialog from 'components/EditFolderDialog.vue'
 import ConfirmDeleteDialog from 'components/ConfirmDeleteDialog.vue'
+import { useUser } from 'src/composables/useUser'
 
 defineOptions({
   name: 'FolderContentPage',
@@ -77,7 +78,7 @@ defineOptions({
 const route = useRoute()
 const router = useRouter()
 const $q = useQuasar()
-const isAdmin = true
+const { isAdmin, loadUserFromToken } = useUser()
 const folderId = ref(route.params.folderId)
 const showCreateModal = ref(false)
 const subfolders = ref([])
@@ -100,7 +101,6 @@ async function fetchFolderContent() {
   try {
     const response = await api.get(`/folders/${folderId.value}`)
     subfolders.value = response.data
-    documents.value = [] // ako želimo dodati dokumente naknadno
   } catch (error) {
     errorMessage.value =
       error?.response?.data?.message || 'Došlo je do greške greške prilikom učitavanja podmapa.'
@@ -228,6 +228,7 @@ async function loadFolderData() {
 }
 
 onMounted(() => {
+  loadUserFromToken()
   loadFolderData()
   fetchKolegiji()
 })
