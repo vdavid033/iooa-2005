@@ -6,17 +6,26 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-
+      { path: 'login', component: () => import('pages/LoginPage.vue') },
+      { path: 'folders', component: () => import('pages/FoldersPage.vue') },
+      { path: 'folders/:folderId', component: () => import('pages/FolderContentPage.vue') },
       { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
       { path: 'inbox', component: () => import('pages/InboxPage.vue') }, // <-- Dodano za Inbox
       { path: 'poruke', component: () => import('pages/PorukeMain.vue') },
       { path: 'kalendardog', component: () => import('pages/KalendarDog.vue') },
-      { path: 'kalendar-obaveze', component: KalendarObaveza },    
+      { path: 'kalendar-obaveze', component: KalendarObaveza },
       { path: 'forum', component: () => import('pages/ForumPage.vue') },
+<<<<<<< HEAD
       { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue')},
       { path: 'login', component: () => import('pages/LoginPage.vue')}
     ]
 
+=======
+      { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue') },
+      { path: 'groups', component: () => import('pages/GroupMessagesUser.vue') },
+      { path: 'login', component: () => import('pages/LoginPage.vue') }
+    ],
+>>>>>>> development
   },
 
   // Always leave this as last one,
@@ -25,7 +34,7 @@ const routes = [
   {
     path: '/:catchAll(.*)*',
     component: () => import('pages/ErrorNotFound.vue'),
-  }
+  },
 ]
 
 export default routes
