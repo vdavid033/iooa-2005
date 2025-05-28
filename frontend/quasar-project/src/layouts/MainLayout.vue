@@ -18,6 +18,9 @@
           <q-btn flat label="Dogadaji" to="/kalendardog">
             <q-tooltip>Kalendar</q-tooltip>
           </q-btn>
+          <q-btn flat label="Grupne poruke" to="/groups">
+            <q-tooltip>Grupne poruke</q-tooltip>
+          </q-btn>
         </div>
         <q-toolbar-title> Quasar App</q-toolbar-title>
 
@@ -59,12 +62,6 @@ const linksList = [
     caption: 'Dijeljenje datoteka',
     icon: 'folder',
     to: '/folders',
-  },
-  {
-    title: 'Grupne poruke',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'http://localhost:9000/groups/',
   },
   {
     title: 'Forum',
