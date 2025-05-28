@@ -1,3 +1,4 @@
+// API
 const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
@@ -9,6 +10,10 @@ const connection = require("./db.js");
 
 const groupsRoute = require("./routes/groups");
 const foldersRoute = require("./routes/folderRoutes");
+const objaveRoutes = require('./routes/objaveRoutes');
+const komentariRoutes = require('./routes/komentariRoutes');
+const tagoviRoutes = require('./routes/tagoviRoutes');
+const kategorijeRoutes = require('./routes/kategorijeRoutes');
 const messageRoutes = require("./routes/messageRoutes"); // NOVO
 
 const app = express();
@@ -60,6 +65,10 @@ app.post("/api/login", (req, res) => {
 // RUTE
 app.use("/api/groups", groupsRoute);
 app.use("/api/folders", foldersRoute);
+app.use('/api/objave', objaveRoutes);
+app.use('/api/comments', komentariRoutes);
+app.use('/api/tagovi', tagoviRoutes);
+app.use('/api/kategorije', kategorijeRoutes);
 app.use("/api/messages", messageRoutes); // NOVO
 
 // SERVER
