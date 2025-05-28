@@ -60,6 +60,7 @@ app.post('/logout', (req, res) => {
 app.use('/api/folders', require('./routes/folderRoutes'))
 app.use('/api/documents', require('./routes/documentRoutes'))
 app.use('/api/groups', require('./routes/groups'))
+app.use('/api/events', require('./routes/events'))
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
