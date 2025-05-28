@@ -23,7 +23,7 @@ const PORT = 3000;
 app.use(cors({ origin: 'http://localhost:9000' }));
 app.use(express.json());
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use('/api', calendarRoutes);
+
 
 // LOGIN
 app.post("/api/login", async (req, res) => {
@@ -73,10 +73,12 @@ app.post('/logout', (req, res) => {
 app.use('/api/groups', groupsRoute);
 app.use('/api/folders', foldersRoute);
 app.use('/api/documents', documentsRoute);
+app.use('/regaKorisnika', registerRoute)
+app.use('/api', calendarRoutes);
 
 // Start server
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-app.use('/regaKorisnika', registerRoute)
+
