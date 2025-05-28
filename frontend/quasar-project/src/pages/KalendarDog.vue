@@ -1,5 +1,6 @@
 <template>
   <div class="q-pa-md">
+
     <q-card>
   <q-card-section class="row justify-between items-center">
     <q-btn flat icon="chevron_left" @click="prevMonth" />
@@ -60,6 +61,12 @@
           />
 
         </q-card-section>
+        <q-select
+             v-model="form.category"
+             label="Kategorija"
+              filled
+             :options="['zabava', 'edukacija', 'volontiranje']"
+            />
 
         <q-card-actions align="right">
           <q-btn flat label="Odustani" @click="cancelCreateEvent" />
@@ -96,34 +103,19 @@
             <div class="row q-col-gutter-md">
               <div class="col text-center">
                 <div v-for="event in events.zabava" :key="event.headline" class="q-mt-sm">
-                  <q-btn
-                    flat
-                    dense
-                    :label="'🎉 ' + event.headline"
-                    @click="openEventDetails(event, 'Zabava')"
-                  />
+                  <q-btn flat dense :label="'🎉 ' + event.headline" @click="openEventDetails(event, 'Zabava')" />
                 </div>
               </div>
 
               <div class="col text-center">
                 <div v-for="event in events.edukacija" :key="event.headline" class="q-mt-sm">
-                  <q-btn
-                    flat
-                    dense
-                    :label="'📚 ' + event.headline"
-                    @click="openEventDetails(event, 'Edukacija')"
-                  />
+                  <q-btn flat dense :label="'📚 ' + event.headline" @click="openEventDetails(event, 'Edukacija')" />
                 </div>
               </div>
 
               <div class="col text-center">
                 <div v-for="event in events.volontiranje" :key="event.headline" class="q-mt-sm">
-                  <q-btn
-                    flat
-                    dense
-                    :label="'🤝 ' + event.headline"
-                    @click="openEventDetails(event, 'Volontiranje')"
-                  />
+                  <q-btn flat dense :label="'🤝 ' + event.headline" @click="openEventDetails(event, 'Volontiranje')" />
                 </div>
               </div>
             </div>
@@ -136,12 +128,16 @@
       </q-card>
     </q-dialog>
 
-    <!-- Event Details Modal -->
     <q-dialog v-model="showEventDetailModal">
       <q-card style="min-width: 400px">
         <q-card-section>
           <div class="text-h6">Detalji događaja</div>
         </q-card-section>
+        <q-card-actions align="right">
+
+       <q-btn v-if="canEditEvent" flat label="Uredi" @click="editEvent" />
+       <q-btn flat label="Zatvori" v-close-popup />
+      </q-card-actions>
 
         <q-card-section>
           <div><strong>Naslov:</strong> {{ selectedEvent.headline }}</div>
@@ -171,6 +167,7 @@
         </q-card-actions>
       </q-card>
     </q-dialog>
+
   </div>
 </template>
 
@@ -484,6 +481,7 @@ const isEventInPast = computed(() => {
 <style scoped>
 .calendar-grid {
   display: grid;
+  grid-template-columns: repeat(7, 1fr);
   grid-template-columns: repeat(7, 1fr);
   gap: 8px;
 }

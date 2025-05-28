@@ -1,33 +1,18 @@
 <template>
-  <q-item
-    v-if="props.to"
-    clickable
-    :to="props.to"
-    tag="router-link"
-  >
-    <q-item-section v-if="props.icon" avatar>
-      <q-icon :name="props.icon" />
+  <q-item v-if="to" clickable tag="router-link" :to="to">
+    <q-item-section avatar v-if="icon">
+      <q-icon :name="icon" />
     </q-item-section>
 
     <q-item-section>
-      <q-item-label>{{ props.title }}</q-item-label>
-      <q-item-label caption>{{ props.caption }}</q-item-label>
+      <q-item-label>{{ title }}</q-item-label>
+      <q-item-label caption>{{ caption }}</q-item-label>
     </q-item-section>
   </q-item>
 
-  <q-item
-    v-else
-    clickable
-    tag="router-link"
-    :to="link"
-  >
-
-    <q-item-section
-      v-if="icon"
-      avatar
-    >
+  <q-item v-else clickable tag="a" target="_blank" :href="link">
+    <q-item-section avatar v-if="icon">
       <q-icon :name="icon" />
-
     </q-item-section>
 
     <q-item-section>
@@ -38,28 +23,26 @@
 </template>
 
 <script setup>
-defineOptions({
-  name: 'EssentialLink'
-})
-
-const props = defineProps({
+defineProps({
   title: {
     type: String,
-    required: true
+    required: true,
   },
   caption: {
     type: String,
-    default: ''
+    default: '',
   },
   link: {
-
-    type: [String, Object],
-    required: true
-
+    type: String,
+    default: '',
   },
   icon: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
+  to: {
+    type: String,
+    default: '',
+  },
 })
 </script>
