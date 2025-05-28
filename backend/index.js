@@ -14,6 +14,7 @@ const objaveRoutes = require('./routes/objaveRoutes');
 const komentariRoutes = require('./routes/komentariRoutes');
 const tagoviRoutes = require('./routes/tagoviRoutes');
 const kategorijeRoutes = require('./routes/kategorijeRoutes');
+const messageRoutes = require("./routes/messageRoutes"); // NOVO
 
 const app = express();
 const PORT = 3000;
@@ -22,7 +23,7 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// LOGIN ROUTE
+// LOGIN
 app.post("/api/login", (req, res) => {
   const { username, password } = req.body;
 
@@ -30,10 +31,7 @@ app.post("/api/login", (req, res) => {
     "SELECT * FROM korisnik WHERE korisnicko_ime = ?",
     [username],
     (error, results) => {
-      if (error) {
-        return res.status(500).json({ success: false, message: error });
-      }
-
+      if (error) return res.status(500).json({ success: false, message: error });
       if (results.length === 0) {
         return res.status(404).json({ success: false, message: "Korisnik ne postoji" });
       }
@@ -41,9 +39,7 @@ app.post("/api/login", (req, res) => {
       const user = results[0];
 
       bcrypt.compare(String(password), String(user.lozinka_korisnika), (err, isMatch) => {
-        if (err) {
-          return res.status(500).json({ success: false, message: err });
-        }
+        if (err) return res.status(500).json({ success: false, message: err });
 
         if (!isMatch) {
           return res.status(401).json({ success: false, message: "Krivo korisničko ime ili lozinka" });
@@ -57,7 +53,7 @@ app.post("/api/login", (req, res) => {
             uloga: user.admin_status,
           },
           config.secret,
-          { expiresIn: '3h' }
+          { expiresIn: "3h" }
         );
 
         res.status(200).json({ success: true, token });
@@ -66,14 +62,16 @@ app.post("/api/login", (req, res) => {
   );
 });
 
-// Other routes
+// RUTE
 app.use("/api/groups", groupsRoute);
 app.use("/api/folders", foldersRoute);
 app.use('/api/objave', objaveRoutes);
 app.use('/api/comments', komentariRoutes);
 app.use('/api/tagovi', tagoviRoutes);
 app.use('/api/kategorije', kategorijeRoutes);
+app.use("/api/messages", messageRoutes); // NOVO
 
+// SERVER
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
