@@ -12,6 +12,7 @@ const groupsRoute = require('./routes/groups');
 const foldersRoute = require('./routes/folderRoutes');
 const documentsRoute = require('./routes/documentRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
+const registerRoute = require('./routes/register') 
 
 
 
@@ -78,6 +79,4 @@ app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
 
-
-const registerRoute = require('./routes/register') // napravi ovu datoteku ako već ne postoji
 app.use('/regaKorisnika', registerRoute)
