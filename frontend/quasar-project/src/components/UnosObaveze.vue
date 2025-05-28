@@ -3,8 +3,6 @@
     <q-card-section>
       <div class="text-h6">Unos obaveze</div>
       <q-form @submit.prevent="submitForm">
-        console.log('Submit form pokrenut')
-
         <q-input v-model="naziv" label="Naziv obaveze" required />
         <q-input v-model="datum" label="Datum" type="date" required />
         <q-input v-model="vrijeme" label="Vrijeme" type="time" required />

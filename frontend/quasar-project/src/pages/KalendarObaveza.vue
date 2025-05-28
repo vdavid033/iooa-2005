@@ -22,17 +22,6 @@
   </q-card>
 </q-dialog>
 
-    <q-dialog v-model="showUnos">
-      <q-card style="max-width: 30%; width: 100%">
-        <q-card-section>
-          <UnosObaveze />
-        </q-card-section>
-        <q-card-actions>
-          <q-btn @click="showUnos = false" label="Zatvori" color="secondary" class="q-ma-md" />
-        </q-card-actions>
-      </q-card>
-    </q-dialog>
-
     <q-dialog v-model="showDetalji">
       <q-card>
         <q-card-section>
