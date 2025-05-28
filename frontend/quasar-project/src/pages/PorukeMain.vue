@@ -38,7 +38,7 @@
 
         <q-card-section>
           <q-btn label="NOVI CHAT" icon="chat" class="q-mb-sm full-width" color="primary" @click="openNewChatDialog" />
-          <q-btn label="NOVA GRUPA" icon="group_add" class="full-width" color="secondary" />
+          <q-btn label="NOVA GRUPA" icon="group_add" class="full-width" color="secondary" to = "/groups" />
         </q-card-section>
 
         <q-separator />
@@ -321,6 +321,16 @@ const startPolling = () => {
     }
   }, 3000)
 }
+
+//Ovo sluzi kao referentna tocka za grupe gumb "NOVA GRUPA" ne brisati
+const groups = [
+  {
+    title: 'Grupne poruke',
+    caption: 'chat.quasar.dev',
+    icon: 'chat',
+    link: 'http://localhost:9000/groups/'
+  }
+]
 
 const stopPolling = () => {
   if (pollingInterval) {

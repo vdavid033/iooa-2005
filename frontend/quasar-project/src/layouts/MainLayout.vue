@@ -12,9 +12,10 @@
     <q-btn flat label="Dogadaji" to="/kalendardog">
       <q-tooltip>Kalendar</q-tooltip>
     </q-btn>
-          <q-btn flat label="Grupne poruke" to="/groups">
-            <q-tooltip>Grupne poruke</q-tooltip>
-          </q-btn>
+    <q-btn flat label="Grupne poruke" to="/groups">
+    <q-tooltip>Grupne poruke</q-tooltip>
+    </q-btn>
+    
   </div>
 
     <!-- Desna strana: Login / Logout -->
