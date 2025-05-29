@@ -23,7 +23,7 @@
             'highlight-today': isToday(day.date),
             'disabled-day': isPast(day.date),
             'weekend-day': isWeekend(day.date),
-            'has-event' : day.hasEvent
+            'has-event' : day.hasEvent && !isToday(day.date)
           }"
           @click="handleDateClick(day.date)"
         >
@@ -81,7 +81,7 @@
 
     <!-- Dialog za prikaz događaja -->
     <q-dialog v-model="showDateModal">
-      <q-card style="min-width: 900px">
+      <q-card style="min-width: 900px; padding: 20px;">
         <q-card-section>
           <div class="text-h6">Događaji za: {{ selectedDateFormatted }}</div>
         </q-card-section>
