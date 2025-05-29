@@ -40,10 +40,23 @@
         </q-card-section>
 
         <q-card-section>
-          <q-input v-model="form.headline" label="Naslov" filled />
-          <q-input v-model="form.description" label="Opis" type="textarea" filled />
-          <q-input v-model="form.location" label="Lokacija" filled />
-          <q-input v-model="form.time" label="Vrijeme početka (HH:mm)" filled mask="##:##" hint="Primjer unosa: 14:30" />
+          <q-form ref="formRef" @submit.prevent="handleSubmit">
+          <q-input v-model="form.headline" label="Naslov" filled :rules="[val => !!val || 'Naslov je obavezan']" lazy-rules/>
+          <q-input v-model="form.description" label="Opis" type="textarea" filled :rules="[val => !!val || 'Opis je obavezan']" lazy-rules/>
+          <q-input v-model="form.location" label="Lokacija" filled :rules="[val => !!val || 'Lokacija je obavezna']" lazy-rules/>
+          <q-input
+            v-model="form.time"
+            label="Vrijeme početka (HH:mm)"
+            filled
+            mask="##:##"
+            hint="Primjer unosa: 14:30"
+            :rules="[
+              val => !!val || 'Vrijeme je obavezno',
+              validateTime
+            ]"
+            lazy-rules
+          />
+
           <q-select
             v-model="form.category"
             :options="categoryOptions"
@@ -54,13 +67,15 @@
             map-options
             filled
             class="q-mt-md"
+            :rules="[val => !!val || 'Kategorija je obavezna']"
+            lazy-rules
           />
-        </q-card-section>
-
-        <q-card-actions align="right">
+          <q-card-actions align="right">
           <q-btn flat label="Odustani" @click="cancelCreateEvent" />
-          <q-btn color="primary" :label="isEditMode ? 'Spremi izmjene' : 'Spremi'" @click="isEditMode ? updateEvent() : saveEvent()" />
+          <q-btn color="primary" :label="isEditMode ? 'Spremi izmjene' : 'Spremi'" type="submit" />
         </q-card-actions>
+          </q-form>
+        </q-card-section>
       </q-card>
     </q-dialog>
 
@@ -85,7 +100,7 @@
           </div>
         </q-card-section>
 
-        <q-card-actions align="center" v-if="!isSelectedDatePast">
+        <q-card-actions align="center" v-if="!isEventOldDate">
           <q-btn color="primary" label="Kreiraj događaj" @click="openCreateEventModal" />
         </q-card-actions>
       </q-card>
@@ -130,6 +145,7 @@ const showEventModal = ref(false)
 const showEventDetailModal = ref(false)
 const isEditMode = ref(false)
 const loggedInUserId = ref(null)
+const formRef = ref(null)
 
 onMounted(() => {
   const token = localStorage.getItem('token')
@@ -150,6 +166,51 @@ const form = ref({
   category: null,
   time: ''
 })
+
+const normalizeTime = (timeStr) => {
+  if (!timeStr) return ''
+  const [h, m] = timeStr.split(':').map(s => s.padStart(2, '0'))
+  return `${h}:${m}`
+}
+
+const validateTime = (val) => {
+  if (!val || !selectedDate.value) return true
+
+  const [h, m] = val.split(':').map(Number)
+  if (isNaN(h) || isNaN(m)) return 'Unesite valjano vrijeme.'
+
+  const selected = new Date(selectedDate.value)
+  const now = new Date()
+  const isToday = selected.toDateString() === now.toDateString()
+
+  const selectedTime = new Date()
+  selectedTime.setHours(h, m, 0, 0)
+
+  const minimumTime = new Date()
+  minimumTime.setHours(now.getHours() + 1, now.getMinutes(), 0, 0)
+
+  // EDIT LOGIKA: ako uređujemo današnji event
+  if (
+    isEditMode.value &&
+    selectedEvent.value.time &&
+    isToday
+  ) {
+    const [oldH, oldM] = selectedEvent.value.time.split(':').map(Number)
+    const oldTime = new Date()
+    oldTime.setHours(oldH, oldM, 0, 0)
+
+    if (selectedTime > oldTime) {
+      // dozvoli novo vrijeme unaprijed, čak i ako krši minimumTime
+      return true
+    }
+  }
+
+  if (isToday && selectedTime < minimumTime) {
+    return 'Vrijeme mora biti barem sat vremena unaprijed.'
+  }
+
+  return true
+}
 
 const categoryOptions = [
   { label: 'Zabava', value: 2 },
@@ -193,14 +254,25 @@ const fetchEventsForDate = async () => {
   }
 }
 
+const handleSubmit = () => {
+  if (isEditMode.value) {
+    updateEvent()
+  } else {
+    saveEvent()
+  }
+}
+
 const saveEvent = async () => {
+  const isValid = await formRef.value.validate()
+  if (!isValid) return
+
   const eventData = {
     headline: form.value.headline,
     description: form.value.description,
     location: form.value.location,
     categoryId: form.value.category,
     date: selectedDateFormatted.value,
-    time: form.value.time || '12:00:00',
+    time: form.value.time,
     userId: loggedInUserId.value || 1
   }
 
@@ -214,6 +286,9 @@ const saveEvent = async () => {
 }
 
 const updateEvent = async () => {
+  const isValid = await formRef.value.validate()
+  if (!isValid) return
+
   const eventData = {
     headline: form.value.headline,
     description: form.value.description,
@@ -317,6 +392,16 @@ const isEventInPast = computed(() => {
   const eventDateTime = new Date(selectedDate.value)
   eventDateTime.setHours(h, m, 0, 0)
   return new Date() > eventDateTime
+})
+const isEventOldDate = computed(() => {
+  if (!selectedDate.value) return false
+  const today = new Date()
+  today.setHours(0, 0, 0, 0) // postavi vrijeme na početak dana
+
+  const eventDate = new Date(selectedDate.value)
+  eventDate.setHours(0, 0, 0, 0) // isto za datum događaja
+
+  return eventDate < today
 })
 
 const handleDateClick = (dateObj) => {
