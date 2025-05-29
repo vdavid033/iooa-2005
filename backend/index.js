@@ -15,6 +15,7 @@ const komentariRoutes = require('./routes/komentariRoutes');
 const tagoviRoutes = require('./routes/tagoviRoutes');
 const kategorijeRoutes = require('./routes/kategorijeRoutes');
 const messageRoutes = require("./routes/messageRoutes"); // NOVO
+const eventsRoutes = require("./routes/events");
 
 const app = express();
 const PORT = 3000;
@@ -70,6 +71,7 @@ app.use('/api/comments', komentariRoutes);
 app.use('/api/tagovi', tagoviRoutes);
 app.use('/api/kategorije', kategorijeRoutes);
 app.use("/api/messages", messageRoutes); // NOVO
+app.use("/api/events", eventsRoutes);
 
 // SERVER
 app.listen(PORT, () => {

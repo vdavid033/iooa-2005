@@ -4,6 +4,7 @@
       <q-toolbar>
   <div class="q-toolbar-title" style="display: flex; justify-content: center;">
     <q-btn flat label="Početna" to="/" />
+    <q-btn flat label="Datoteke" to="/folders" />
     <q-btn flat label="Poruke" to="/poruke" />
     <q-btn flat label="Forum" to="/forum" />
     <q-btn flat label="Obaveze" to="/kalendar-obaveze">
