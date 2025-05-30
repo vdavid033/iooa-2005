@@ -76,16 +76,30 @@ async function dohvatiDetaljeObaveze(obaveza) {
   }
 }
 
-function prikaziDetaljeObaveze({ datum, obaveza }) {
-  console.log('Detalji obaveze:', datum, obaveza)
+async function prikaziDetaljeObaveze({ datum, obaveza }) {
+  console.log('Kliknuta obaveza:', obaveza)
+
   selektiranDatum.value = datum
+
+  // Ako postoji ID, dohvatimo samo tu jednu obavezu
   if (obaveza && obaveza.id_obaveze) {
-    dohvatiDetaljeObaveze(obaveza).then((detalji) => {
-      selektiraneObaveze.value = detalji
-      showDetalji.value = true
-    })
+    selektiraneObaveze.value = [obaveza]  // direktno postavi ako već imaš sve podatke
+    showDetalji.value = true
   } else {
-    console.error('Obaveza nije ispravno definirana ili nema ID')
+    // Fallback – dohvat svih obaveza za dan
+    try {
+      const token = localStorage.getItem('token')
+      const response = await axios.get(`http://localhost:3000/api/obavezaDetalji`, {
+        params: { datum_obaveze: datum },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      selektiraneObaveze.value = response.data
+      showDetalji.value = true
+    } catch (err) {
+      console.error('Greška pri dohvaćanju obaveza za dan:', err)
+    }
   }
 }
 

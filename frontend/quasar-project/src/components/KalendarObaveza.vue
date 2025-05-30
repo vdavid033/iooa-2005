@@ -1,35 +1,37 @@
 <template>
-  <div class="row items-center justify-between q-mb-sm">
-    <q-btn flat icon="chevron_left" @click="prevMonth" />
-    <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
-    <q-btn flat icon="chevron_right" @click="nextMonth" />
-  </div>
+  <div>
+    <div class="row items-center justify-between q-mb-sm">
+      <q-btn flat icon="chevron_left" @click="prevMonth" />
+      <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
+      <q-btn flat icon="chevron_right" @click="nextMonth" />
+    </div>
 
-  <div class="calendar-grid">
-    <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
-    <div
-      v-for="day in daysInMonth"
-      :key="day.date"
-      class="calendar-cell"
-      :class="[getDensityClass(day.date), isToday(day.date) ? 'today' : '']"
-      @click="klikNaDan(day.date)"
-    >
-      <div class="day-number">{{ day.day }}</div>
-      <div class="obaveze">
-        <div
-          v-for="(o, index) in getObavezeForDate(day.date)"
-          :key="index"
-          class="obaveza"
-          :class="getColorClass(o.fk_tip_obaveze)"
-          @click.stop="klikNaObavezu(day.date, o)"
-        >
-          {{ o.opis_obaveze }}
-          <button
-            class="delete-button"
-            @click.stop="obrisiObavezu(o.id_obaveze, day.date)"
+    <div class="calendar-grid">
+      <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
+      <div
+        v-for="day in daysInMonth"
+        :key="day.date"
+        class="calendar-cell"
+        :class="[getDensityClass(day.date), isToday(day.date) ? 'today' : '']"
+        @click="klikNaDan(day.date)"
+      >
+        <div class="day-number">{{ day.day }}</div>
+        <div class="obaveze">
+          <div
+            v-for="(o, index) in getObavezeForDate(day.date)"
+            :key="index"
+            class="obaveza"
+            :class="getColorClass(o.fk_tip_obaveze)"
+            @click.stop="klikNaObavezu(day.date, o)"
           >
-            ✖
-          </button>
+            {{ o.opis_obaveze }}
+            <button
+              class="delete-button"
+              @click.stop="obrisiObavezu(o.id_obaveze, day.date)"
+            >
+              ✖
+            </button>
+          </div>
         </div>
       </div>
     </div>
