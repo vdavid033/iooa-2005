@@ -16,6 +16,7 @@
     <q-btn flat label="Grupne poruke" to="/groups">
     <q-tooltip>Grupne poruke</q-tooltip>
     </q-btn>
+    <q-btn flat label="Registriraj se" to="/register" />
     
   </div>
 
@@ -36,32 +37,6 @@
         @click="logout"
         />
 </q-toolbar>
-
-        <q-toolbar-title>
-          PORUKE
-        </q-toolbar-title>
-<div class="q-toolbar-title">
-  <q-btn flat label="Početna" to="/" />
-  <q-btn flat label="Forum" to="/forum" />
-  <q-btn flat label="Obaveze" to="/kalendar-obaveze">
-    <template v-slot:tooltip>Kalendar</template>
-  </q-btn>
-  <q-btn flat label="Događaji" to="/kalendardog">
-    <template v-slot:tooltip>Kalendar</template>
-  </q-btn>
-
-  <template v-if="!isLoggedIn">
-    <q-btn flat label="Login" to="/login" />
-    <q-btn flat label="Register" to="/register" />
-  </template>
-  <q-btn
-    v-else
-    flat
-    label="Logout"
-    @click="logout"
-  />
-</div>
-  <q-space />
 
         <div v-if="isLoggedIn" class="q-mr-sm text-white">
           {{ korisnickoIme }}

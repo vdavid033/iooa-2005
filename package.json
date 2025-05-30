@@ -1,28 +1,28 @@
 {
+  "name": "quasar-project",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "dev": "quasar dev",
+    "build": "quasar build",
+    "lint": "eslint ."
+  },
   "dependencies": {
-<<<<<<< HEAD
-    "body-parser": "^2.2.0",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "jwt-decode": "^4.0.0",
-    "mysql2": "^3.14.1",
     "axios": "^1.9.0",
     "bcrypt": "^6.0.0",
-    "cors": "^2.8.5",
-    "express": "^5.1.0",
-    "jsonwebtoken": "^9.0.2",
-=======
-    "bcrypt": "^6.0.0",
+    "body-parser": "^2.2.0",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^4.0.0",
     "multer": "^2.0.0",
->>>>>>> kal_obv
     "mysql": "^2.18.1",
     "mysql2": "^3.14.1",
     "quasar": "^2.18.1",
     "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@quasar/app-vite": "^1.5.7"
   }
 }
