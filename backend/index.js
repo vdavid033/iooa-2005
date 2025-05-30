@@ -4,6 +4,7 @@ const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 
+
 const config = require('./auth_config');
 const authJwt = require('./authJwt');
 const connection = require('./data/db');
@@ -13,6 +14,15 @@ const foldersRoute = require('./routes/folderRoutes');
 const documentsRoute = require('./routes/documentRoutes');
 const calendarRoutes = require('./routes/calendarRoutes');
 const registerRoute = require('./routes/register')
+const tagoviRoutes = require('./routes/tagoviRoutes');
+const messageRoutes = require("./routes/messageRoutes");
+const kategorijeRoutes = require('./routes/kategorijeRoutes');
+const objaveRoutes = require('./routes/objaveRoutes')
+const komentariRoutes = require('./routes/komentariRoutes');
+const eventsRoutes = require('./routes/events');
+
+
+
 
 
 
@@ -75,6 +85,15 @@ app.use('/api/folders', foldersRoute);
 app.use('/api/documents', documentsRoute);
 app.use('/regaKorisnika', registerRoute)
 app.use('/api', calendarRoutes);
+
+app.use('/api/tagovi', tagoviRoutes);
+app.use('/api/kategorije', kategorijeRoutes);
+app.use("/api/messages", messageRoutes);
+app.use("/api/events", eventsRoutes);
+app.use('/api/objave', objaveRoutes)
+app.use('/api/comments', komentariRoutes);
+
+
 
 // Start server
 app.listen(PORT, () => {
