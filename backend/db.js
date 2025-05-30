@@ -1,4 +1,4 @@
-/*const mysql = require("mysql");
+const mysql = require("mysql");
 
 const connection = mysql.createConnection({
   host: "student.veleri.hr",
@@ -8,4 +8,4 @@ const connection = mysql.createConnection({
   database: "iooa_dm_veleri",
 });
 
-module.exports = connection;*/
+module.exports = connection;

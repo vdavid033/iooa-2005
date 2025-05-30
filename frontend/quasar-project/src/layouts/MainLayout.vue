@@ -37,6 +37,40 @@
         />
 </q-toolbar>
 
+<<<<<<< HEAD
+=======
+        <q-toolbar-title>
+          PORUKE
+        </q-toolbar-title>
+
+<div class="q-toolbar-title">
+  <q-btn flat label="Početna" to="/" />
+  <q-btn flat label="Forum" to="/forum" />
+  <q-btn flat label="Obaveze" to="/kalendar-obaveze">
+    <template v-slot:tooltip>Kalendar</template>
+  </q-btn>
+  <q-btn flat label="Događaji" to="/kalendardog">
+    <template v-slot:tooltip>Kalendar</template>
+  </q-btn>
+
+  <template v-if="!isLoggedIn">
+    <q-btn flat label="Login" to="/login" />
+    <q-btn flat label="Register" to="/register" />
+  </template>
+  <q-btn
+    v-else
+    flat
+    label="Logout"
+    @click="logout"
+  />
+</div>
+  <q-space />
+
+        <div v-if="isLoggedIn" class="q-mr-sm text-white">
+          {{ korisnickoIme }}
+        </div>
+      </q-toolbar>
+>>>>>>> kal_obv
     </q-header>
 
     <!--  Lijevi drawer sa linkovima i kontaktima 
@@ -57,8 +91,17 @@
   <q-item-section>Notifikacija Dummy</q-item-section>
 </q-item>
 
+<<<<<<< HEAD
         </q-list>
       </q-scroll-area>
+=======
+        <EssentialLink
+          v-for="link in linksList"
+          :key="link.title"
+          v-bind="link"
+        />
+      </q-list>
+>>>>>>> kal_obv
     </q-drawer>
   -->
     <!-- Sadržaj stranice -->
@@ -70,7 +113,13 @@
 
 <script setup>
 import { ref } from 'vue'
+<<<<<<< HEAD
 
+=======
+import EssentialLink from 'components/EssentialLink.vue'
+import { computed } from 'vue'
+import { useRouter } from 'vue-router'
+>>>>>>> kal_obv
 defineOptions({
   name: 'MainLayout'
 })
@@ -113,4 +162,21 @@ const leftDrawerOpen = ref(false)
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+const router = useRouter()
+
+const isLoggedIn = computed(() => {
+  return !!localStorage.getItem('korisnik')
+})
+
+const korisnickoIme = computed(() => {
+  const korisnik = JSON.parse(localStorage.getItem('korisnik'))
+  return korisnik?.korisnickoime || ''
+})
+
+function logout() {
+  localStorage.removeItem('korisnik')
+  router.push('/')
+}
+
 </script>

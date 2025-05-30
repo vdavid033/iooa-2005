@@ -17,7 +17,10 @@
     "@quasar/cli": "^2.5.0",
     "@quasar/extras": "^1.16.4",
     "axios": "^1.2.1",
+<<<<<<< HEAD
     "cors": "^2.8.5",
+=======
+>>>>>>> kal_obv
     "jwt-decode": "^4.0.0",
     "node": "^23.11.0",
     "quasar": "^2.16.0",
