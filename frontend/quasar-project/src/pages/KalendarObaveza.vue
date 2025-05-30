@@ -54,7 +54,7 @@ const toggleUnos = () => {
 const selektiranDatum = ref('')
 const selektiraneObaveze = ref(null)
 
-async function dohvatiDetaljeObaveze(obaveza) {
+async function dohvatiDetaljeObaveze(obaveza,datum) {
   try {
     const token = localStorage.getItem('token')
     const url = isAdmin() 
