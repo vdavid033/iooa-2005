@@ -37,12 +37,9 @@
         />
 </q-toolbar>
 
-<<<<<<< HEAD
-=======
         <q-toolbar-title>
           PORUKE
         </q-toolbar-title>
-
 <div class="q-toolbar-title">
   <q-btn flat label="Početna" to="/" />
   <q-btn flat label="Forum" to="/forum" />
@@ -69,8 +66,7 @@
         <div v-if="isLoggedIn" class="q-mr-sm text-white">
           {{ korisnickoIme }}
         </div>
-      </q-toolbar>
->>>>>>> kal_obv
+     
     </q-header>
 
     <!--  Lijevi drawer sa linkovima i kontaktima 
@@ -91,17 +87,14 @@
   <q-item-section>Notifikacija Dummy</q-item-section>
 </q-item>
 
-<<<<<<< HEAD
         </q-list>
       </q-scroll-area>
-=======
         <EssentialLink
           v-for="link in linksList"
           :key="link.title"
           v-bind="link"
         />
       </q-list>
->>>>>>> kal_obv
     </q-drawer>
   -->
     <!-- Sadržaj stranice -->
@@ -113,13 +106,9 @@
 
 <script setup>
 import { ref } from 'vue'
-<<<<<<< HEAD
-
-=======
 import EssentialLink from 'components/EssentialLink.vue'
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
->>>>>>> kal_obv
 defineOptions({
   name: 'MainLayout'
 })

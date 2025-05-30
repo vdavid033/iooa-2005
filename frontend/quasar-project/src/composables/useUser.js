@@ -31,8 +31,4 @@ export function useUser() {
     loadUserFromToken,
     logout,
   }
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> kal_obv
