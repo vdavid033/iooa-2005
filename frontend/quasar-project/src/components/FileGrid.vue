@@ -2,7 +2,7 @@
   <div>
     <!-- Upload button for admin -->
     <q-btn
-      v-if="isAdmin"
+      v-if="isAdmin && showUploadButton"
       color="primary"
       icon="cloud_upload"
       label="Upload dokument"
@@ -98,11 +98,19 @@ const props = defineProps({
   },
   folderId: {
     type: [String, Number],
-    required: true
+    default: null
   },
   isAdmin: {
     type: Boolean,
     default: false
+  },
+  showUploadButton: {
+    type: Boolean,
+    default: true
+  },
+  username: {
+    type: String,
+    default: ''
   }
 })
 
@@ -126,7 +134,10 @@ const columns = [
   {
     name: 'datum_kreiranja',
     label: 'Datum kreiranja',
-    field: row => new Date(row.datum_kreiranja).toLocaleString(),
+    field: row => {
+      if (!row.datum_kreiranja) return 'Nepoznat datum';
+      return new Date(row.datum_kreiranja).toLocaleString('hr-HR');
+    },
     sortable: true
   },
   {
@@ -138,17 +149,25 @@ const columns = [
 ]
 
 async function uploadFile() {
+  //userId = userId ?? 1;
+
   if (!fileToUpload.value) return
   
   const formData = new FormData()
   formData.append('file', fileToUpload.value)
-  formData.append('folderId', props.folderId)
+  formData.append('userId', 1)
+  
+  if (props.folderId) {
+    formData.append('folderId', props.folderId)
+  }
 
   try {
     await api.post('/documents/upload', formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data'
-      }
+       headers: {
+    'Content-Type': 'multipart/form-data',
+    'korisnicko_ime': props.username || 'marko456',
+    'userId': 1
+  }
     })
     
     $q.notify({
@@ -162,7 +181,7 @@ async function uploadFile() {
   } catch (error) {
     $q.notify({
       type: 'negative',
-      message: 'Greška pri uploadu dokumenta'
+      message: error.response?.data?.message || 'Greška pri uploadu dokumenta'
     })
     console.error(error)
   }
