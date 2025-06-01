@@ -80,67 +80,63 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
 import EssentialLink from 'components/EssentialLink.vue'
-import { computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { jwtDecode } from "jwt-decode"
+import { initNotificationService, stopNotificationService } from '../services/notificationService'
+
 defineOptions({
   name: 'MainLayout'
 })
 
+const $q = useQuasar()
+const router = useRouter()
+
+// Vaš postojeći kod
 const linksList = [
-  {
-    title: 'Datoteke',
-    caption: 'Dijeljenje datoteka',
-    icon: 'folder',
-    to: '/folders',
-  },
-  {
-    title: 'Grupne poruke',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'http://localhost:9000/groups/',
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev',
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Poruke',
-    caption: '',
-    icon: 'poruke',
-    link: '/Poruke',
-  }
+  // ... postojeće linkove
 ]
 
 const leftDrawerOpen = ref(false)
-
-function toggleLeftDrawer() {
-  leftDrawerOpen.value = !leftDrawerOpen.value
-}
-
-const router = useRouter()
-
-const isLoggedIn = computed(() => {
-  return !!localStorage.getItem('korisnik')
-})
-
+const isLoggedIn = computed(() => !!localStorage.getItem('korisnik'))
 const korisnickoIme = computed(() => {
   const korisnik = JSON.parse(localStorage.getItem('korisnik'))
   return korisnik?.korisnickoime || ''
 })
 
+function toggleLeftDrawer() {
+  leftDrawerOpen.value = !leftDrawerOpen.value
+}
+
 function logout() {
+  // Zaustavi notifikacije prije odjave
+  stopNotificationService()
   localStorage.removeItem('korisnik')
+  localStorage.removeItem('token')
+  localStorage.removeItem("token")
+  sessionStorage.removeItem("alert_shown")
   router.push('/')
 }
 
+// Inicijalizacija notifikacija
+onMounted(() => {
+  const token = localStorage.getItem("token")
+  if (token) {
+    try {
+      const decoded = jwtDecode(token)
+      if (decoded && decoded.id) {
+        initNotificationService($q, decoded.id)
+      }
+    } catch (error) {
+      console.error("Greška pri dekodiranju tokena:", error)
+    }
+  }
+})
+
+// Čišćenje prije unmounta
+onUnmounted(() => {
+  stopNotificationService()
+})
 </script>
