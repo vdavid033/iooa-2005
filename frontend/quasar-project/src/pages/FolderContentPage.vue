@@ -196,8 +196,7 @@ async function handleDeleteFolder(folder) {
       position: 'top',
       timeout: 3000,
     })
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
     $q.notify({
       type: 'negative',
       message: error.response?.data?.message || 'Dogodila se greška prilikom brisanja podmape.',
@@ -223,6 +222,7 @@ async function fetchDocuments() {
 
 async function handleUpload(file) {
   const formData = new FormData()
+  
   formData.append('file', file)
   formData.append('folderId', folderId.value)
 
@@ -233,19 +233,20 @@ async function handleUpload(file) {
         'Content-Type': 'multipart/form-data',
       },
     })
-
     $q.notify({
       type: 'positive',
       message: 'Dokument uspješno uploadan',
+      position: 'top',
+      timeout: 3000,
     })
-
     fetchDocuments()
   } catch (error) {
     $q.notify({
       type: 'negative',
-      message: 'Greška pri uploadu dokumenta',
+      message: error.response?.data?.message || 'Greška pri uploadu dokumenta',
+      position: 'top',
+      timeout: 3000,
     })
-    console.error('Upload error:', error)
   }
 }
 

@@ -3,8 +3,6 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-
 const config = require('./auth_config');
 const authJwt = require('./authJwt');
 const connection = require('./data/db');
@@ -12,13 +10,10 @@ const connection = require('./data/db');
 const app = express();
 const PORT = 3000;
 
-// Middleware
 app.use(cors({origin: 'http://localhost:9000'}));
 app.use(express.json());
 app.use(bodyParser.urlencoded({extended: true}));
 
-
-// LOGIN
 app.post("/api/login", async (req, res) => {
     try {
         const {username, password} = req.body;
@@ -57,12 +52,10 @@ app.post("/api/login", async (req, res) => {
     }
 });
 
-// LOGOUT (dummy)
 app.post('/logout', (req, res) => {
     res.status(200).json({message: 'Odjava uspješna'});
 });
 
-// Rute
 app.use('/api/groups', require('./routes/groups'))
 app.use('/api/folders', require('./routes/folderRoutes'))
 app.use('/api/documents', require('./routes/documentRoutes'))
@@ -77,7 +70,6 @@ app.use('/api/objave', require('./routes/objaveRoutes'))
 app.use('/api/comments', require('./routes/komentariRoutes'))
 
 
-// Start server
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

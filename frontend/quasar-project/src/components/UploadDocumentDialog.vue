@@ -4,7 +4,6 @@
       <q-card-section>
         <div class="text-h6">Upload dokumenta</div>
       </q-card-section>
-
       <q-card-section>
         <q-file
           v-model="fileToUpload"
@@ -13,7 +12,6 @@
           accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx"
         />
       </q-card-section>
-
       <q-card-actions align="right">
         <q-btn flat label="Odustani" color="primary" @click="close" />
         <q-btn flat label="Upload" color="primary" :disable="!fileToUpload" @click="submitUpload" />
@@ -37,7 +35,6 @@ const props = defineProps({
 })
 
 const emit = defineEmits(['update:modelValue', 'upload'])
-
 const dialogOpen = ref(false)
 const fileToUpload = ref(null)
 
