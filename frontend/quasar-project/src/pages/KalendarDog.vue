@@ -56,6 +56,15 @@
             ]"
             lazy-rules
           />
+          <q-input filled v-model="form.date" label="Datum" mask="####-##-##" readonly>
+            <template #append>
+              <q-icon name="event" class="cursor-pointer">
+                <q-popup-proxy cover transition-show="scale" transition-hide="scale">
+                  <q-date v-model="form.date" mask="YYYY-MM-DD" />
+                </q-popup-proxy>
+              </q-icon>
+            </template>
+          </q-input>
 
           <q-select
             v-model="form.category"
@@ -164,7 +173,8 @@ const form = ref({
   description: '',
   location: '',
   category: null,
-  time: ''
+  time: '',
+   date: ''
 })
 
 const normalizeTime = (timeStr) => {
@@ -271,7 +281,7 @@ const saveEvent = async () => {
     description: form.value.description,
     location: form.value.location,
     categoryId: form.value.category,
-    date: selectedDateFormatted.value,
+    date: form.value.date || selectedDateFormatted.value,
     time: form.value.time,
     userId: loggedInUserId.value || 1
   }
@@ -289,12 +299,20 @@ const updateEvent = async () => {
   const isValid = await formRef.value.validate()
   if (!isValid) return
 
+  const selectedDateTime = new Date(`${form.value.date}T${form.value.time || '00:00'}`)
+  const now = new Date()
+
+  if (selectedDateTime < now) {
+    alert('Ne možete postaviti događaj u prošlost.')
+    return
+  }
+
   const eventData = {
     headline: form.value.headline,
     description: form.value.description,
     location: form.value.location,
     categoryId: form.value.category,
-    date: selectedDateFormatted.value,
+    date: form.value.date || selectedDateFormatted.value,
     time: form.value.time || '12:00:00'
   }
 
@@ -337,14 +355,21 @@ const editEvent = () => {
     description: selectedEvent.value.description,
     location: selectedEvent.value.location,
     category: categoryOptions.find(c => c.label === selectedEvent.value.category)?.value || null,
-    time: selectedEvent.value.time
+    time: selectedEvent.value.time,
+    date: date.formatDate(selectedDate.value,'YYYY-MM-DD')
   }
 }
 
 const resetEventModalState = () => {
   showEventModal.value = false
   isEditMode.value = false
-  form.value = { headline: '', description: '', location: '', category: null, time: '' }
+  form.value = {
+    headline: '',
+    description: '',
+    location: '',
+    category: null,
+    time: ''
+  }
 }
 
 const highlightedDates = ref([])
