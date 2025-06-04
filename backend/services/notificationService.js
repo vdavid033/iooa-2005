@@ -45,7 +45,7 @@ async function checkForNewMessages() {
       }
     })
   } catch (error) {
-    console.error('Greška pri provjeri novih poruka:', error)
+    console.error('Greška pri provjeri novih porukaa:', error)
   }
 }
 
@@ -60,6 +60,7 @@ function showNotification(msg) {
         label: 'Otvori chat',
         handler: () => {
           window.location.href = `/messages`
+          //...
         }
       }
     ]
