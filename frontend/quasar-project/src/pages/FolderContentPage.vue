@@ -26,15 +26,17 @@
           @delete-folder="confirmDelete"
         />
       </div>
-      <div v-if="documents.length > 0" class="q-mt-xl">
-        <h3 class="text-h6 q-mb-lg">Dokumenti</h3>
-        <file-grid
-          :files="documents"
-          :folder-id="folderId"
-          :is-admin="isAdmin()"
-          @refresh="fetchDocuments"
-        />
-      </div>
+      <div class="q-mt-xl">
+      <h3 class="text-h6 q-mb-lg">Dokumenti</h3>
+      <file-grid
+        :files="documents"
+        :folder-id="folderId"
+        :is-admin="isAdmin"
+        :show-upload-button="true"
+        :username="'marko456'"
+        @refresh="fetchDocuments"
+      />
+    </div>
       <div
         v-if="subfolders.length === 0 && documents.length === 0"
         class="q-mt-xl text-center text-grey"
