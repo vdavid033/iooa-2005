@@ -26,14 +26,24 @@
           @delete-folder="confirmDelete"
         />
       </div>
-      <div v-if="documents.length > 0" class="q-mt-xl">
-        <h3 class="text-h6 q-mb-lg">Dokumenti</h3>
-        <file-grid
-          :files="documents"
-          :folder-id="folderId"
-          :is-admin="isAdmin()"
-          @refresh="fetchDocuments"
+      <div class="q-mt-xl">
+        <q-btn
+          v-if="isAdmin()"
+          color="primary"
+          icon="cloud_upload"
+          label="Upload dokument"
+          @click="showUploadDialog = true"
+          class="q-mb-md"
         />
+        <div v-if="documents.length > 0">
+          <h3 class="text-h6 q-mb-lg">Dokumenti</h3>
+          <file-grid
+            :files="documents"
+            :folder-id="folderId"
+            :is-admin="isAdmin()"
+            @refresh="fetchDocuments"
+          />
+        </div>
       </div>
       <div
         v-if="subfolders.length === 0 && documents.length === 0"
@@ -55,6 +65,7 @@
     :folder="folderToDelete"
     @confirm="handleDeleteFolder"
   />
+  <UploadDocumentDialog v-model="showUploadDialog" @upload="handleUpload" />
 </template>
 
 <script setup>
@@ -69,6 +80,7 @@ import ErrorMessage from 'components/ErrorMessage.vue'
 import CreateFolderModal from 'components/CreateFolderModal.vue'
 import EditFolderDialog from 'components/EditFolderDialog.vue'
 import ConfirmDeleteDialog from 'components/ConfirmDeleteDialog.vue'
+import UploadDocumentDialog from 'components/UploadDocumentDialog.vue'
 import { useUser } from 'src/composables/useUser'
 
 defineOptions({
@@ -81,6 +93,7 @@ const $q = useQuasar()
 const { isAdmin, loadUserFromToken } = useUser()
 const folderId = ref(route.params.folderId)
 const showCreateModal = ref(false)
+const showUploadDialog = ref(false)
 const subfolders = ref([])
 const documents = ref([])
 const isLoading = ref(false)
@@ -111,16 +124,10 @@ async function fetchFolderContent() {
 
 async function handleCreateFolder({ name, parentId }) {
   try {
-    const response = await api.post(
-      '/folders',
-      {
-        ime_mape: name,
-        id_parent_mapa: Number(parentId),
-      },
-      {
-        headers: { korisnicko_ime: 'marko456' },
-      }
-    )
+    const response = await api.post('/folders', {
+      ime_mape: name,
+      id_parent_mapa: Number(parentId),
+    })
     fetchFolderContent()
     $q.notify({
       type: 'positive',
@@ -153,15 +160,9 @@ function editFolder(folder) {
 
 async function handleRenameFolder(updated) {
   try {
-    await api.put(
-      `/folders/${updated.id_mape}`,
-      {
-        ime_mape: updated.ime_mape,
-      },
-      {
-        headers: { korisnicko_ime: 'marko456' },
-      }
-    )
+    await api.put(`/folders/${updated.id_mape}`, {
+      ime_mape: updated.ime_mape,
+    })
     fetchFolderContent()
     $q.notify({
       type: 'positive',
@@ -187,9 +188,7 @@ function confirmDelete(folder) {
 
 async function handleDeleteFolder(folder) {
   try {
-    await api.delete(`/folders/${folder.id_mape}`, {
-      headers: { korisnicko_ime: 'marko456' },
-    })
+    await api.delete(`/folders/${folder.id_mape}`)
     fetchFolderContent()
     $q.notify({
       type: 'positive',
@@ -197,8 +196,7 @@ async function handleDeleteFolder(folder) {
       position: 'top',
       timeout: 3000,
     })
-  } catch (err) {
-    console.error(err)
+  } catch (error) {
     $q.notify({
       type: 'negative',
       message: error.response?.data?.message || 'Dogodila se greška prilikom brisanja podmape.',
@@ -216,6 +214,36 @@ async function fetchDocuments() {
     $q.notify({
       type: 'negative',
       message: error.response?.data?.message || 'Dogodila se greška prilikom dohvata dokumenata.',
+      position: 'top',
+      timeout: 3000,
+    })
+  }
+}
+
+async function handleUpload(file) {
+  const formData = new FormData()
+  
+  formData.append('file', file)
+  formData.append('folderId', folderId.value)
+
+  try {
+    await api.post('/documents/upload', formData, {
+      headers: {
+        Authorization: `Bearer ${localStorage.getItem('token')}`,
+        'Content-Type': 'multipart/form-data',
+      },
+    })
+    $q.notify({
+      type: 'positive',
+      message: 'Dokument uspješno uploadan',
+      position: 'top',
+      timeout: 3000,
+    })
+    fetchDocuments()
+  } catch (error) {
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'Greška pri uploadu dokumenta',
       position: 'top',
       timeout: 3000,
     })
