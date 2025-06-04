@@ -3,6 +3,7 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const bodyParser = require("body-parser");
 
 const config = require("./auth_config.js");
 const authJwt = require("./authJwt.js");
