@@ -20,6 +20,7 @@ const komentariRoutes = require('./routes/komentariRoutes');
 const tagoviRoutes = require('./routes/tagoviRoutes');
 const kategorijeRoutes = require('./routes/kategorijeRoutes');
 const messageRoutes = require("./routes/messageRoutes"); // NOVO
+const eventsRoutes = require("./routes/events");
 
 const app = express();
 const PORT = 3000;
@@ -27,46 +28,46 @@ const PORT = 3000;
 console.log('connection:', connection);
 console.log('typeof connection.query:', typeof connection.query);
 
-app.use(cors({origin: 'http://localhost:9000'}));
+app.use(cors({ origin: 'http://localhost:9000' }));
 app.use(express.json());
 //app.use(bodyParser.urlencoded({extended: true}));
 
 app.post("/api/login", (req, res) => {
-    const { username, password } = req.body;
-  
-    connection.query(
-      'SELECT * FROM korisnik WHERE korisnicko_ime = ?',
-      [username],
-      async (error, results) => {
-        if (error) {
-          console.error(error);
-          return res.status(500).json({ success: false, message: "Server error" });
-        }
-        if (!results.length) {
-          return res.status(404).json({ success: false, message: "User not found" });
-        }
-        const user = results[0];
-        const isMatch = await bcrypt.compare(String(password), String(user.lozinka_korisnika));
-        if (!isMatch) {
-          return res.status(401).json({ success: false, message: "Wrong username or password" });
-        }
-        const token = jwt.sign(
-          {
-            id: user.id_korisnika,
-            ime: user.ime_korisnika,
-            prezime: user.prezime_korisnika,
-            uloga: user.admin_status === 1 ? 'admin' : 'user',
-          },
-          config.secret,
-          { expiresIn: '3h' }
-        );
-        res.status(200).json({ success: true, token });
+  const { username, password } = req.body;
+
+  connection.query(
+    'SELECT * FROM korisnik WHERE korisnicko_ime = ?',
+    [username],
+    async (error, results) => {
+      if (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: "Server error" });
       }
-    );
-  });
+      if (!results.length) {
+        return res.status(404).json({ success: false, message: "User not found" });
+      }
+      const user = results[0];
+      const isMatch = await bcrypt.compare(String(password), String(user.lozinka_korisnika));
+      if (!isMatch) {
+        return res.status(401).json({ success: false, message: "Wrong username or password" });
+      }
+      const token = jwt.sign(
+        {
+          id: user.id_korisnika,
+          ime: user.ime_korisnika,
+          prezime: user.prezime_korisnika,
+          uloga: user.admin_status === 1 ? 'admin' : 'user',
+        },
+        config.secret,
+        { expiresIn: '3h' }
+      );
+      res.status(200).json({ success: true, token });
+    }
+  );
+});
 
 app.post('/logout', (req, res) => {
-    res.status(200).json({message: 'Odjava uspješna'});
+  res.status(200).json({ message: 'Odjava uspješna' });
 });
 
 // RUTE
@@ -77,10 +78,11 @@ app.use('/api/comments', komentariRoutes);
 app.use('/api/tagovi', tagoviRoutes);
 app.use('/api/kategorije', kategorijeRoutes);
 app.use("/api/messages", messageRoutes); // NOVO
+app.use("/api/events", eventsRoutes);
 
 // SERVER
 app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server is running on port ${PORT}`);
 });
 
 
