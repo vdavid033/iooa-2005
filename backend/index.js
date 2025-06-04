@@ -1,11 +1,20 @@
-const express = require('express');
-const cors = require('cors');
-const bodyParser = require('body-parser');
-const bcrypt = require('bcrypt');
-const jwt = require('jsonwebtoken');
-const config = require('./auth_config');
-const authJwt = require('./authJwt');
-const connection = require('./data/db');
+// API
+const express = require("express");
+const cors = require("cors");
+const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
+
+const config = require("./auth_config.js");
+const authJwt = require("./authJwt.js");
+const connection = require("./db.js");
+
+const groupsRoute = require("./routes/groups");
+const foldersRoute = require("./routes/folderRoutes");
+const objaveRoutes = require('./routes/objaveRoutes');
+const komentariRoutes = require('./routes/komentariRoutes');
+const tagoviRoutes = require('./routes/tagoviRoutes');
+const kategorijeRoutes = require('./routes/kategorijeRoutes');
+const messageRoutes = require("./routes/messageRoutes"); // NOVO
 
 const app = express();
 const PORT = 3000;
@@ -56,20 +65,16 @@ app.post('/logout', (req, res) => {
     res.status(200).json({message: 'Odjava uspješna'});
 });
 
-app.use('/api/groups', require('./routes/groups'))
-app.use('/api/folders', require('./routes/folderRoutes'))
-app.use('/api/documents', require('./routes/documentRoutes'))
-app.use('/regaKorisnika', require('./routes/register'))
-app.use('/api', require('./routes/calendarRoutes'))
+// RUTE
+app.use("/api/groups", groupsRoute);
+app.use("/api/folders", foldersRoute);
+app.use('/api/objave', objaveRoutes);
+app.use('/api/comments', komentariRoutes);
+app.use('/api/tagovi', tagoviRoutes);
+app.use('/api/kategorije', kategorijeRoutes);
+app.use("/api/messages", messageRoutes); // NOVO
 
-app.use('/api/tagovi', require('./routes/tagoviRoutes'))
-app.use('/api/kategorije', require('./routes/kategorijeRoutes'))
-app.use("/api/messages", require("./routes/messageRoutes"))
-app.use("/api/events", require('./routes/events'))
-app.use('/api/objave', require('./routes/objaveRoutes'))
-app.use('/api/comments', require('./routes/komentariRoutes'))
-
-
+// SERVER
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });

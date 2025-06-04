@@ -13,6 +13,7 @@
     "build": "quasar build"
   },
   "dependencies": {
+    "@quasar/cli": "^2.5.0",
     "@quasar/extras": "^1.17.0",
     "axios": "^1.2.1",
     "cors": "^2.8.5",
