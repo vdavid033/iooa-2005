@@ -1,12 +1,14 @@
 # iooa-2005
+
 # Izgradnja Društvene mreže Veleri
 
 ## Autori:
+
 Laura Vukoša
 Nikolina Štimac
 MarkoPrgic
 Marko Goreta
-Andrea SaršonCD 
+Andrea SaršonCD
 Dominik Milić
 Dario Pešić
 Marko Goreta
@@ -18,27 +20,33 @@ Dominik Milić
 Leonardo Matovina
 Davor Čaprić xD
 Borna Družeta$
-Nikola J Pavecic 
+Nikola J Pavecic
 Slavko
 borna rosic
 Luka Pesic oiia
 Alex Bahorić
-Dino Turak 
+Dino Turak
 Marko Linić
 Nadijo Ražov
 Igor Petkovic
 Dino Kavgić
 
-## Kalendar Obaveza opis
-Kalendar Obaveza je dio aplikacija koji služi za upravljane obavezama putem preglednog kalendara. Aplikacija omogućava administratiorima da unesu, te korinsicima pregledaju i organiziraju svoje obaveze prema datumu i tipu, s naglaskom na jednostavnost korištenja i preglednost. Administratori također mogu brisati obaveze prema potrebi, a korisnici klikom na događaj dobivaju detaljan opis tog događaja.
-Glavne značajke
+## Kalendar obaveza - opis
 
-    Mjesečni prikaz kalendara s bojama za različite tipove obaveza (npr. kolokvij, zadatak, seminar)
+Kalendar obaveza je dio aplikacije koji služi za upravljane obavezama putem preglednog kalendara. Aplikacija omogućava administratorima da unesu te korisnicima da pregledaju i organiziraju svoje obaveze prema datumu i tipu, s naglaskom na jednostavnost korištenja i preglednost. Administratori također mogu brisati obaveze prema potrebi, a korisnici klikom na događaj dobivaju detaljan opis tog događaja, uključujući kolegij, profesora, učionicu i dr.
+Glavne značajke uključuju:
 
-    Dodavanje novih obaveza putem korisničkog sučelja
+- Mjesečni prikaz kalendara s bojama za različite tipove obaveza na fakultetu (npr. kolokvij, zadatak, seminar)
 
-    Pregled detalja o obavezama nakon klika na određeni dan u kalendaru
+- Dodavanje novih obaveza putem korisničkog sučelja
 
-    Mogućnost brisanja obaveza (za administratore)
+- Pregled detalja o obavezama klikom na određeni dan u kalendaru
 
-    Autentikacija korisnika s različitim ulogama (korisnik, administrator)
+- Mogućnost brisanja obaveza (za administratore)
+
+- Autentikacija korisnika s različitim ulogama (korisnik, administrator)
+
+## Kalendar obaveza - potrebni instalacijski paketi
+
+npm install express mysql2 cors
+npm install jwt-decode
