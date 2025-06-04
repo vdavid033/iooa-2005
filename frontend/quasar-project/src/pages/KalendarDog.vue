@@ -133,11 +133,24 @@
 
         <q-card-actions align="between">
           <q-btn flat color="primary" label="Uredi" v-if="!isEventInPast && canDeleteEvent" @click="editEvent" />
-          <q-btn flat color="negative" label="Obriši" v-if="!isEventInPast && canDeleteEvent" @click="deleteEvent" />
+          <q-btn flat color="negative" label="Obriši" v-if="!isEventInPast && canDeleteEvent" @click="confirmDeleteEvent" />
           <q-btn flat label="Zatvori" v-close-popup />
         </q-card-actions>
       </q-card>
     </q-dialog>
+    <q-dialog v-model="showDeleteConfirm" persistent>
+  <q-card>
+    <q-card-section class="text-h6">
+      Jeste li sigurni da želite obrisati događaj?
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="Ne" v-close-popup />
+      <q-btn flat label="Da" color="negative" @click="proceedWithDelete" />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
   </div>
 </template>
 
@@ -155,6 +168,7 @@ const showEventDetailModal = ref(false)
 const isEditMode = ref(false)
 const loggedInUserId = ref(null)
 const formRef = ref(null)
+const showDeleteConfirm = ref(false)
 
 onMounted(() => {
   const token = localStorage.getItem('token')
@@ -333,6 +347,13 @@ const deleteEvent = async () => {
   } catch (err) {
     console.error('Greška pri brisanju:', err)
   }
+}
+const confirmDeleteEvent = () => {
+  showDeleteConfirm.value = true
+}
+const proceedWithDelete = async () => {
+  showDeleteConfirm.value = false
+  await deleteEvent()
 }
 
 const openEventDetails = (event, category) => {
