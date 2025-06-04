@@ -3,11 +3,15 @@ const express = require("express");
 const cors = require("cors");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
-const bodyParser = require("body-parser");
 
 const config = require("./auth_config.js");
 const authJwt = require("./authJwt.js");
-const connection = require("./db.js");
+const connection = require('./db.js');
+
+connection.query('SELECT 1', (err, results) => {
+  if (err) throw err;
+  console.log(results);
+});
 
 const groupsRoute = require("./routes/groups");
 const foldersRoute = require("./routes/folderRoutes");
@@ -20,47 +24,46 @@ const messageRoutes = require("./routes/messageRoutes"); // NOVO
 const app = express();
 const PORT = 3000;
 
+console.log('connection:', connection);
+console.log('typeof connection.query:', typeof connection.query);
+
 app.use(cors({origin: 'http://localhost:9000'}));
 app.use(express.json());
-app.use(bodyParser.urlencoded({extended: true}));
+//app.use(bodyParser.urlencoded({extended: true}));
 
-app.post("/api/login", async (req, res) => {
-    try {
-        const {username, password} = req.body;
-
-        const [rows] = await connection.query(
-            'SELECT * FROM korisnik WHERE korisnicko_ime = ?',
-            [username]
-        );
-
-        if (!rows.length) {
-            return res.status(404).json({success: false, message: "Korisnik ne postoji"});
+app.post("/api/login", (req, res) => {
+    const { username, password } = req.body;
+  
+    connection.query(
+      'SELECT * FROM korisnik WHERE korisnicko_ime = ?',
+      [username],
+      async (error, results) => {
+        if (error) {
+          console.error(error);
+          return res.status(500).json({ success: false, message: "Server error" });
         }
-
-        const user = rows[0];
+        if (!results.length) {
+          return res.status(404).json({ success: false, message: "User not found" });
+        }
+        const user = results[0];
         const isMatch = await bcrypt.compare(String(password), String(user.lozinka_korisnika));
-
         if (!isMatch) {
-            return res.status(401).json({success: false, message: "Krivo korisničko ime ili lozinka"});
+          return res.status(401).json({ success: false, message: "Wrong username or password" });
         }
-
         const token = jwt.sign(
-            {
-                id: user.id_korisnika,
-                ime: user.ime_korisnika,
-                prezime: user.prezime_korisnika,
-                uloga: user.admin_status === 1 ? 'admin' : 'user',
-            },
-            config.secret,
-            {expiresIn: '3h'}
+          {
+            id: user.id_korisnika,
+            ime: user.ime_korisnika,
+            prezime: user.prezime_korisnika,
+            uloga: user.admin_status === 1 ? 'admin' : 'user',
+          },
+          config.secret,
+          { expiresIn: '3h' }
         );
-
-        res.status(200).json({success: true, token});
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({success: false, message: "Greška na serveru"});
-    }
-});
+        res.status(200).json({ success: true, token });
+      }
+    );
+  });
 
 app.post('/logout', (req, res) => {
     res.status(200).json({message: 'Odjava uspješna'});
