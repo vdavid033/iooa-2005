@@ -37,8 +37,8 @@ export default route(function (/* { store, ssrContext } */) {
     const authRequired = !publicPages.includes(to.path)
     const token = localStorage.getItem('token')
 
-    if (authRequired && !token) {
-      return next('/login')
+    if (to.path !== '/'&&authRequired && !token) {
+     return next('/login')
     }
 
     next()
