@@ -2,7 +2,7 @@ const db = require('../db')
 
 exports.createObjava = (req, res) => {
   const { naslov, sadrzaj, datum, fk_kategorija, tagovi } = req.body
-  const fk_korisnik = req.userId
+  const fk_korisnik = req.user.id
 
   if (!naslov || !sadrzaj || !datum || !fk_korisnik) {
     return res.status(400).json({ error: 'Nedostaju podaci.' })
