@@ -21,6 +21,7 @@
 
         <!-- Desna strana: Login / Logout -->
         <q-space />
+         <q-card-section  v-if="isAuthenticated()" > Korisnik: {{ user?.ime }}</q-card-section>
         <q-btn
           v-if="!isAuthenticated()"
           flat
