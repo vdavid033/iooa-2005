@@ -11,6 +11,14 @@
         rounded
         unelevated
       />
+      <q-btn
+        color="primary"
+        icon="cloud_upload"
+        label="Upload dokument"
+        @click="showUploadDialog = true"
+        rounded
+        unelevated
+      />
       <q-btn color="grey-5" icon="arrow_back" label="Natrag" @click="back" rounded unelevated />
     </div>
     <LoadingSpinner v-if="isLoading" />
@@ -27,14 +35,6 @@
         />
       </div>
       <div class="q-mt-xl">
-        <q-btn
-          v-if="isAdmin()"
-          color="primary"
-          icon="cloud_upload"
-          label="Upload dokument"
-          @click="showUploadDialog = true"
-          class="q-mb-md"
-        />
         <div v-if="documents.length > 0">
           <h3 class="text-h6 q-mb-lg">Dokumenti</h3>
           <file-grid
@@ -222,7 +222,7 @@ async function fetchDocuments() {
 
 async function handleUpload(file) {
   const formData = new FormData()
-  
+
   formData.append('file', file)
   formData.append('folderId', folderId.value)
 
