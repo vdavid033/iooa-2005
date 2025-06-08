@@ -151,6 +151,18 @@
   </q-card>
 </q-dialog>
 
+<q-dialog v-model="showSuccessDialog">
+  <q-card>
+    <q-card-section class="text-h6">
+      Izmjene su uspješno spremljene.
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="U redu" v-close-popup />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
+
   </div>
 </template>
 
@@ -169,6 +181,7 @@ const isEditMode = ref(false)
 const loggedInUserId = ref(null)
 const formRef = ref(null)
 const showDeleteConfirm = ref(false)
+const showSuccessDialog = ref(false)
 
 onMounted(() => {
   const token = localStorage.getItem('token')
@@ -331,12 +344,19 @@ const updateEvent = async () => {
   }
 
   try {
-    await axios.put(`http://localhost:3000/api/events/${selectedEvent.value.id}`, eventData)
+  const response = await axios.put(`http://localhost:3000/api/events/${selectedEvent.value.id}`, eventData)
+
+  if (response.status === 200 && response.data?.message === 'Događaj ažuriran') {
     resetEventModalState()
     fetchEventsForDate()
-  } catch (err) {
-    console.error('Greška pri ažuriranju:', err)
+    showSuccessDialog.value = true
+  } else {
+    console.warn('Ažuriranje nije uspjelo:', response)
   }
+} catch (err) {
+  console.error('Greška pri ažuriranju:', err)
+}
+
 }
 
 const deleteEvent = async () => {
