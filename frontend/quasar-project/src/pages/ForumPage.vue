@@ -7,47 +7,15 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input
-          v-model="title"
-          label="Naslov objave"
-          filled
-          color="primary"
-          dense
-        />
-        <q-editor
-          v-model="content"
-          label="Sadržaj"
-          class="q-mt-sm"
-          min-height="80px"
-          height="120px"
-        />
+        <q-input v-model="title" label="Naslov objave" filled color="primary" dense />
+        <q-editor v-model="content" label="Sadržaj" class="q-mt-sm" min-height="80px" height="120px" />
 
-        <q-select
-          v-model="category"
-          :options="categories"
-          option-label="label"
-          option-value="value"
-          label="Kategorija"
-          filled
-          color="primary"
-          class="q-mt-sm"
-          dense
-        />
+        <q-select v-model="category" :options="categories" option-label="label" option-value="value" label="Kategorija"
+          filled color="primary" class="q-mt-sm" dense />
 
-        <q-select
-          v-model="tags"
-          :options="availableTags"
-          option-label="label"
-          option-value="value"
-          label="Tagovi"
-          multiple
-          filled
-          color="primary"
-          class="q-mt-sm"
-          dense
-          :hint="'Maksimalno 5 tagova'"
-          :rules="[val => val.length <= 5 || 'Dozvoljeno je do 5 tagova.']"
-        />
+        <q-select v-model="tags" :options="availableTags" option-label="label" option-value="value" label="Tagovi"
+          multiple filled color="primary" class="q-mt-sm" dense :hint="'Maksimalno 5 tagova'"
+          :rules="[val => val.length <= 5 || 'Dozvoljeno je do 5 tagova.']" />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -58,45 +26,22 @@
     <!-- Filter po tagovima -->
     <div class="q-mb-md">
       <div class="row items-center q-gutter-sm">
-        <q-select
-          v-model="selectedTags"
-          :options="availableTags"
-          option-label="label"
-          option-value="label"
-          label="Filtriraj po tagovima"
-          multiple
-          filled
-          emit-value
-          map-options
-          color="primary"
-          dense
-          style="flex: 1"
-        />
-
+        <q-select v-model="selectedTags" :options="availableTags" option-label="label" option-value="label"
+          label="Filtriraj po tagovima" multiple filled emit-value map-options color="primary" dense style="flex: 1" />
+        <q-select v-model="selectedUser" :options="availableUsers" option-label="label" option-value="value"
+          label="Filtriraj po korisniku" filled emit-value map-options clearable color="primary" dense style="flex: 1"
+          class="q-mr-sm" />
         <q-btn label="Filtriraj" color="primary" glossy @click="filterPosts" />
       </div>
     </div>
 
     <!-- Lista objava -->
-    <div
-      v-for="post in paginatedPostsFiltered"
-      :key="post.id"
-      class="q-mb-md"
-    >
+    <div v-for="post in paginatedPostsFiltered" :key="post.id" class="q-mb-md">
       <div class="post-card-wrapper">
-        <q-card
-          clickable
-          @click="goToPost(post.id)"
-          class="q-pa-sm post-card shadow-1 bg-white text-dark"
-        >
+        <q-card clickable @click="goToPost(post.id)" class="q-pa-sm post-card shadow-1 bg-white text-dark">
           <q-card-section class="row items-center justify-between">
             <div>
-              <q-avatar
-                icon="person"
-                size="sm"
-                color="primary"
-                text-color="white"
-              />
+              <q-avatar icon="person" size="sm" color="primary" text-color="white" />
               <span class="q-ml-sm text-subtitle2">{{ post.author }}</span>
             </div>
             <div class="column items-end">
@@ -117,13 +62,7 @@
               </span>
             </div>
 
-            <q-btn
-              flat
-              dense
-              round
-              @click.stop="goToPost(post.id)"
-              class="row items-center q-gutter-xs text-blue"
-            >
+            <q-btn flat dense round @click.stop="goToPost(post.id)" class="row items-center q-gutter-xs text-blue">
               <q-icon name="chat_bubble_outline" />
               <span>{{ post.comments }}</span>
             </q-btn>
@@ -132,14 +71,7 @@
       </div>
     </div>
 
-    <q-pagination
-      v-model="page"
-      :max="maxPage"
-      max-pages="5"
-      boundary-numbers
-      color="primary"
-      class="q-mt-md"
-    />
+    <q-pagination v-model="page" :max="maxPage" max-pages="5" boundary-numbers color="primary" class="q-mt-md" />
   </q-page>
 </template>
 
@@ -192,6 +124,7 @@ import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 const router = useRouter()
+const selectedUser = ref(null)
 
 // Podaci za formu
 const title = ref('')
@@ -217,6 +150,17 @@ const paginatedPostsFiltered = computed(() =>
 const maxPage = computed(() =>
   Math.ceil(filteredPosts.value.length / perPage)
 )
+const availableUsers = computed(() => {
+  // Pretpostavka: svaki post ima post.author (možda je kod tebe post.korisnik ili post.username, prilagodi!)
+  const userSet = new Set()
+  posts.value.forEach(post => {
+    if (post.author) userSet.add(post.author)
+  })
+  return Array.from(userSet).map(username => ({
+    label: username,
+    value: username
+  }))
+})
 
 onMounted(() => {
   fetchTagovi()
@@ -313,22 +257,35 @@ async function savePost() {
   }
 }
 
-async function filterPosts () {
-  // Ako nije odabran nijedan tag, prikaži sve objave
+async function filterPosts() {
+  // Ako nije odabran nijedan tag, prikaži sve objave (s dodatkom filtera po korisniku)
   if (!selectedTags.value || selectedTags.value.length === 0) {
-    filteredPosts.value = posts.value
+    if (!selectedUser.value) {
+      filteredPosts.value = posts.value
+    } else {
+      filteredPosts.value = posts.value.filter(post =>
+        post.author === selectedUser.value
+      )
+    }
+    page.value = 1
     return
   }
 
   try {
-    // selectedTags.value sada sadrži niz stringova: ['skripta', 'projekt']
     const tagQuery = selectedTags.value.join(',')
-    console.log('🔍 Slanje upita za tagove:', tagQuery)
-
     const res = await axios.get(`http://localhost:3000/api/objave/filtrirane?tagovi=${tagQuery}`)
-    filteredPosts.value = res.data
+    let postsByTags = res.data
+
+    // DODATNO filtriranje po korisniku
+    if (selectedUser.value) {
+      postsByTags = postsByTags.filter(post =>
+        post.author === selectedUser.value
+      )
+    }
+
+    filteredPosts.value = postsByTags
   } catch (err) {
-    console.error(' Greška pri filtriranju objava:', err)
+    console.error('Greška pri filtriranju objava:', err)
     $q.notify({
       type: 'negative',
       message: 'Greška pri filtriranju objava.',
@@ -351,7 +308,8 @@ function goToPost(id) {
 
 /* Plava pozadina forme */
 .q-card.bg-blue-1 {
-  background-color: #e3f2fd !important; /* svijetloplava Quasar nijansa */
+  background-color: #e3f2fd !important;
+  /* svijetloplava Quasar nijansa */
 }
 
 /* Stil za wrapper oko svake objave */
@@ -367,7 +325,8 @@ function goToPost(id) {
   right: 0;
   width: 6px;
   height: 100%;
-  background-color: #1976d2; /* Quasar primary blue */
+  background-color: #1976d2;
+  /* Quasar primary blue */
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
@@ -388,5 +347,4 @@ function goToPost(id) {
 .form-card {
   border-radius: 10px;
 }
-
 </style>
