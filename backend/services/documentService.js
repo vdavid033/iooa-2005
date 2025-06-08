@@ -10,6 +10,16 @@ async function getDocumentsByFolder(folderId) {
   return rows;
 }
 
+/*async function getDocumentsByFolder(folderId, userId) {
+  // Example using Sequelize
+  return await Document.findAll({
+    where: {
+      folder_id: folderId,
+      user_id: userId 
+    }
+  });
+}*/
+
 async function getDocumentsByUser(userId) {
   const [rows] = await db.query(
     'SELECT * FROM dokument WHERE fk_korisnika = ?',
@@ -44,15 +54,24 @@ async function uploadDocument({ file, folderId = null, userId }) {
 }
 
 async function deleteDocument(documentId) {
-  const [rows] = await db.query('SELECT * FROM dokument WHERE id_dokumenta = ?', [documentId]);
-  if (rows[0]) {
+  try {
+    // 1. Dobivanje dokumenta iz baze
+    const [rows] = await db.query('SELECT * FROM dokument WHERE id_dokumenta = ?', [documentId]);
+    if (!rows[0]) throw new Error('Dokument nije pronađen');
+
+    // 2. Brisanje fizičke datoteke (ako postoji)
     const filePath = path.join(__dirname, '../../', rows[0].putanja);
     if (fs.existsSync(filePath)) {
       fs.unlinkSync(filePath);
     }
-    await db.query('DELETE FROM dokument WHERE id_dokumenta = ?', [documentId]);
+
+    // 3. Brisanje iz baze
+    const [result] = await db.query('DELETE FROM dokument WHERE id_dokumenta = ?', [documentId]);
+    return result;
+  } catch (err) {
+    console.error('Greška u servisu:', err);
+    throw err;
   }
-  return rows[0] || null;
 }
 
 async function getDocumentById(documentId) {

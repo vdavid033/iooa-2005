@@ -90,6 +90,8 @@
 import { ref } from 'vue'
 import { api } from 'boot/axios'
 import { useQuasar } from 'quasar'
+import { useUser } from 'src/composables/useUser' // Dodali smo import za useUser
+import { jwtDecode } from 'jwt-decode' // Za dekodiranje JWT tokena
 
 const props = defineProps({
   files: {
@@ -107,11 +109,8 @@ const props = defineProps({
   showUploadButton: {
     type: Boolean,
     default: true
-  },
-  username: {
-    type: String,
-    default: ''
   }
+  // Uklonili smo username prop jer ćemo ga dohvatiti iz user objekta
 })
 
 const emit = defineEmits(['refresh'])
@@ -121,6 +120,9 @@ const showUploadDialog = ref(false)
 const fileToUpload = ref(null)
 const showDeleteConfirm = ref(false)
 const documentToDelete = ref(null)
+
+// Koristimo useUser composable za pristup korisničkim podacima
+const { user, isAuthenticated } = useUser()
 
 const columns = [
   {
@@ -149,13 +151,28 @@ const columns = [
 ]
 
 async function uploadFile() {
-  //userId = userId ?? 1;
-
   if (!fileToUpload.value) return
   
+  // Stara implementacija (zakomentirana):
+  // const decoded = jwtDecode(token);
+  // userId = decoded.id;
+  // const username = 'marko456' // Hardcodirano korisničko ime
+  
+  // Nova implementacija:
+  if (!isAuthenticated()) {
+    $q.notify({
+      type: 'negative',
+      message: 'Morate biti prijavljeni za upload dokumenta'
+    })
+    return
+  }
+
+  const userId = user.value.id
+  const username = user.value.ime // Koristimo ime iz user objekta
+
   const formData = new FormData()
   formData.append('file', fileToUpload.value)
-  formData.append('userId', 1)
+  formData.append('userId', userId)
   
   if (props.folderId) {
     formData.append('folderId', props.folderId)
@@ -163,11 +180,11 @@ async function uploadFile() {
 
   try {
     await api.post('/documents/upload', formData, {
-       headers: {
-    'Content-Type': 'multipart/form-data',
-    'korisnicko_ime': props.username || 'marko456',
-    'userId': 1
-  }
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        'korisnicko_ime': username, // Koristimo dinamičko korisničko ime
+        'userId': userId
+      }
     })
     
     $q.notify({
@@ -196,6 +213,7 @@ function confirmDelete(document) {
   showDeleteConfirm.value = true
 }
 
+/*
 async function deleteDocument() {
   try {
     await api.delete(`/documents/${documentToDelete.value.id_dokumenta}`)
@@ -214,5 +232,51 @@ async function deleteDocument() {
     })
     console.error(error)
   }
+}
+  */
+async function deleteDocument() {
+  try {
+    if (!isAuthenticated()) {
+      $q.notify({
+        type: 'negative',
+        message: 'Morate biti prijavljeni za brisanje dokumenta'
+      });
+      return;
+    }
+
+    const userId = user.value.id;
+    const username = user.value.ime;
+
+    const response = await api.delete(
+      `/documents/${documentToDelete.value.id_dokumenta}`,
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          'korisnicko_ime': username,
+          'userId': userId
+        }
+      }
+    );
+
+    $q.notify({
+      type: 'positive',
+      message: 'Dokument uspješno obrisan'
+    });
+    
+    showDeleteConfirm.value = false;
+    emit('refresh');
+  } catch (error) {
+    console.error('Detalji greške:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    
+    $q.notify({
+      type: 'negative',
+      message: error.response?.data?.message || 'Greška pri brisanju dokumenta'
+    });
+  }
+
 }
 </script>
