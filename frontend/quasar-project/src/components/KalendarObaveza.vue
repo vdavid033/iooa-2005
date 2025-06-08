@@ -1,29 +1,37 @@
 <template>
-  <div class="row items-center justify-between q-mb-sm">
-    <q-btn flat icon="chevron_left" @click="prevMonth" />
-    <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
-    <q-btn flat icon="chevron_right" @click="nextMonth" />
-  </div>
+  <div>
+    <div class="row items-center justify-between q-mb-sm">
+      <q-btn flat icon="chevron_left" @click="prevMonth" />
+      <div class="text-h6">{{ formatMonthYear(currentDate) }}</div>
+      <q-btn flat icon="chevron_right" @click="nextMonth" />
+    </div>
 
-  <div class="calendar-grid">
-    <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
-    <div
-      v-for="day in daysInMonth"
-      :key="day.date"
-      class="calendar-cell"
-      :class="getDensityClass(day.date)"
-      @click="klikNaDan(day.date)"
-    >
-      <div class="day-number">{{ day.day }}</div>
-      <div class="obaveze">
-        <div
-          v-for="(o, index) in getObavezeForDate(day.date)"
-          :key="index"
-          class="obaveza"
-          :class="getColorClass(o)"
-          @click.stop="klikNaObavezu(day.date, o)"
-        >
-          {{ o }}
+    <div class="calendar-grid">
+      <div class="day-name" v-for="day in dayNames" :key="day">{{ day }}</div>
+      <div
+        v-for="day in daysInMonth"
+        :key="day.date"
+        class="calendar-cell"
+        :class="[getDensityClass(day.date), isToday(day.date) ? 'today' : '']"
+        @click="klikNaDan(day.date)"
+      >
+        <div class="day-number">{{ day.day }}</div>
+        <div class="obaveze">
+          <div
+            v-for="(o, index) in getObavezeForDate(day.date)"
+            :key="index"
+            class="obaveza"
+            :class="getColorClass(o.fk_tip_obaveze)"
+            @click.stop="klikNaObavezu(day.date, o)"
+          >
+            {{ o.opis_obaveze }}
+            <button
+              class="delete-button"
+              @click.stop="obrisiObavezu(o.id_obaveze, day.date)"
+            >
+              ✖
+            </button>
+          </div>
         </div>
       </div>
     </div>
@@ -31,20 +39,14 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { date } from 'quasar'
-import { Notify } from 'quasar'
+import axios from 'axios'
 
 const emit = defineEmits(['klikNaObavezu'])
 
 const currentDate = ref(date.formatDate(new Date(), 'YYYY-MM-DD'))
-
-const obaveze = ref({
-  '2025-06-12': ['Kolokvij'],
-  '2025-06-14': ['Ispit', 'Predavanje'],
-  '2025-06-25': ['Projekt'],
-  '2025-05-25': ['Projekt'],
-})
+const obaveze = ref({})
 
 const dayNames = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
 
@@ -52,8 +54,13 @@ function getObavezeForDate(datum) {
   return obaveze.value[datum] || []
 }
 
-function klikNaObavezu(datum) {
-  emit('klikNaObavezu', { datum, sveObaveze: obaveze.value[datum] })
+function klikNaObavezu(datum, obaveza) {
+  console.log('Klik na obavezu!', datum, obaveza)
+  if (obaveza) {
+    emit('klikNaObavezu', { datum, obaveza })
+  } else {
+    console.error('Obaveza nije definirana!')
+  }
 }
 
 const daysInMonth = computed(() => {
@@ -92,26 +99,90 @@ function klikNaDan(datum) {
   emit('klikNaDan', datum)
 }
 
+/*
 function getColorClass(obaveza) {
-  if (obaveza === 'Kolokvij') {
+  if (obaveza === 'kolokvij') {
     return 'kolokvij-color'
-  } else if (obaveza === 'Ispit') {
+  } else if (obaveza === 'praktični zadatak') {
     return 'ispit-color'
-  } else if (obaveza === 'Predavanje') {
+  } else if (obaveza === 'predaja seminara') {
     return 'predavanje-color'
   } else {
     return 'ostale-obaveze-color'
   }
 }
+*/
+
+function getColorClass(tip) {
+  if (tip === 1) return 'kolokvij'
+  if (tip === 2) return 'prakticni-zadatak'
+  if (tip === 3) return 'predaja-seminara'
+  return 'drugo'
+}
 
 function getDensityClass(datum) {
   const obavezeForDay = getObavezeForDate(datum).length
   if (obavezeForDay === 0) {
-    return 'low-density' // Svijetlo plava
+    return 'low-density'
   } else if (obavezeForDay === 1) {
-    return 'medium-density' // Narančasta
+    return 'medium-density'
   } else {
-    return 'high-density' // Crvena
+    return 'high-density'
+  }
+}
+
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.get('http://localhost:3000/api/sve-obaveze', {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    const data = response.data
+
+    const grupirane = {}
+    data.forEach((ob) => {
+      const datum = date.formatDate(new Date(ob.datum_obaveze), 'YYYY-MM-DD')
+
+      if (!grupirane[datum]) {
+        grupirane[datum] = []
+      }
+      grupirane[datum].push(ob)
+    })
+
+    obaveze.value = grupirane
+  } catch (err) {
+    console.error('Greška pri dohvaćanju obaveza:', err)
+  }
+})
+function isToday(datum) {
+  const today = date.formatDate(new Date(), 'YYYY-MM-DD')
+  return datum === today
+}
+
+async function obrisiObavezu(idObaveze, datum) {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.delete(`http://localhost:3000/api/obaveza-brisanje/${idObaveze}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+
+    if (response.status === 200) {
+      alert("Obaveza uspješno obrisana.");
+      obaveze.value[datum] = obaveze.value[datum].filter((o) => o.id_obaveze !== idObaveze);
+      if (obaveze.value[datum].length === 0) {
+        delete obaveze.value[datum];
+      }
+    } else {
+      alert(response.data.message);
+    }
+  } catch (error) {
+    console.error("Greška pri brisanju obaveze:", error);
+    alert("Došlo je do greške pri brisanju obaveze. Pokušajte ponovo.");
   }
 }
 </script>
@@ -161,51 +232,30 @@ function getDensityClass(datum) {
   z-index: 10;
 }
 
-.kolokvij-color {
+.kolokvij {
   background-color: #ffcc80;
 }
-.ispit-color {
+.prakticni-zadatak {
   background-color: #ff7043;
 }
-.predavanje-color {
+.predaja-seminara {
   background-color: #81c784;
 }
-.ostale-obaveze-color {
+.drugo {
   background-color: #e3f2fd;
-  .low-density {
-    background-color: #e1f5fe !important; /* Svijetlo plava za nizak broj obaveza */
-  }
-  .medium-density {
-    background-color: #ffe0b2 !important; /* Narančasta za srednji broj obaveza */
-  }
-  .high-density {
-    background-color: #ffccbc !important; /* Crvena za visok broj obaveza */
-  }
-
-  .obaveza-count {
-    font-size: 10px;
-    font-weight: bold;
-    color: #333;
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: #fff;
-    border-radius: 50%;
-    padding: 2px 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
+}
+.today {
+  border: 2px solid #2196f3;
 }
 
 .low-density {
-  background-color: #4fb7e7; /* Svijetlo plava za nizak broj obaveza */
+  background-color: #e1f5fe !important;
 }
 .medium-density {
-  background-color: #ff9b04; /* Narančasta za srednji broj obaveza */
+  background-color: #ffe0b2 !important;
 }
 .high-density {
-  background-color: #ec0d0d; /* Crvena za visok broj obaveza */
+  background-color: #ffccbc !important;
 }
 
 .obaveza-count {
@@ -223,14 +273,49 @@ function getDensityClass(datum) {
   justify-content: center;
 }
 
-/* Gustoće za promjenu boje pozadine kartice */
 .low-density {
-  background-color: #e1f5fe; /* Svijetlo plava za nizak broj obaveza */
+  background-color: #4fb7e7;
 }
 .medium-density {
-  background-color: #ffe0b2; /* Narančasta za srednji broj obaveza */
+  background-color: #ff9b04;
 }
 .high-density {
-  background-color: #ffccbc; /* Crvena za visok broj obaveza */
+  background-color: #ec0d0d;
+}
+
+.obaveza-count {
+  font-size: 10px;
+  font-weight: bold;
+  color: #333;
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  background-color: #fff;
+  border-radius: 50%;
+  padding: 2px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.low-density {
+  background-color: #e1f5fe;
+}
+.medium-density {
+  background-color: #ffe0b2;
+}
+.high-density {
+  background-color: #ffccbc;
+}
+.delete-button {
+  background: none;
+  border: none;
+  color: red;
+  font-size: 12px;
+  cursor: pointer;
+  margin-left: 8px;
+}
+.delete-button:hover {
+  color: darkred;
 }
 </style>

@@ -6,7 +6,7 @@ const routes = [
     component: () => import('layouts/MainLayout.vue'),
     children: [
       { path: '', component: () => import('pages/IndexPage.vue') },
-      { path: 'login', component: () => import('pages/LoginPage.vue') },
+
       { path: 'folders', component: () => import('pages/FoldersPage.vue') },
       { path: 'folders/:folderId', component: () => import('pages/FolderContentPage.vue') },
       { path: 'notifikacija', component: () => import('pages/NotifikacijaDummy.vue') },
@@ -17,12 +17,11 @@ const routes = [
       { path: 'forum', component: () => import('pages/ForumPage.vue') },
       { path: 'objava/:id', component: () => import('pages/ForumCommentPage.vue') },
       { path: 'groups', component: () => import('pages/GroupMessagesUser.vue') },
-      { path: 'login', component: () => import('pages/LoginPage.vue') }
+      { path: 'login', component: () => import('pages/LoginPage.vue') },
+      { path: 'register', component: () => import('pages/RegisterPage.vue') },
+      { path: 'login', component: () => import('pages/LoginPage.vue') },
     ],
   },
-
-  // Always leave this as last one,
-  // but you can also remove it
 
   {
     path: '/:catchAll(.*)*',

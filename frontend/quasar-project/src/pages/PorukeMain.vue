@@ -38,7 +38,7 @@
 
         <q-card-section>
           <q-btn label="NOVI CHAT" icon="chat" class="q-mb-sm full-width" color="primary" @click="openNewChatDialog" />
-          <q-btn label="NOVA GRUPA" icon="group_add" class="full-width" color="secondary" />
+          <q-btn label="NOVA GRUPA" icon="group_add" class="full-width" color="secondary" to = "/groups" />
         </q-card-section>
 
         <q-separator />
@@ -136,7 +136,7 @@ const scrollAreaRef = ref(null)
 const chats = ref([])
 const poruke = ref([])
 const trenutniKorisnikId = ref(null)
-const token = localStorage.getItem("token")
+const token = ref(null)
 
 // Novo za dijalog
 const showNewChatDialog = ref(false)
@@ -209,14 +209,17 @@ const fetchPorukeZaKorisnika = async (korisnikId) => {
 
 // Pomoćne funkcije
 const getMessagesForChat = (korisnikId) => {
+  const kId = +korisnikId
+  const tId = +trenutniKorisnikId.value
+
   return poruke.value
     .filter(poruka =>
-      (poruka.posiljatelj === korisnikId && poruka.primatelj === trenutniKorisnikId.value) ||
-      (poruka.posiljatelj === trenutniKorisnikId.value && poruka.primatelj === korisnikId)
+      (poruka.posiljatelj === kId && poruka.primatelj === tId) ||
+      (poruka.posiljatelj === tId && poruka.primatelj === kId)
     )
     .map(poruka => ({
       ...poruka,
-      fromMe: poruka.posiljatelj === trenutniKorisnikId.value
+      fromMe: poruka.posiljatelj === tId
     }))
     .sort((a, b) => new Date(a.datum_vrijeme) - new Date(b.datum_vrijeme))
 }
@@ -248,7 +251,6 @@ const formatTime = (datumVrijeme) => {
   return date.toLocaleDateString()
 }
 
-// Dodano: odabir kontakta iz liste
 const selectChat = async (chat) => {
   selectedChat.value = chat
   await fetchPorukeZaKorisnika(chat.id_korisnika)
@@ -291,24 +293,50 @@ const decodeToken = (token) => {
 }
 
 onMounted(() => {
-  if (!token) {
-    alert("Morate biti prijavljeni da biste vidjeli poruke.")
-    router.push('/login')
-    return
+  const init = async () => {
+    token.value = localStorage.getItem("token")
+
+    if (!token.value) {
+      if (!sessionStorage.getItem("alert_shown")) {
+        sessionStorage.setItem("alert_shown", "1")
+        alert("Morate biti prijavljeni da biste vidjeli poruke.")
+      }
+      await router.push('/login')
+      return
+    }
+
+    const decoded = decodeToken(token.value)
+    if (!decoded || !decoded.id) {
+      if (!sessionStorage.getItem("alert_shown")) {
+        sessionStorage.setItem("alert_shown", "1")
+        alert("Nevažeći token. Prijavite se ponovno.")
+      }
+      await router.push('/login')
+      return
+    }
+
+    fullUser.value = decoded
+    trenutniKorisnikId.value = fullUser.value.id
+
+    await fetchKorisnici()
+
+    // 🔥 OVO DODAŠ – popuni sve poruke za sve kontakte odmah
+    await Promise.all(
+      chats.value.map(chat => fetchPorukeZaKorisnika(chat.id_korisnika))
+    )
+
+    // Ako je link otvoren s ?user=ID, otvori automatski taj chat
+    const params = new URLSearchParams(window.location.search)
+    const userIdFromQuery = params.get('user')
+    if (userIdFromQuery) {
+      const chatUser = chats.value.find(c => c.id_korisnika == userIdFromQuery)
+      if (chatUser) {
+        await selectChat(chatUser)
+      }
+    }
   }
 
-  const decoded = decodeToken(token)
-  if (!decoded || !decoded.id) {
-    alert("Nevažeći token. Prijavite se ponovno.")
-    router.push('/login')
-    return
-  }
-
-  fullUser.value = decoded
-  trenutniKorisnikId.value = fullUser.value.id
-
-  fetchKorisnici()
-  fetchSvePoruke()
+  init()
 })
 
 // Polling
@@ -321,6 +349,16 @@ const startPolling = () => {
     }
   }, 3000)
 }
+
+//Ovo sluzi kao referentna tocka za grupe gumb "NOVA GRUPA" ne brisati
+const groups = [
+  {
+    title: 'Grupne poruke',
+    caption: 'chat.quasar.dev',
+    icon: 'chat',
+    link: 'http://localhost:9000/groups/'
+  }
+]
 
 const stopPolling = () => {
   if (pollingInterval) {

@@ -4,6 +4,7 @@
       <q-toolbar>
   <div class="q-toolbar-title" style="display: flex; justify-content: center;">
     <q-btn flat label="Početna" to="/" />
+    <q-btn flat label="Datoteke" to="/folders" />
     <q-btn flat label="Poruke" to="/poruke" />
     <q-btn flat label="Forum" to="/forum" />
     <q-btn flat label="Obaveze" to="/kalendar-obaveze">
@@ -12,9 +13,11 @@
     <q-btn flat label="Dogadaji" to="/kalendardog">
       <q-tooltip>Kalendar</q-tooltip>
     </q-btn>
-          <q-btn flat label="Grupne poruke" to="/groups">
-            <q-tooltip>Grupne poruke</q-tooltip>
-          </q-btn>
+    <q-btn flat label="Grupne poruke" to="/groups">
+    <q-tooltip>Grupne poruke</q-tooltip>
+    </q-btn>
+    <q-btn flat label="Registriraj se" to="/register" />
+    
   </div>
 
     <!-- Desna strana: Login / Logout -->
@@ -35,6 +38,10 @@
         />
 </q-toolbar>
 
+        <div v-if="isLoggedIn" class="q-mr-sm text-white">
+          {{ korisnickoIme }}
+        </div>
+     
     </q-header>
 
     <!--  Lijevi drawer sa linkovima i kontaktima 
@@ -57,6 +64,12 @@
 
         </q-list>
       </q-scroll-area>
+        <EssentialLink
+          v-for="link in linksList"
+          :key="link.title"
+          v-bind="link"
+        />
+      </q-list>
     </q-drawer>
   -->
     <!-- Sadržaj stranice -->
@@ -67,48 +80,63 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted, onUnmounted, getCurrentInstance } from 'vue'
+import EssentialLink from 'components/EssentialLink.vue'
+import { useRouter } from 'vue-router'
+import { useQuasar } from 'quasar'
+import { jwtDecode } from "jwt-decode"
+import { initNotificationService, stopNotificationService } from '../services/notificationService'
 
 defineOptions({
   name: 'MainLayout'
 })
 
+const $q = useQuasar()
+const router = useRouter()
+
+// Vaš postojeći kod
 const linksList = [
-  {
-    title: 'Datoteke',
-    caption: 'Dijeljenje datoteka',
-    icon: 'folder',
-    to: '/folders',
-  },
-  {
-    title: 'Grupne poruke',
-    caption: 'chat.quasar.dev',
-    icon: 'chat',
-    link: 'http://localhost:9000/groups/',
-  },
-  {
-    title: 'Forum',
-    caption: 'forum.quasar.dev',
-    icon: 'record_voice_over',
-    link: 'https://forum.quasar.dev',
-  },
-  {
-    title: 'Twitter',
-    caption: '@quasarframework',
-    icon: 'rss_feed',
-    link: 'https://twitter.quasar.dev',
-  },
-  {
-    title: 'Poruke',
-    caption: '',
-    icon: 'poruke',
-    link: '/Poruke',
-  }
+  // ... postojeće linkove
 ]
 
 const leftDrawerOpen = ref(false)
+const isLoggedIn = computed(() => !!localStorage.getItem('korisnik'))
+const korisnickoIme = computed(() => {
+  const korisnik = JSON.parse(localStorage.getItem('korisnik'))
+  return korisnik?.korisnickoime || ''
+})
 
 function toggleLeftDrawer() {
   leftDrawerOpen.value = !leftDrawerOpen.value
 }
+
+function logout() {
+  // Zaustavi notifikacije prije odjave
+  stopNotificationService()
+  localStorage.removeItem('korisnik')
+  localStorage.removeItem('token')
+  localStorage.removeItem("token")
+  sessionStorage.removeItem("alert_shown")
+  router.push('/')
+}
+
+// Inicijalizacija notifikacija
+onMounted(() => {
+  const token = localStorage.getItem("token")
+  if (token) {
+    try {
+      const decoded = jwtDecode(token)
+      if (decoded && decoded.id) {
+        initNotificationService($q, decoded.id)
+      }
+    } catch (error) {
+      console.error("Greška pri dekodiranju tokena:", error)
+    }
+  }
+})
+
+// Čišćenje prije unmounta
+onUnmounted(() => {
+  stopNotificationService()
+})
 </script>

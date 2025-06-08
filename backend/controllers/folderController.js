@@ -5,7 +5,6 @@ exports.getRootFolders = async (req, res) => {
         const folders = await folderService.getRootFolders()
         res.json(folders)
     } catch (err) {
-        console.error(err)
         res.status(500).json({message: 'Došlo je do greške prilikom učitavanja mapa.'})
     }
 }
@@ -15,7 +14,6 @@ exports.getSubfolders = async (req, res) => {
         const folders = await folderService.getSubfolders(Number(req.params.parentId))
         res.json(folders)
     } catch (err) {
-        console.error(err)
         res.status(500).json({message: 'Došlo je do greške prilikom učitavanja podmapa.'})
     }
 }
@@ -28,7 +26,6 @@ exports.createFolder = async (req, res) => {
         const newMap = await folderService.createFolder({ime_mape, id_parent_mapa})
         res.status(201).json(newMap)
     } catch (err) {
-        console.error(err)
         res.status(500).json({message: 'Dogodila se greška prilikom kreiranja mape.'})
     }
 }
@@ -43,7 +40,6 @@ exports.renameFolder = async (req, res) => {
 
         res.json({message: 'Mapa je ažurirana', mapa: updated})
     } catch (err) {
-        console.error(err)
         res.status(500).json({message: 'Dogodila se greška prilikom preimenovanja mape.'})
     }
 }
@@ -55,7 +51,6 @@ exports.deleteFolder = async (req, res) => {
 
         res.json({message: `Mapa '${deleted.ime_mape}' je obrisana`})
     } catch (err) {
-        console.error(err)
         res.status(500).json({message: 'Dogodila se greška prilikom brisanja mape.'})
     }
 }

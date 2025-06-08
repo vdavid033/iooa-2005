@@ -70,7 +70,7 @@ exports.sendMessage = (req, res) => {
 };
 
 exports.getLastMessagesForAllContacts = (req, res) => {
-  const { trenutniKorisnikId } = req.params;
+  const trenutniKorisnikId = req.params.trenutniKorisnikId;
 
   connection.query(
     `SELECT p.* FROM poruke p
@@ -91,6 +91,28 @@ exports.getLastMessagesForAllContacts = (req, res) => {
       if (error) {
         console.error("SQL greška:", error);
         return res.status(500).json({ error: "Greška pri dohvaćanju poruka", details: error.message });
+      }
+      res.json(results);
+    }
+  );
+};
+
+
+exports.getNewMessages = (req, res) => {
+  const korisnikId = req.params.id;
+  const zadnjaProvjera = req.query.lastCheck || new Date(Date.now() - 3000).toISOString();
+
+  connection.query(
+    `SELECT p.*, k.ime_korisnika, k.prezime_korisnika 
+     FROM poruke p
+     JOIN korisnik k ON p.posiljatelj = k.id_korisnika
+     WHERE p.primatelj = ? AND p.datum_vrijeme > ?
+     ORDER BY p.datum_vrijeme DESC`,
+    [korisnikId, zadnjaProvjera],
+    (error, results) => {
+      if (error) {
+        console.error("SQL greška:", error);
+        return res.status(500).json({ error: "Greška pri dohvaćanju novih poruka", details: error.message });
       }
       res.json(results);
     }

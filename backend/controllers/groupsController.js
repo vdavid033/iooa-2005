@@ -333,7 +333,7 @@ exports.leaveGroup = async (req, res) => {
 // Dodavanje novih članova u grupu
 exports.addMembersToGroup = async (req, res) => {
   const { groupId } = req.params;
-  const { userIds} = req.body;
+  const { userIds } = req.body;
 
   if (!groupId || !Array.isArray(userIds) || userIds.length === 0) {
     return res.status(400).json({ error: "Nedostaje groupId ili lista korisnika." });
@@ -422,7 +422,7 @@ exports.removeMember = async (req, res) => {
     }
 
     res.status(200).json({ message: "Član je uspješno izbrisan iz grupe" });
-    
+
   } catch (error) {
     console.error("Greška tijekom brisanja člana iz grupe:", error.message);
     res
@@ -517,7 +517,7 @@ exports.getGroupMessages = async (req, res) => {
       ORDER BY gp.datum_i_vrijeme_grupne_poruke ASC
       `,
       [groupId]
-      );
+    );
 
     res.json(messages);
   } catch (error) {
