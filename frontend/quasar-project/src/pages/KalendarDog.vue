@@ -101,9 +101,15 @@
               <div class="text-subtitle2">{{ title }}</div>
               <q-separator inset />
               <div v-for="event in events[key]" :key="event.headline" class="q-mt-sm">
-                <q-btn flat dense :label="getCategoryIcon(key) + ' ' + event.headline"  @click="openEventDetails(event, title)"
-/>
-
+                <q-btn flat dense @click="openEventDetails(event, title)">
+                  {{ getCategoryIcon(key) + ' ' + event.headline }}
+                  <q-tooltip class="event-tooltip">
+                    <div><strong>📅 Datum:</strong> {{ selectedDateFormatted }}</div>
+                    <div><strong>⏰ Vrijeme:</strong> {{ event.time || 'N/A' }}</div>
+                    <div><strong>📍 Lokacija:</strong> {{ event.location || 'N/A' }}</div>
+                    <div><strong>👤 Autor:</strong> {{ event.firstName || 'Nepoznat' }} {{ event.lastName || '' }}</div>
+                  </q-tooltip>
+                </q-btn>
               </div>
             </div>
           </div>
@@ -510,5 +516,16 @@ const getCategoryIcon = (key) => {
   margin-bottom: 10px;
   font-weight: 500 !important;
   font-size: 20px;
+}
+
+.event-tooltip {
+  background-color: #2e2e2e;
+  color: #ffffff;
+  padding: 10px;
+  border-radius: 8px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+  font-size: 14px;
+  max-width: 250px;
+  line-height: 1.4;
 }
 </style>
