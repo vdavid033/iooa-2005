@@ -56,7 +56,7 @@
             ]"
             lazy-rules
           />
-          <q-input filled v-model="form.date" label="Datum" mask="####-##-##" readonly>
+          <q-input v-if="isEditMode" filled v-model="form.date" label="Datum" mask="####-##-##" readonly>
             <template #append>
               <q-icon name="event" class="cursor-pointer">
                 <q-popup-proxy cover transition-show="scale" transition-hide="scale">
