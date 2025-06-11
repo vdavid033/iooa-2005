@@ -323,6 +323,7 @@ const saveEvent = async () => {
     await axios.post('http://localhost:3000/api/events', eventData)
     resetEventModalState()
     fetchEventsForDate()
+    fetchHighlightedDates()
   } catch (err) {
     console.error('Greška pri spremanju:', err)
   }
@@ -355,6 +356,7 @@ const updateEvent = async () => {
   if (response.status === 200 && response.data?.message === 'Događaj ažuriran') {
     resetEventModalState()
     fetchEventsForDate()
+    fetchHighlightedDates()
     showSuccessDialog.value = true
   } else {
     console.warn('Ažuriranje nije uspjelo:', response)
@@ -370,6 +372,7 @@ const deleteEvent = async () => {
     await axios.delete(`http://localhost:3000/api/events/${selectedEvent.value.id}`)
     showEventDetailModal.value = false
     fetchEventsForDate()
+    fetchHighlightedDates()
   } catch (err) {
     console.error('Greška pri brisanju:', err)
   }
