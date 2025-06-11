@@ -3,13 +3,13 @@ const router = express.Router()
 const controller = require('../controllers/documentController')
 const multer = require('multer')
 const upload = multer({dest: 'uploads/'})
-const {verifyTokenUser, verifyTokenAdmin} = require('../authJwt')
+const {verifyTokenUser} = require('../authJwt')
 
 router.use(verifyTokenUser)
 
 router.get('/:folderId', controller.getDocumentsByFolder)
-router.post('/upload', verifyTokenAdmin, upload.single('file'), controller.uploadDocument)
-router.delete('/:id', verifyTokenAdmin, controller.deleteDocument)
+router.post('/upload', upload.single('file'), controller.uploadDocument)
+router.delete('/:id', controller.deleteDocument)
 router.get('/download/:id', controller.downloadDocument)
 
 module.exports = router
