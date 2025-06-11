@@ -9,7 +9,7 @@ exports.getEventsByDate = async (date) => {
       d.lokacija_dogadjaja AS location,
       k.naziv_kategorije_dogadjaja AS category,
       d.datum_dogadjaja AS date,
-      d.vrijeme_pocetka_dogadjaja AS time,
+      TIME_FORMAT(d.vrijeme_pocetka_dogadjaja, '%H:%i') AS time,
       d.fk_korisnika AS userId,
       u.ime_korisnika AS firstName,
       u.prezime_korisnika AS lastName
