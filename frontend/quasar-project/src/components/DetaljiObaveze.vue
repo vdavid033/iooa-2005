@@ -16,7 +16,7 @@
           <div><strong>Datum:</strong> {{ formatirajDatum(o.datum_obaveze) }}</div>
           <div><strong>Vrijeme:</strong> {{ formatirajVrijeme(o.vrijeme_pocetka) }}</div>
           <div><strong>Dvorana:</strong> {{ o.lokacija }}</div>
-          <div><strong>Tip:</strong> {{ o.opis_obaveze }}</div>
+          <div><strong>Tip:</strong> {{ nazivTipa(o.fk_tip_obaveze) }}</div>
           <div><strong>Napomena:</strong> {{ o.opis_obaveze }}</div>
         </q-card-section>
       </q-card>
@@ -25,15 +25,15 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-
+import { ref, onMounted, computed } from 'vue'
+import axios from 'axios'
 const props = defineProps({
   datum: String,
-  obaveze: Array
+  obaveze: Array,
 })
 
 defineOptions({
-  name: 'DetaljiObaveze'
+  name: 'DetaljiObaveze',
 })
 
 const sortiraneObaveze = computed(() => {
@@ -55,5 +55,26 @@ function formatirajVrijeme(vrijeme) {
   const minute = String(vrijemeObj.getMinutes()).padStart(2, '0')
 
   return `${sati}:${minute}`
+}
+
+const tipoviObaveza = ref([])
+
+onMounted(async () => {
+  try {
+    const token = localStorage.getItem('token')
+    const response = await axios.get('http://localhost:3000/api/tipoviObaveza', {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    tipoviObaveza.value = response.data
+  } catch (error) {
+    console.error('Greška pri dohvaćanju tipova obaveza:', error)
+  }
+})
+
+function nazivTipa(id) {
+  const tip = tipoviObaveza.value.find((t) => t.value === id)
+  return tip ? tip.label : 'Nepoznat tip'
 }
 </script>

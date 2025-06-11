@@ -1,26 +1,25 @@
 <template>
   <q-page class="q-pa-xl">
-
-    <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze"/>
+    <KalendarObaveza @klikNaObavezu="prikaziDetaljeObaveze" />
 
     <q-btn
-  v-if="isAdmin()"
-  @click="toggleUnos"
-  label="Unesi novu obavezu"
-  color="primary"
-  class="q-mt-md"
-/>
+      v-if="isAdmin()"
+      @click="toggleUnos"
+      label="Unesi novu obavezu"
+      color="primary"
+      class="q-mt-md"
+    />
 
-<q-dialog v-model="showUnos" v-if="isAdmin()">
-  <q-card style="max-width: 30%; width: 100%">
-    <q-card-section>
-      <UnosObaveze />
-    </q-card-section>
-    <q-card-actions>
-      <q-btn @click="showUnos = false" label="Zatvori" color="secondary" class="q-ma-md" />
-    </q-card-actions>
-  </q-card>
-</q-dialog>
+    <q-dialog v-model="showUnos" v-if="isAdmin()">
+      <q-card style="max-width: 30%; width: 100%">
+        <q-card-section>
+          <UnosObaveze />
+        </q-card-section>
+        <q-card-actions>
+          <q-btn @click="showUnos = false" label="Zatvori" color="secondary" class="q-ma-md" />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <q-dialog v-model="showDetalji">
       <q-card>
@@ -54,21 +53,21 @@ const toggleUnos = () => {
 const selektiranDatum = ref('')
 const selektiraneObaveze = ref(null)
 
-async function dohvatiDetaljeObaveze(obaveza,datum) {
+async function dohvatiDetaljeObaveze(obaveza, datum) {
   try {
     const token = localStorage.getItem('token')
-    const url = isAdmin() 
-      ? 'http://localhost:3000/api/obaveze' 
+    const url = isAdmin()
+      ? 'http://localhost:3000/api/obaveze'
       : 'http://localhost:3000/api/obaveze-korisnik'
 
     const response = await axios.get(url, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
     const sveObaveze = response.data
 
-    const obavezeZaDatum = sveObaveze.filter(ob => ob.datum_obaveze === obaveza.datum_obaveze)
+    const obavezeZaDatum = sveObaveze.filter((ob) => ob.datum_obaveze === obaveza.datum_obaveze)
     return obavezeZaDatum
   } catch (err) {
     console.error('Greška pri dohvaćanju detalja obaveze:', err)
@@ -83,7 +82,7 @@ async function prikaziDetaljeObaveze({ datum, obaveza }) {
 
   // Ako postoji ID, dohvatimo samo tu jednu obavezu
   if (obaveza && obaveza.id_obaveze) {
-    selektiraneObaveze.value = [obaveza]  // direktno postavi ako već imaš sve podatke
+    selektiraneObaveze.value = [obaveza] // direktno postavi ako već imaš sve podatke
     showDetalji.value = true
   } else {
     // Fallback – dohvat svih obaveza za dan
@@ -92,8 +91,8 @@ async function prikaziDetaljeObaveze({ datum, obaveza }) {
       const response = await axios.get(`http://localhost:3000/api/obavezaDetalji`, {
         params: { datum_obaveze: datum },
         headers: {
-          Authorization: `Bearer ${token}`
-        }
+          Authorization: `Bearer ${token}`,
+        },
       })
       selektiraneObaveze.value = response.data
       showDetalji.value = true
@@ -110,8 +109,8 @@ async function prikaziObavezeZaDan(datum) {
     const response = await axios.get(`http://localhost:3000/api/obavezaDetalji`, {
       params: { datum_obaveze: datum },
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
     selektiraneObaveze.value = response.data
     showDetalji.value = true
@@ -119,5 +118,4 @@ async function prikaziObavezeZaDan(datum) {
     console.error('Greška pri dohvaćanju obaveza za dan:', err)
   }
 }
-
 </script>
