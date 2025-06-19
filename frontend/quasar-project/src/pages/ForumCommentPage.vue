@@ -21,6 +21,10 @@
           <span v-for="tag in post.tagovi" :key="tag" class="q-mr-sm text-blue">#{{ tag }}</span>
         </div>
       </q-card-section>
+
+          <q-card-section  class="row items-center q-gutter-xs text-red">
+            <span>Prijavi objavu</span>
+          </q-card-section>
     </q-card>
 
     <!-- Ako nema pronađene objave -->
