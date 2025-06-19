@@ -21,6 +21,7 @@ const routes = [
       { path: 'register', component: () => import('pages/RegisterPage.vue') },
       { path: 'login', component: () => import('pages/LoginPage.vue') },
       { path: 'report/:postId', component: () => import('pages/ReportPostPage.vue') },
+      { path: 'admin/reports', component: () => import('pages/AdminReportsPage.vue') },
     ],
   },
 

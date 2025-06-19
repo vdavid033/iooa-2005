@@ -73,6 +73,7 @@ app.use("/api/messages", require("./routes/messageRoutes"));
 app.use("/api/events", require("./routes/events"));
 app.use("/api/objave", require("./routes/objaveRoutes"));
 app.use("/api/comments", require("./routes/komentariRoutes"));
+app.use("/api", require("./routes/reportRoutes"));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
