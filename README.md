@@ -30,6 +30,7 @@ Marko Linić
 Nadijo Ražov
 Igor Petkovic
 Dino Kavgić
+Dominik Rukavina
 
 ## Kalendar obaveza - opis
 
