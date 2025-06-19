@@ -22,9 +22,16 @@
         </div>
       </q-card-section>
 
-          <q-card-section  class="row items-center q-gutter-xs text-red">
-            <span>Prijavi objavu</span>
-          </q-card-section>
+      <q-card-section class="row items-center q-gutter-xs">
+        <q-btn
+          flat
+          dense
+          icon="report_problem"
+          label="Prijavi objavu"
+          color="negative"
+          @click="goToReport(post.id)"
+        />
+      </q-card-section>
     </q-card>
 
     <!-- Ako nema pronađene objave -->
@@ -55,12 +62,17 @@ const formatDate = (isoDate) => {
   return new Date(isoDate).toLocaleString('hr-HR')
 }
 
+function goToReport(postId) {
+  router.push(`/report/${postId}`)
+}
+
 onMounted(async () => {
   const postId = route.params.id
 
   try {
     const response = await axios.get(`http://localhost:3000/api/objave/${postId}`)
     post.value = response.data
+    console.log('📦 Podaci objave:', response.data)
   } catch (err) {
     console.error('❌ Greška pri dohvaćanju objave:', err)
   }
