@@ -25,10 +25,7 @@
             @click.stop="klikNaObavezu(day.date, o)"
           >
             {{ o.opis_obaveze }}
-            <button
-              class="delete-button"
-              @click.stop="obrisiObavezu(o.id_obaveze, day.date)"
-            >
+            <button class="delete-button" @click.stop="obrisiObavezu(o.id_obaveze, day.date)">
               ✖
             </button>
           </div>
@@ -42,12 +39,11 @@
 import { ref, computed, onMounted } from 'vue'
 import { date } from 'quasar'
 import axios from 'axios'
-
 const emit = defineEmits(['klikNaObavezu'])
 
 const currentDate = ref(date.formatDate(new Date(), 'YYYY-MM-DD'))
 const obaveze = ref({})
-
+const showUnos = ref({})
 const dayNames = ['Pon', 'Uto', 'Sri', 'Čet', 'Pet', 'Sub', 'Ned']
 
 function getObavezeForDate(datum) {
@@ -136,8 +132,8 @@ onMounted(async () => {
     const token = localStorage.getItem('token')
     const response = await axios.get('http://localhost:3000/api/sve-obaveze', {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
 
     const data = response.data
@@ -167,22 +163,22 @@ async function obrisiObavezu(idObaveze, datum) {
     const token = localStorage.getItem('token')
     const response = await axios.delete(`http://localhost:3000/api/obaveza-brisanje/${idObaveze}`, {
       headers: {
-        Authorization: `Bearer ${token}`
-      }
+        Authorization: `Bearer ${token}`,
+      },
     })
 
     if (response.status === 200) {
-      alert("Obaveza uspješno obrisana.");
-      obaveze.value[datum] = obaveze.value[datum].filter((o) => o.id_obaveze !== idObaveze);
+      alert('Obaveza uspješno obrisana.')
+      obaveze.value[datum] = obaveze.value[datum].filter((o) => o.id_obaveze !== idObaveze)
       if (obaveze.value[datum].length === 0) {
-        delete obaveze.value[datum];
+        delete obaveze.value[datum]
       }
     } else {
-      alert(response.data.message);
+      alert(response.data.message)
     }
   } catch (error) {
-    console.error("Greška pri brisanju obaveze:", error);
-    alert("Došlo je do greške pri brisanju obaveze. Pokušajte ponovo.");
+    console.error('Greška pri brisanju obaveze:', error)
+    alert('Došlo je do greške pri brisanju obaveze. Pokušajte ponovo.')
   }
 }
 </script>

@@ -17,7 +17,12 @@
     <q-tooltip>Grupne poruke</q-tooltip>
     </q-btn>
     <q-btn flat label="Registriraj se" to="/register" />
-    
+    <q-btn
+  v-if="isAdmin"
+  flat
+  label="Admin Prijave"
+  to="/admin/reports"
+/>
   </div>
 
     <!-- Desna strana: Login / Logout -->
@@ -98,6 +103,17 @@ const router = useRouter()
 const linksList = [
   // ... postojeće linkove
 ]
+
+const isAdmin = computed(() => {
+  const token = localStorage.getItem('token')
+  if (!token) return false
+  try {
+    const decoded = jwtDecode(token)
+    return decoded.uloga === 'admin' || decoded.uloga === 1
+  } catch (e) {
+    return false
+  }
+})
 
 const leftDrawerOpen = ref(false)
 const isLoggedIn = computed(() => !!localStorage.getItem('korisnik'))

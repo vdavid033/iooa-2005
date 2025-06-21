@@ -7,17 +7,30 @@
         <q-btn flat round dense icon="add" @click="promptCreateGroup" />
       </q-toolbar>
       <q-list>
-        <q-item v-for="(group, index) in groups" :key="index" clickable v-ripple
-                @click="selectGroup(group)"
-                :active="currentGroup?.name === group.name"
-                active-class="bg-primary text-white">
-          <q-item-section><q-item-label>{{ group.name }}</q-item-label></q-item-section>
-          <q-item-section side v-if="group.isAdmin">
-            <q-btn dense flat round icon="delete" size="sm" color="negative" @click.stop="deleteGroup(group.name, index)" />
+        <q-item
+          v-for="(group, index) in groups"
+          :key="index"
+          clickable
+          v-ripple
+          @click="selectGroup(group)"
+          :active="currentGroup?.name === group.name"
+          active-class="bg-primary text-white"
+          class="q-mb-xs rounded-borders"
+          style="transition: background 0.2s;"
+        >
+          <q-item-section avatar>
+            <q-avatar color="primary" text-color="white" size="32px">
+              <q-icon name="group" />
+            </q-avatar>
+          </q-item-section>
+          <q-item-section>
+            <q-item-label>{{ group.name }}</q-item-label>
+            <q-item-label caption v-if="group.description">{{ group.description }}</q-item-label>
           </q-item-section>
           <q-item-section side>
-            <q-btn dense flat round icon="logout" size="sm" color="orange"
-              @click.stop="leaveGroup(group.id, index)" />
+            <q-badge v-if="group.unreadCount" color="red" floating>{{ group.unreadCount }}</q-badge>
+            <q-btn dense flat round icon="delete" size="sm" color="negative" @click.stop="deleteGroup(group.name, index)" v-if="group.isAdmin" />
+            <q-btn dense flat round icon="logout" size="sm" color="orange" @click.stop="leaveGroup(group.id, index)" />
           </q-item-section>
         </q-item>
       </q-list>
@@ -33,17 +46,23 @@
         <q-btn flat round icon="close" @click="closeMembersDrawer" class="q-ml-auto" />
       </q-toolbar>
       <q-list>
-        <q-item v-for="(member, index) in (currentGroup?.members ? currentGroup.members.filter(m => m.id !== userId) : [])" :key="index">
+        <q-item
+          v-for="(member, index) in (currentGroup?.members ? currentGroup.members.filter(m => m.id !== userId) : [])"
+          :key="index"
+          class="hoverable-member"
+          clickable
+          v-ripple
+        >
           <q-item-section avatar>
             <q-avatar><img :src="member.avatar" /></q-avatar>
           </q-item-section>
           <q-item-section>
             <q-item-label>{{ member.name }}</q-item-label>
-            </q-item-section>
+          </q-item-section>
           <q-item-section>
-          <q-btn icon="person_remove" color="negative" dense flat round @click="removeMemberFromGroup(member.id)" v-if="currentGroup?.isAdmin && member.id_korisnika !== userId"/>
-        </q-item-section>
-      </q-item>
+            <q-btn icon="person_remove" color="negative" dense flat round @click="removeMemberFromGroup(member.id)" v-if="currentGroup?.isAdmin && member.id_korisnika !== userId"/>
+          </q-item-section>
+        </q-item>
       </q-list>
       <div v-if="currentGroup?.isAdmin" style="display: flex; justify-content: center; padding: 10px 0; background-color: royalblue;" >
       <q-btn v-if="currentGroup?.isAdmin" flat round dense icon="person_add" color="white" @click="addMembersDialog = true" />
@@ -61,13 +80,28 @@
       <q-page class="q-pa-md flex flex-column bg-grey-2" style="height: calc(100vh - 100px);">
         <div v-if="currentGroup" class="q-pa-sm col overflow-auto" style="flex-grow: 1;">
           <div v-for="(msg, index) in messages" :key="index" class="q-mb-md">
-            <q-chat-message :sent="msg.sent" :text="[msg.text]" :name="msg.name" :stamp="msg.time" :bg-color="msg.sent ? 'blue-3' : 'grey-4'" />
+            <q-chat-message
+              :sent="msg.sent"
+              :text="[msg.text]"
+              :name="msg.name"
+              :stamp="msg.time"
+              :bg-color="msg.sent ? 'primary' : 'grey-3'"
+              :text-color="msg.sent ? 'white' : 'black'"
+              class="custom-chat-message"
+            />
           </div>
         </div>
-        <div v-else class="flex flex-center text-grey">
-          <div>Odaberite grupu da biste započeli razgovor!</div>
+        <div v-else class="flex flex-center" style="height: 100%; min-height: 300px;">
+          <div
+            class="q-pa-xl bg-grey-1 text-primary text-center rounded-borders shadow-2"
+            style="font-size: 1.3rem; font-weight: 500; max-width: 400px; margin: auto;"
+          >
+            <q-icon name="chat_bubble_outline" size="48px" color="primary" class="q-mb-md" />
+            <div>Odaberite <span class="text-bold">grupu</span> s lijeve strane<br>da biste započeli razgovor.</div>
+            <div class="text-caption text-grey-7 q-mt-sm">Kliknite na naziv grupe ili stvorite novu!</div>
+          </div>
         </div>
-        <q-footer class="bg-white q-pa-sm">
+        <q-footer class="bg-white q-pa-sm" :style="footerStyle">
           <div class="row items-center q-gutter-sm" v-if="currentGroup">
             <q-input v-model="newMessage" filled dense placeholder="Napiši poruku..." class="col" @keyup.enter="sendMessage" />
             <q-btn round dense color="primary" icon="send" @click="sendMessage" />
@@ -77,26 +111,34 @@
     </q-page-container>
 
     <!-- DIALOG: Kreiranje nove grupe -->
-    <q-dialog v-model="createGroupDialog">
-      <q-card>
-        <q-card-section>
+    <q-dialog v-model="createGroupDialog" persistent>
+      <q-card style="min-width: 400px; border-radius: 10px;">
+        <q-card-section class="bg-primary text-white">
           <div class="text-h6">Kreiraj novu grupu</div>
         </q-card-section>
         <q-card-section>
-          <q-input v-model="newGroupName" label="Ime grupe" />
-          <q-input v-model="newGroupDescription" label="Opis grupe" type="textarea" class="q-mt-sm" />
+          <q-input v-model="newGroupName" label="Ime grupe" outlined dense :rules="[val => !!val || 'Ime je obavezno']" />
+          <q-input v-model="newGroupDescription" label="Opis grupe" type="textarea" outlined dense class="q-mt-sm" />
           <div class="text-subtitle2 q-mt-md q-mb-xs">Označi članove:</div>
-          <q-list>
-            <q-item v-for="user in users.filter(u => u.id !== userId)" :key="user.id" clickable v-ripple>
-              <q-item-section avatar><q-avatar><img :src="user.avatar" /></q-avatar></q-item-section>
-              <q-item-section><q-item-label>{{ user.name }}</q-item-label></q-item-section>
-              <q-item-section side><q-checkbox v-model="selectedUserIds" :val="user.id" /></q-item-section>
-            </q-item>
-          </q-list>
+          <q-scroll-area class="q-mt-sm" style="height: 250px;">
+            <q-list>
+              <q-item v-for="user in users.filter(u => Number(u.id) !== Number(userId))" :key="user.id" tag="label" v-ripple>
+                <q-item-section avatar>
+                  <q-avatar><img :src="user.avatar" /></q-avatar>
+                </q-item-section>
+                <q-item-section>
+                  <q-item-label>{{ user.name }}</q-item-label>
+                </q-item-section>
+                <q-item-section side>
+                  <q-checkbox v-model="selectedUserIds" :val="user.id" />
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-scroll-area>
         </q-card-section>
-        <q-card-actions align="right">
-          <q-btn flat label="Otkaži" color="primary" @click="cancelGroupCreation" />
-          <q-btn flat label="Kreiraj" color="primary" @click="createGroup" />
+        <q-card-actions align="right" class="q-pa-md">
+          <q-btn flat label="Otkaži" color="grey-7" v-close-popup @click="cancelGroupCreation" />
+          <q-btn label="Kreiraj" color="primary" @click="createGroup" :disable="!newGroupName.trim()" />
         </q-card-actions>
       </q-card>
     </q-dialog>
@@ -132,6 +174,8 @@
     </q-card-actions>
   </q-card>
 </q-dialog>
+
+<div>{{ users }}</div>
 </template>
 
 <script setup>
@@ -294,6 +338,7 @@ function promptCreateGroup() {
   newGroupName.value = ''
   newGroupDescription.value = ''
   selectedUserIds.value = []
+  fetchUsers()
   createGroupDialog.value = true
 }
 
@@ -432,4 +477,28 @@ async function deleteGroup(groupName, index) {
   }
 }
 
+const footerStyle = computed(() => {
+  // Pretpostavljamo da je drawer širine 200px (default Quasar drawer), ali nije jer je u našem slučaju 300
+  return drawerOpen.value
+    ? { marginLeft: '300px', transition: 'margin 0.2s' }
+    : { marginLeft: '0', transition: 'margin 0.2s' }
+});
 </script>
+
+<style scoped>
+.hoverable-member {
+  border-radius: 8px;
+  transition: background 0.2s;
+}
+.hoverable-member:hover {
+  background: #e3f2fd;
+  cursor: pointer;
+}
+.custom-chat-message .q-message {
+  border-radius: 16px !important;
+  box-shadow: 0 2px 8px rgba(60,60,60,0.07);
+}
+.rounded-borders {
+  border-radius: 16px;
+}
+</style>

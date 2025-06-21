@@ -7,47 +7,15 @@
       </q-card-section>
 
       <q-card-section>
-        <q-input
-          v-model="title"
-          label="Naslov objave"
-          filled
-          color="primary"
-          dense
-        />
-        <q-editor
-          v-model="content"
-          label="Sadržaj"
-          class="q-mt-sm"
-          min-height="80px"
-          height="120px"
-        />
+        <q-input v-model="title" label="Naslov objave" filled color="primary" dense />
+        <q-editor v-model="content" label="Sadržaj" class="q-mt-sm" min-height="80px" height="120px" />
 
-        <q-select
-          v-model="category"
-          :options="categories"
-          option-label="label"
-          option-value="value"
-          label="Kategorija"
-          filled
-          color="primary"
-          class="q-mt-sm"
-          dense
-        />
+        <q-select v-model="category" :options="categories" option-label="label" option-value="value" label="Kategorija"
+          filled color="primary" class="q-mt-sm" dense />
 
-        <q-select
-          v-model="tags"
-          :options="availableTags"
-          option-label="label"
-          option-value="value"
-          label="Tagovi"
-          multiple
-          filled
-          color="primary"
-          class="q-mt-sm"
-          dense
-          :hint="'Maksimalno 5 tagova'"
-          :rules="[val => val.length <= 5 || 'Dozvoljeno je do 5 tagova.']"
-        />
+        <q-select v-model="tags" :options="availableTags" option-label="label" option-value="value" label="Tagovi"
+          multiple filled color="primary" class="q-mt-sm" dense :hint="'Maksimalno 5 tagova'"
+          :rules="[val => val.length <= 5 || 'Dozvoljeno je do 5 tagova.']" />
       </q-card-section>
 
       <q-card-actions align="right">
@@ -58,50 +26,32 @@
     <!-- Filter po tagovima -->
     <div class="q-mb-md">
       <div class="row items-center q-gutter-sm">
-        <q-select
-          v-model="selectedTags"
-          :options="availableTags"
-          option-label="label"
-          option-value="label"
-          label="Filtriraj po tagovima"
-          multiple
-          filled
-          emit-value
-          map-options
-          color="primary"
-          dense
-          style="flex: 1"
-        />
-
+        <q-select v-model="selectedTags" :options="availableTags" option-label="label" option-value="label"
+          label="Filtriraj po tagovima" multiple filled emit-value map-options color="primary" dense style="flex: 1" />
+        <q-select v-model="selectedUser" :options="availableUsers" option-label="label" option-value="value"
+          label="Filtriraj po korisniku" filled emit-value map-options clearable color="primary" dense style="flex: 1"
+          class="q-mr-sm" />
         <q-btn label="Filtriraj" color="primary" glossy @click="filterPosts" />
       </div>
     </div>
 
     <!-- Lista objava -->
-    <div
-      v-for="post in paginatedPostsFiltered"
-      :key="post.id"
-      class="q-mb-md"
-    >
+    <div v-for="post in paginatedPostsFiltered" :key="post.id" class="q-mb-md">
       <div class="post-card-wrapper">
-        <q-card
-          clickable
-          @click="goToPost(post.id)"
-          class="q-pa-sm post-card shadow-1 bg-white text-dark"
-        >
+        <q-card clickable @click="goToPost(post.id)" class="q-pa-sm post-card shadow-1 bg-white text-dark">
           <q-card-section class="row items-center justify-between">
             <div>
-              <q-avatar
-                icon="person"
-                size="sm"
-                color="primary"
-                text-color="white"
-              />
+              <q-avatar icon="person" size="sm" color="primary" text-color="white" />
               <span class="q-ml-sm text-subtitle2">{{ post.author }}</span>
             </div>
             <div class="column items-end">
               <div class="text-blue-9 text-caption">&lt;{{ post.category }}&gt;</div>
-              <div class="text-grey-7 text-caption">{{ formatDate(post.date) }}</div>
+              <div class="text-grey-7 text-caption">
+                {{ post.edited_at ? 
+                    `Uređeno ${formatDate(post.edited_at)}` : 
+                    formatDate(post.date) 
+                }}
+              </div>
             </div>
           </q-card-section>
 
@@ -117,29 +67,88 @@
               </span>
             </div>
 
-            <q-btn
-              flat
-              dense
-              round
-              @click.stop="goToPost(post.id)"
-              class="row items-center q-gutter-xs text-blue"
-            >
-              <q-icon name="chat_bubble_outline" />
-              <span>{{ post.comments }}</span>
-            </q-btn>
+            <div class="row items-center q-gutter-xs">
+              <!-- Edit gumb samo za vlastite objave -->
+              <q-btn 
+                v-if="isCurrentUserPost(post)"
+                flat 
+                dense 
+                round 
+                icon="edit" 
+                color="primary" 
+                size="sm"
+                @click.stop="openEditDialog(post)"
+              >
+                <q-tooltip>Uredi objavu</q-tooltip>
+              </q-btn>
+
+              <q-btn flat dense round @click.stop="goToPost(post.id)" class="row items-center q-gutter-xs text-blue">
+                <q-icon name="chat_bubble_outline" />
+                <span>{{ post.comments }}</span>
+              </q-btn>
+            </div>
           </q-card-section>
         </q-card>
       </div>
     </div>
 
-    <q-pagination
-      v-model="page"
-      :max="maxPage"
-      max-pages="5"
-      boundary-numbers
-      color="primary"
-      class="q-mt-md"
-    />
+    <!-- ✅ AŽURIRANI Edit Dialog - s naslovom i sadržajem -->
+    <q-dialog v-model="editDialog" persistent>
+      <q-card style="min-width: 500px; max-width: 700px;">
+        <q-card-section>
+          <div class="text-h6 text-primary">Uredi objavu</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <!-- ✅ NOVO - Polje za uređivanje naslova -->
+          <q-input
+            v-model="editTitle"
+            label="Naslov objave"
+            filled
+            maxlength="100"
+            counter
+            :disable="editLoading"
+            :error="!!editTitleError"
+            :error-message="editTitleError"
+            class="q-mb-md"
+          />
+          
+          <!-- Postojeće polje za sadržaj -->
+          <q-input
+            v-model="editContent"
+            type="textarea"
+            label="Sadržaj objave"
+            rows="5"
+            maxlength="256"
+            counter
+            filled
+            :disable="editLoading"
+            :error="!!editContentError"
+            :error-message="editContentError"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn 
+            flat 
+            label="Odustani" 
+            color="grey" 
+            @click="closeEditDialog"
+            :disable="editLoading" 
+          />
+          <q-btn 
+            flat 
+            label="Spremi izmjene" 
+            color="primary" 
+            @click="saveEdit"
+            :loading="editLoading"
+            :disable="!editTitle.trim() || !editContent.trim()"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
+
+    <q-pagination v-model="page" :max="maxPage" max-pages="5" boundary-numbers color="primary" class="q-mt-md" />
   </q-page>
 </template>
 
@@ -159,15 +168,6 @@ export default {
     };
   },
   methods: {
-    savePost() {
-      // Tvoja funkcija za spremanje posta
-    },
-    filterPosts() {
-      // Tvoja funkcija za filtriranje posta
-    },
-    goToPost(postId) {
-      // Navigacija na detalje posta
-    },
     formatDate(dateString) {
       const options = {
         day: '2-digit',
@@ -188,10 +188,12 @@ export default {
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { api } from 'boot/axios'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
 const router = useRouter()
+const selectedUser = ref(null)
 
 // Podaci za formu
 const title = ref('')
@@ -210,6 +212,15 @@ const perPage = 20
 const availableTags = ref([])
 const categories = ref([])
 
+// ✅ AŽURIRANO - Edit funkcionalnost s naslovom
+const editDialog = ref(false)
+const editingPost = ref(null)
+const editTitle = ref('')
+const editContent = ref('')
+const editLoading = ref(false)
+const editTitleError = ref('')
+const editContentError = ref('')
+
 // Paginacija
 const paginatedPostsFiltered = computed(() =>
   filteredPosts.value.slice((page.value - 1) * perPage, page.value * perPage)
@@ -217,6 +228,139 @@ const paginatedPostsFiltered = computed(() =>
 const maxPage = computed(() =>
   Math.ceil(filteredPosts.value.length / perPage)
 )
+const availableUsers = computed(() => {
+  const userSet = new Set()
+  posts.value.forEach(post => {
+    if (post.author) userSet.add(post.author)
+  })
+  return Array.from(userSet).map(username => ({
+    label: username,
+    value: username
+  }))
+})
+
+// Funkcija za provjeru vlasništva objave
+function isCurrentUserPost(post) {
+  const token = localStorage.getItem('token')
+  if (!token) return false
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    
+    // Usporedba po ID-u (najsigurnija)
+    if (post.authorId !== undefined && payload.id !== undefined) {
+      return payload.id == post.authorId
+    }
+    
+    // Fallback na imena
+    if (payload.korisnicko_ime && post.author) {
+      return payload.korisnicko_ime.toLowerCase() === post.author.toLowerCase()
+    } else if (payload.ime && post.author) {
+      return payload.ime.toLowerCase() === post.author.toLowerCase()
+    }
+    
+    return false
+  } catch (error) {
+    console.error('Greška pri dekodiranju tokena:', error)
+    return false
+  }
+}
+
+function openEditDialog(post) {
+  editingPost.value = post
+  editTitle.value = post.title
+  editContent.value = post.preview
+  editTitleError.value = ''
+  editContentError.value = ''
+  editDialog.value = true
+}
+
+function closeEditDialog() {
+  editDialog.value = false
+  editingPost.value = null
+  editTitle.value = ''
+  editContent.value = ''
+  editTitleError.value = ''
+  editContentError.value = ''
+}
+
+async function saveEdit() {
+  // Reset grešaka
+  editTitleError.value = ''
+  editContentError.value = ''
+  
+  let hasErrors = false
+  
+  // Validacija naslova
+  if (!editTitle.value.trim()) {
+    editTitleError.value = 'Naslov objave ne može biti prazan'
+    hasErrors = true
+  } else if (editTitle.value.length > 100) {
+    editTitleError.value = 'Naslov ne može biti duži od 100 znakova'
+    hasErrors = true
+  }
+  
+  // Validacija sadržaja
+  if (!editContent.value.trim()) {
+    editContentError.value = 'Sadržaj objave ne može biti prazan'
+    hasErrors = true
+  } else if (editContent.value.length > 256) {
+    editContentError.value = 'Sadržaj ne može biti duži od 256 znakova'
+    hasErrors = true
+  }
+  
+  if (hasErrors) {
+    return
+  }
+
+  editLoading.value = true
+
+  try {
+    const response = await api.put(`/objave/${editingPost.value.id}`, {
+      naslov: editTitle.value.trim(),
+      sadrzaj: editContent.value.trim()
+    })
+
+    if (response.data.success) {
+      // Ažuriraj post u listi
+      const index = posts.value.findIndex(p => p.id === editingPost.value.id)
+      if (index !== -1) {
+        posts.value[index] = { 
+          ...posts.value[index], 
+          title: editTitle.value.trim(),
+          preview: editContent.value.trim(),
+          edited_at: response.data.objava.edited_at
+        }
+      }
+      
+      const filteredIndex = filteredPosts.value.findIndex(p => p.id === editingPost.value.id)
+      if (filteredIndex !== -1) {
+        filteredPosts.value[filteredIndex] = { 
+          ...filteredPosts.value[filteredIndex], 
+          title: editTitle.value.trim(),
+          preview: editContent.value.trim(),
+          edited_at: response.data.objava.edited_at
+        }
+      }
+      
+      closeEditDialog()
+      
+      $q.notify({
+        type: 'positive',
+        message: 'Objava je uspješno ažurirana',
+        timeout: 2500,
+        position: 'top-right'
+      })
+    }
+  } catch (error) {
+    console.error('Greška pri ažuriranju objave:', error)
+    
+    const errorMsg = error.response?.data?.error || 'Greška prilikom spremanja'
+    editContentError.value = errorMsg
+  } finally {
+    editLoading.value = false
+  }
+}
 
 onMounted(() => {
   fetchTagovi()
@@ -227,9 +371,9 @@ onMounted(() => {
 async function fetchTagovi() {
   try {
     const response = await axios.get('http://localhost:3000/api/tagovi')
-    availableTags.value = response.data // format: [{ label: 'skripta', value: 'skripta' }, ...]
+    availableTags.value = response.data
   } catch (error) {
-    console.error(' Ne mogu dohvatiti tagove:', error)
+    console.error('Ne mogu dohvatiti tagove:', error)
   }
 }
 
@@ -238,7 +382,7 @@ async function fetchKategorije() {
     const response = await axios.get('http://localhost:3000/api/kategorije')
     categories.value = response.data
   } catch (error) {
-    console.error(' Ne mogu dohvatiti kategorije:', error)
+    console.error('Ne mogu dohvatiti kategorije:', error)
   }
 }
 
@@ -248,7 +392,7 @@ async function fetchObjave() {
     posts.value = response.data
     filteredPosts.value = response.data
   } catch (error) {
-    console.error(' Ne mogu dohvatiti objave:', error)
+    console.error('Ne mogu dohvatiti objave:', error)
     $q.notify({
       type: 'negative',
       message: 'Greška pri dohvaćanju objava.',
@@ -274,11 +418,7 @@ async function savePost() {
         tagovi: tags.value.map(t => t.value)
       }
 
-      await axios.post('http://localhost:3000/api/objave', noviPodaci, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      await api.post('/objave', noviPodaci)
 
       $q.notify({
         type: 'positive',
@@ -313,53 +453,60 @@ async function savePost() {
   }
 }
 
-async function filterPosts () {
-  // Ako nije odabran nijedan tag, prikaži sve objave
+async function filterPosts() {
   if (!selectedTags.value || selectedTags.value.length === 0) {
-    filteredPosts.value = posts.value
+    if (!selectedUser.value) {
+      filteredPosts.value = posts.value
+    } else {
+      filteredPosts.value = posts.value.filter(post =>
+        post.author === selectedUser.value
+      )
+    }
+    page.value = 1
     return
   }
 
   try {
-    // selectedTags.value sada sadrži niz stringova: ['skripta', 'projekt']
     const tagQuery = selectedTags.value.join(',')
-    console.log('🔍 Slanje upita za tagove:', tagQuery)
-
     const res = await axios.get(`http://localhost:3000/api/objave/filtrirane?tagovi=${tagQuery}`)
-    filteredPosts.value = res.data
+    let postsByTags = res.data
+
+    if (selectedUser.value) {
+      postsByTags = postsByTags.filter(post =>
+        post.author === selectedUser.value
+      )
+    }
+
+    filteredPosts.value = postsByTags
   } catch (err) {
-    console.error(' Greška pri filtriranju objava:', err)
+    console.error('Greška pri filtriranju objava:', err)
     $q.notify({
       type: 'negative',
       message: 'Greška pri filtriranju objava.',
       timeout: 2500
     })
   }
-  page.value = 1 // reset paginacije
+  page.value = 1
 }
 
 function goToPost(id) {
   router.push(`/objava/${id}`)
 }
-
 </script>
+
 <style scoped>
-/* Cijela stranica ostaje bijela */
 .q-page.bg-white {
   background-color: white;
 }
 
-/* Plava pozadina forme */
 .q-card.bg-blue-1 {
-  background-color: #e3f2fd !important; /* svijetloplava Quasar nijansa */
+  background-color: #e3f2fd !important;
 }
 
-/* Stil za wrapper oko svake objave */
 .post-card-wrapper {
   position: relative;
 }
 
-/* Plava crta s desne strane kartice */
 .post-card-wrapper::after {
   content: '';
   position: absolute;
@@ -367,18 +514,16 @@ function goToPost(id) {
   right: 0;
   width: 6px;
   height: 100%;
-  background-color: #1976d2; /* Quasar primary blue */
+  background-color: #1976d2;
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
 
-/* Kartica objave */
 .post-card {
   transition: box-shadow 0.3s ease, transform 0.2s ease;
   border-radius: 8px;
 }
 
-/* Hover efekt */
 .post-card:hover {
   box-shadow: 0 6px 18px rgba(25, 118, 210, 0.25);
   transform: translateY(-2px);
@@ -388,5 +533,4 @@ function goToPost(id) {
 .form-card {
   border-radius: 10px;
 }
-
 </style>

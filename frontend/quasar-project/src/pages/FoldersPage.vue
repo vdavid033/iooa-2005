@@ -76,16 +76,10 @@ async function fetchRootFolders() {
 
 async function handleCreateFolder({ name }) {
   try {
-    const response = await api.post(
-      '/folders',
-      {
-        ime_mape: name,
-        id_parent_mapa: null,
-      },
-      {
-        headers: { korisnicko_ime: 'marko456' }, // simulacija autentikacije admin usera
-      }
-    )
+    const response = await api.post('/folders', {
+      ime_mape: name,
+      id_parent_mapa: null,
+    })
     fetchRootFolders()
     $q.notify({
       type: 'positive',
@@ -114,15 +108,9 @@ function editFolder(folder) {
 
 async function handleRenameFolder(updated) {
   try {
-    await api.put(
-      `/folders/${updated.id_mape}`,
-      {
-        ime_mape: updated.ime_mape,
-      },
-      {
-        headers: { korisnicko_ime: 'marko456' },
-      }
-    )
+    await api.put(`/folders/${updated.id_mape}`, {
+      ime_mape: updated.ime_mape,
+    })
     fetchRootFolders()
     $q.notify({
       type: 'positive',
@@ -147,9 +135,7 @@ function confirmDelete(folder) {
 
 async function handleDeleteFolder(folder) {
   try {
-    await api.delete(`/folders/${folder.id_mape}`, {
-      headers: { korisnicko_ime: 'marko456' },
-    })
+    await api.delete(`/folders/${folder.id_mape}`)
     fetchRootFolders()
     $q.notify({
       type: 'positive',
