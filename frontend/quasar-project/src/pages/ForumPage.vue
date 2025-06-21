@@ -46,7 +46,13 @@
             </div>
             <div class="column items-end">
               <div class="text-blue-9 text-caption">&lt;{{ post.category }}&gt;</div>
-              <div class="text-grey-7 text-caption">{{ formatDate(post.date) }}</div>
+              <!-- AŽURIRANO - prikaži edited_at ako postoji -->
+              <div class="text-grey-7 text-caption">
+                {{ post.edited_at ? 
+                    `Uređeno ${formatDate(post.edited_at)}` : 
+                    formatDate(post.date) 
+                }}
+              </div>
             </div>
           </q-card-section>
 
@@ -62,14 +68,72 @@
               </span>
             </div>
 
-            <q-btn flat dense round @click.stop="goToPost(post.id)" class="row items-center q-gutter-xs text-blue">
-              <q-icon name="chat_bubble_outline" />
-              <span>{{ post.comments }}</span>
-            </q-btn>
+            <div class="row items-center q-gutter-xs">
+              <!-- NOVO - Edit gumb samo za vlastite objave -->
+              <q-btn 
+                v-if="isCurrentUserPost(post)"
+                flat 
+                dense 
+                round 
+                icon="edit" 
+                color="primary" 
+                size="sm"
+                @click.stop="openEditDialog(post)"
+              >
+                <q-tooltip>Uredi objavu</q-tooltip>
+              </q-btn>
+
+              <q-btn flat dense round @click.stop="goToPost(post.id)" class="row items-center q-gutter-xs text-blue">
+                <q-icon name="chat_bubble_outline" />
+                <span>{{ post.comments }}</span>
+              </q-btn>
+            </div>
           </q-card-section>
         </q-card>
       </div>
     </div>
+
+    <!-- NOVO - Edit Dialog -->
+    <q-dialog v-model="editDialog" persistent>
+      <q-card style="min-width: 400px; max-width: 600px;">
+        <q-card-section>
+          <div class="text-h6 text-primary">Uredi objavu</div>
+        </q-card-section>
+
+        <q-card-section class="q-pt-none">
+          <q-input
+            v-model="editContent"
+            type="textarea"
+            label="Sadržaj objave"
+            rows="4"
+            maxlength="256"
+            counter
+            filled
+            :disable="editLoading"
+            :error="!!editError"
+            :error-message="editError"
+          />
+        </q-card-section>
+
+        <q-card-actions align="right">
+          <q-btn 
+            flat 
+            label="Odustani" 
+            color="grey" 
+            @click="closeEditDialog"
+            :disable="editLoading" 
+          />
+          <q-btn 
+            flat 
+            label="Spremi" 
+            color="primary" 
+            @click="saveEdit"
+            :loading="editLoading"
+            :disable="!editContent.trim()"
+          />
+        </q-card-actions>
+      </q-card>
+    </q-dialog>
 
     <q-pagination v-model="page" :max="maxPage" max-pages="5" boundary-numbers color="primary" class="q-mt-md" />
   </q-page>
@@ -143,6 +207,13 @@ const perPage = 20
 const availableTags = ref([])
 const categories = ref([])
 
+// NOVO - Reaktivni podaci za edit funkcionalnost
+const editDialog = ref(false)
+const editingPost = ref(null)
+const editContent = ref('')
+const editLoading = ref(false)
+const editError = ref('')
+
 // Paginacija
 const paginatedPostsFiltered = computed(() =>
   filteredPosts.value.slice((page.value - 1) * perPage, page.value * perPage)
@@ -151,7 +222,6 @@ const maxPage = computed(() =>
   Math.ceil(filteredPosts.value.length / perPage)
 )
 const availableUsers = computed(() => {
-  // Pretpostavka: svaki post ima post.author (možda je kod tebe post.korisnik ili post.username, prilagodi!)
   const userSet = new Set()
   posts.value.forEach(post => {
     if (post.author) userSet.add(post.author)
@@ -162,6 +232,85 @@ const availableUsers = computed(() => {
   }))
 })
 
+// NOVO - Funkcije za edit
+function isCurrentUserPost(post) {
+  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
+  console.log('Current user:', currentUser) // DEBUG
+  console.log('Post author:', post.author) // DEBUG
+  return currentUser && currentUser.korisnicko_ime === post.author
+}
+
+function openEditDialog(post) {
+  editingPost.value = post
+  editContent.value = post.preview // koristi postojeći preview
+  editError.value = ''
+  editDialog.value = true
+}
+
+function closeEditDialog() {
+  editDialog.value = false
+  editingPost.value = null
+  editContent.value = ''
+  editError.value = ''
+}
+
+async function saveEdit() {
+  if (!editContent.value.trim()) {
+    editError.value = 'Sadržaj objave ne može biti prazan'
+    return
+  }
+  
+  if (editContent.value.length > 256) {
+    editError.value = 'Sadržaj ne može biti duži od 256 znakova'
+    return
+  }
+
+  editLoading.value = true
+  editError.value = ''
+
+  try {
+    const response = await axios.put(`http://localhost:3000/api/objave/${editingPost.value.id}`, {
+      sadrzaj: editContent.value.trim()
+    })
+
+    if (response.data.success) {
+      // Ažuriraj post u listi
+      const index = posts.value.findIndex(p => p.id === editingPost.value.id)
+      if (index !== -1) {
+        posts.value[index] = { 
+          ...posts.value[index], 
+          preview: editContent.value, // u varchar(256) preview = puni sadržaj
+          edited_at: response.data.objava.edited_at
+        }
+      }
+      
+      // Ažuriraj i filtered posts
+      const filteredIndex = filteredPosts.value.findIndex(p => p.id === editingPost.value.id)
+      if (filteredIndex !== -1) {
+        filteredPosts.value[filteredIndex] = { 
+          ...filteredPosts.value[filteredIndex], 
+          preview: editContent.value,
+          edited_at: response.data.objava.edited_at
+        }
+      }
+      
+      closeEditDialog()
+      
+      $q.notify({
+        type: 'positive',
+        message: 'Objava je uspješno ažurirana',
+        timeout: 2500,
+        position: 'top-right'
+      })
+    }
+  } catch (error) {
+    console.error('Greška pri ažuriranju objave:', error)
+    editError.value = error.response?.data?.error || 'Greška prilikom spremanja'
+  } finally {
+    editLoading.value = false
+  }
+}
+
 onMounted(() => {
   fetchTagovi()
   fetchKategorije()
@@ -171,7 +320,7 @@ onMounted(() => {
 async function fetchTagovi() {
   try {
     const response = await axios.get('http://localhost:3000/api/tagovi')
-    availableTags.value = response.data // format: [{ label: 'skripta', value: 'skripta' }, ...]
+    availableTags.value = response.data
   } catch (error) {
     console.error(' Ne mogu dohvatiti tagove:', error)
   }
