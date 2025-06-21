@@ -92,15 +92,18 @@
       </div>
     </div>
 
-    <!-- ✅ AŽURIRANI Edit Dialog - s naslovom i sadržajem -->
+    <!-- Edit Dialog - naslov, sadržaj, kategorija, tagovi -->
     <q-dialog v-model="editDialog" persistent>
-      <q-card style="min-width: 500px; max-width: 700px;">
+      <q-card style="min-width: 600px; max-width: 800px;">
         <q-card-section>
-          <div class="text-h6 text-primary">Uredi objavu</div>
+          <div class="text-h6 text-primary">
+            <q-icon name="edit" class="q-mr-sm" />
+            Uredi objavu
+          </div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
-          <!-- ✅ NOVO - Polje za uređivanje naslova -->
+          <!-- Naslov -->
           <q-input
             v-model="editTitle"
             label="Naslov objave"
@@ -113,18 +116,51 @@
             class="q-mb-md"
           />
           
-          <!-- Postojeće polje za sadržaj -->
+          <!-- Sadržaj -->
           <q-input
             v-model="editContent"
             type="textarea"
             label="Sadržaj objave"
-            rows="5"
+            rows="4"
             maxlength="256"
             counter
             filled
             :disable="editLoading"
             :error="!!editContentError"
             :error-message="editContentError"
+            class="q-mb-md"
+          />
+
+          <!--  Kategorija -->
+          <q-select
+            v-model="editCategory"
+            :options="categories"
+            option-label="label"
+            option-value="value"
+            label="Kategorija"
+            filled
+            color="primary"
+            :disable="editLoading"
+            :error="!!editCategoryError"
+            :error-message="editCategoryError"
+            class="q-mb-md"
+          />
+
+          <!-- Tagovi -->
+          <q-select
+            v-model="editTags"
+            :options="availableTags"
+            option-label="label"
+            option-value="value"
+            label="Tagovi"
+            multiple
+            filled
+            color="primary"
+            :disable="editLoading"
+            :error="!!editTagsError"
+            :error-message="editTagsError"
+            :hint="'Maksimalno 5 tagova'"
+            :rules="[val => val.length <= 5 || 'Dozvoljeno je do 5 tagova.']"
           />
         </q-card-section>
 
@@ -138,11 +174,11 @@
           />
           <q-btn 
             flat 
-            label="Spremi izmjene" 
+            label="Spremi sve izmjene" 
             color="primary" 
             @click="saveEdit"
             :loading="editLoading"
-            :disable="!editTitle.trim() || !editContent.trim()"
+            :disable="!editTitle.trim() || !editContent.trim() || !editCategory"
           />
         </q-card-actions>
       </q-card>
@@ -212,14 +248,18 @@ const perPage = 20
 const availableTags = ref([])
 const categories = ref([])
 
-// ✅ AŽURIRANO - Edit funkcionalnost s naslovom
+// Edit funkcionalnost s naslovom, sadržajem, kategorijom i tagovima
 const editDialog = ref(false)
 const editingPost = ref(null)
 const editTitle = ref('')
 const editContent = ref('')
+const editCategory = ref(null)        
+const editTags = ref([])              
 const editLoading = ref(false)
 const editTitleError = ref('')
 const editContentError = ref('')
+const editCategoryError = ref('')     
+const editTagsError = ref('')         
 
 // Paginacija
 const paginatedPostsFiltered = computed(() =>
@@ -266,28 +306,82 @@ function isCurrentUserPost(post) {
   }
 }
 
-function openEditDialog(post) {
+// openEditDialog učitava sve podatke objave
+async function openEditDialog(post) {
   editingPost.value = post
   editTitle.value = post.title
   editContent.value = post.preview
+  
+  // Reset grešaka
   editTitleError.value = ''
   editContentError.value = ''
-  editDialog.value = true
+  editCategoryError.value = ''
+  editTagsError.value = ''
+  
+  // dohvati potpune podatke objave s kategorijom i tagovima
+  try {
+    editLoading.value = true
+    const response = await api.get(`/objave/${post.id}`)
+    const fullPost = response.data
+    
+    console.log('Potpuni podaci objave:', fullPost)
+    
+    // Postavi kategoriju
+    if (fullPost.kategorija) {
+      editCategory.value = categories.value.find(cat => 
+        cat.label === fullPost.kategorija || cat.value === fullPost.fk_kategorija
+      ) || null
+    } else {
+      editCategory.value = null
+    }
+    
+    // Postavi tagove
+    if (fullPost.tagovi && Array.isArray(fullPost.tagovi)) {
+      editTags.value = availableTags.value.filter(tag => 
+        fullPost.tagovi.includes(tag.label)
+      )
+    } else {
+      editTags.value = []
+    }
+    
+    console.log('Edit kategorija:', editCategory.value)
+    console.log('Edit tagovi:', editTags.value)
+    
+    editDialog.value = true
+    
+  } catch (error) {
+    console.error('Greška pri dohvaćanju podataka objave:', error)
+    $q.notify({
+      type: 'negative',
+      message: 'Greška pri učitavanju podataka objave',
+      timeout: 2500
+    })
+  } finally {
+    editLoading.value = false
+  }
 }
 
+// closeEditDialog čisti sve podatke
 function closeEditDialog() {
   editDialog.value = false
   editingPost.value = null
   editTitle.value = ''
   editContent.value = ''
+  editCategory.value = null
+  editTags.value = []
   editTitleError.value = ''
   editContentError.value = ''
+  editCategoryError.value = ''
+  editTagsError.value = ''
 }
 
+// saveEdit s kategorijom i tagovima
 async function saveEdit() {
   // Reset grešaka
   editTitleError.value = ''
   editContentError.value = ''
+  editCategoryError.value = ''
+  editTagsError.value = ''
   
   let hasErrors = false
   
@@ -309,6 +403,18 @@ async function saveEdit() {
     hasErrors = true
   }
   
+  // Validacija kategorije
+  if (!editCategory.value) {
+    editCategoryError.value = 'Kategorija je obavezna'
+    hasErrors = true
+  }
+  
+  // Validacija tagova
+  if (editTags.value.length > 5) {
+    editTagsError.value = 'Maksimalno 5 tagova je dozvoljeno'
+    hasErrors = true
+  }
+  
   if (hasErrors) {
     return
   }
@@ -316,19 +422,24 @@ async function saveEdit() {
   editLoading.value = true
 
   try {
+    // šaljemo sve podatke
     const response = await api.put(`/objave/${editingPost.value.id}`, {
       naslov: editTitle.value.trim(),
-      sadrzaj: editContent.value.trim()
+      sadrzaj: editContent.value.trim(),
+      fk_kategorija: editCategory.value?.value || null,
+      tagovi: editTags.value.map(tag => tag.value)
     })
 
     if (response.data.success) {
-      // Ažuriraj post u listi
+      //  ažuriraj sve podatke u listi
       const index = posts.value.findIndex(p => p.id === editingPost.value.id)
       if (index !== -1) {
         posts.value[index] = { 
           ...posts.value[index], 
           title: editTitle.value.trim(),
           preview: editContent.value.trim(),
+          category: editCategory.value?.label || '',
+          tags: editTags.value.map(tag => tag.label),
           edited_at: response.data.objava.edited_at
         }
       }
@@ -339,6 +450,8 @@ async function saveEdit() {
           ...filteredPosts.value[filteredIndex], 
           title: editTitle.value.trim(),
           preview: editContent.value.trim(),
+          category: editCategory.value?.label || '',
+          tags: editTags.value.map(tag => tag.label),
           edited_at: response.data.objava.edited_at
         }
       }
