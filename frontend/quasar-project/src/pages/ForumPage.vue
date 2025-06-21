@@ -46,7 +46,6 @@
             </div>
             <div class="column items-end">
               <div class="text-blue-9 text-caption">&lt;{{ post.category }}&gt;</div>
-              <!-- AŽURIRANO - prikaži edited_at ako postoji -->
               <div class="text-grey-7 text-caption">
                 {{ post.edited_at ? 
                     `Uređeno ${formatDate(post.edited_at)}` : 
@@ -69,7 +68,7 @@
             </div>
 
             <div class="row items-center q-gutter-xs">
-              <!-- NOVO - Edit gumb samo za vlastite objave -->
+              <!-- Edit gumb samo za vlastite objave -->
               <q-btn 
                 v-if="isCurrentUserPost(post)"
                 flat 
@@ -93,25 +92,39 @@
       </div>
     </div>
 
-    <!-- NOVO - Edit Dialog -->
+    <!-- ✅ AŽURIRANI Edit Dialog - s naslovom i sadržajem -->
     <q-dialog v-model="editDialog" persistent>
-      <q-card style="min-width: 400px; max-width: 600px;">
+      <q-card style="min-width: 500px; max-width: 700px;">
         <q-card-section>
           <div class="text-h6 text-primary">Uredi objavu</div>
         </q-card-section>
 
         <q-card-section class="q-pt-none">
+          <!-- ✅ NOVO - Polje za uređivanje naslova -->
+          <q-input
+            v-model="editTitle"
+            label="Naslov objave"
+            filled
+            maxlength="100"
+            counter
+            :disable="editLoading"
+            :error="!!editTitleError"
+            :error-message="editTitleError"
+            class="q-mb-md"
+          />
+          
+          <!-- Postojeće polje za sadržaj -->
           <q-input
             v-model="editContent"
             type="textarea"
             label="Sadržaj objave"
-            rows="4"
+            rows="5"
             maxlength="256"
             counter
             filled
             :disable="editLoading"
-            :error="!!editError"
-            :error-message="editError"
+            :error="!!editContentError"
+            :error-message="editContentError"
           />
         </q-card-section>
 
@@ -125,11 +138,11 @@
           />
           <q-btn 
             flat 
-            label="Spremi" 
+            label="Spremi izmjene" 
             color="primary" 
             @click="saveEdit"
             :loading="editLoading"
-            :disable="!editContent.trim()"
+            :disable="!editTitle.trim() || !editContent.trim()"
           />
         </q-card-actions>
       </q-card>
@@ -155,15 +168,6 @@ export default {
     };
   },
   methods: {
-    savePost() {
-      // Tvoja funkcija za spremanje posta
-    },
-    filterPosts() {
-      // Tvoja funkcija za filtriranje posta
-    },
-    goToPost(postId) {
-      // Navigacija na detalje posta
-    },
     formatDate(dateString) {
       const options = {
         day: '2-digit',
@@ -184,6 +188,7 @@ export default {
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios'
+import { api } from 'boot/axios'
 import { useQuasar } from 'quasar'
 
 const $q = useQuasar()
@@ -207,12 +212,14 @@ const perPage = 20
 const availableTags = ref([])
 const categories = ref([])
 
-// NOVO - Reaktivni podaci za edit funkcionalnost
+// ✅ AŽURIRANO - Edit funkcionalnost s naslovom
 const editDialog = ref(false)
 const editingPost = ref(null)
+const editTitle = ref('')
 const editContent = ref('')
 const editLoading = ref(false)
-const editError = ref('')
+const editTitleError = ref('')
+const editContentError = ref('')
 
 // Paginacija
 const paginatedPostsFiltered = computed(() =>
@@ -232,44 +239,85 @@ const availableUsers = computed(() => {
   }))
 })
 
-// NOVO - Funkcije za edit
+// Funkcija za provjeru vlasništva objave
 function isCurrentUserPost(post) {
-  const currentUser = JSON.parse(localStorage.getItem('user') || '{}')
-  console.log('Current user:', currentUser) // DEBUG
-  console.log('Post author:', post.author) // DEBUG
-  return currentUser && currentUser.korisnicko_ime === post.author
+  const token = localStorage.getItem('token')
+  if (!token) return false
+  
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]))
+    
+    // Usporedba po ID-u (najsigurnija)
+    if (post.authorId !== undefined && payload.id !== undefined) {
+      return payload.id == post.authorId
+    }
+    
+    // Fallback na imena
+    if (payload.korisnicko_ime && post.author) {
+      return payload.korisnicko_ime.toLowerCase() === post.author.toLowerCase()
+    } else if (payload.ime && post.author) {
+      return payload.ime.toLowerCase() === post.author.toLowerCase()
+    }
+    
+    return false
+  } catch (error) {
+    console.error('Greška pri dekodiranju tokena:', error)
+    return false
+  }
 }
 
 function openEditDialog(post) {
   editingPost.value = post
-  editContent.value = post.preview // koristi postojeći preview
-  editError.value = ''
+  editTitle.value = post.title
+  editContent.value = post.preview
+  editTitleError.value = ''
+  editContentError.value = ''
   editDialog.value = true
 }
 
 function closeEditDialog() {
   editDialog.value = false
   editingPost.value = null
+  editTitle.value = ''
   editContent.value = ''
-  editError.value = ''
+  editTitleError.value = ''
+  editContentError.value = ''
 }
 
 async function saveEdit() {
-  if (!editContent.value.trim()) {
-    editError.value = 'Sadržaj objave ne može biti prazan'
-    return
+  // Reset grešaka
+  editTitleError.value = ''
+  editContentError.value = ''
+  
+  let hasErrors = false
+  
+  // Validacija naslova
+  if (!editTitle.value.trim()) {
+    editTitleError.value = 'Naslov objave ne može biti prazan'
+    hasErrors = true
+  } else if (editTitle.value.length > 100) {
+    editTitleError.value = 'Naslov ne može biti duži od 100 znakova'
+    hasErrors = true
   }
   
-  if (editContent.value.length > 256) {
-    editError.value = 'Sadržaj ne može biti duži od 256 znakova'
+  // Validacija sadržaja
+  if (!editContent.value.trim()) {
+    editContentError.value = 'Sadržaj objave ne može biti prazan'
+    hasErrors = true
+  } else if (editContent.value.length > 256) {
+    editContentError.value = 'Sadržaj ne može biti duži od 256 znakova'
+    hasErrors = true
+  }
+  
+  if (hasErrors) {
     return
   }
 
   editLoading.value = true
-  editError.value = ''
 
   try {
-    const response = await axios.put(`http://localhost:3000/api/objave/${editingPost.value.id}`, {
+    const response = await api.put(`/objave/${editingPost.value.id}`, {
+      naslov: editTitle.value.trim(),
       sadrzaj: editContent.value.trim()
     })
 
@@ -279,17 +327,18 @@ async function saveEdit() {
       if (index !== -1) {
         posts.value[index] = { 
           ...posts.value[index], 
-          preview: editContent.value, // u varchar(256) preview = puni sadržaj
+          title: editTitle.value.trim(),
+          preview: editContent.value.trim(),
           edited_at: response.data.objava.edited_at
         }
       }
       
-      // Ažuriraj i filtered posts
       const filteredIndex = filteredPosts.value.findIndex(p => p.id === editingPost.value.id)
       if (filteredIndex !== -1) {
         filteredPosts.value[filteredIndex] = { 
           ...filteredPosts.value[filteredIndex], 
-          preview: editContent.value,
+          title: editTitle.value.trim(),
+          preview: editContent.value.trim(),
           edited_at: response.data.objava.edited_at
         }
       }
@@ -305,7 +354,9 @@ async function saveEdit() {
     }
   } catch (error) {
     console.error('Greška pri ažuriranju objave:', error)
-    editError.value = error.response?.data?.error || 'Greška prilikom spremanja'
+    
+    const errorMsg = error.response?.data?.error || 'Greška prilikom spremanja'
+    editContentError.value = errorMsg
   } finally {
     editLoading.value = false
   }
@@ -322,7 +373,7 @@ async function fetchTagovi() {
     const response = await axios.get('http://localhost:3000/api/tagovi')
     availableTags.value = response.data
   } catch (error) {
-    console.error(' Ne mogu dohvatiti tagove:', error)
+    console.error('Ne mogu dohvatiti tagove:', error)
   }
 }
 
@@ -331,7 +382,7 @@ async function fetchKategorije() {
     const response = await axios.get('http://localhost:3000/api/kategorije')
     categories.value = response.data
   } catch (error) {
-    console.error(' Ne mogu dohvatiti kategorije:', error)
+    console.error('Ne mogu dohvatiti kategorije:', error)
   }
 }
 
@@ -341,7 +392,7 @@ async function fetchObjave() {
     posts.value = response.data
     filteredPosts.value = response.data
   } catch (error) {
-    console.error(' Ne mogu dohvatiti objave:', error)
+    console.error('Ne mogu dohvatiti objave:', error)
     $q.notify({
       type: 'negative',
       message: 'Greška pri dohvaćanju objava.',
@@ -367,11 +418,7 @@ async function savePost() {
         tagovi: tags.value.map(t => t.value)
       }
 
-      await axios.post('http://localhost:3000/api/objave', noviPodaci, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      })
+      await api.post('/objave', noviPodaci)
 
       $q.notify({
         type: 'positive',
@@ -407,7 +454,6 @@ async function savePost() {
 }
 
 async function filterPosts() {
-  // Ako nije odabran nijedan tag, prikaži sve objave (s dodatkom filtera po korisniku)
   if (!selectedTags.value || selectedTags.value.length === 0) {
     if (!selectedUser.value) {
       filteredPosts.value = posts.value
@@ -425,7 +471,6 @@ async function filterPosts() {
     const res = await axios.get(`http://localhost:3000/api/objave/filtrirane?tagovi=${tagQuery}`)
     let postsByTags = res.data
 
-    // DODATNO filtriranje po korisniku
     if (selectedUser.value) {
       postsByTags = postsByTags.filter(post =>
         post.author === selectedUser.value
@@ -441,32 +486,27 @@ async function filterPosts() {
       timeout: 2500
     })
   }
-  page.value = 1 // reset paginacije
+  page.value = 1
 }
 
 function goToPost(id) {
   router.push(`/objava/${id}`)
 }
-
 </script>
+
 <style scoped>
-/* Cijela stranica ostaje bijela */
 .q-page.bg-white {
   background-color: white;
 }
 
-/* Plava pozadina forme */
 .q-card.bg-blue-1 {
   background-color: #e3f2fd !important;
-  /* svijetloplava Quasar nijansa */
 }
 
-/* Stil za wrapper oko svake objave */
 .post-card-wrapper {
   position: relative;
 }
 
-/* Plava crta s desne strane kartice */
 .post-card-wrapper::after {
   content: '';
   position: absolute;
@@ -475,18 +515,15 @@ function goToPost(id) {
   width: 6px;
   height: 100%;
   background-color: #1976d2;
-  /* Quasar primary blue */
   border-top-right-radius: 4px;
   border-bottom-right-radius: 4px;
 }
 
-/* Kartica objave */
 .post-card {
   transition: box-shadow 0.3s ease, transform 0.2s ease;
   border-radius: 8px;
 }
 
-/* Hover efekt */
 .post-card:hover {
   box-shadow: 0 6px 18px rgba(25, 118, 210, 0.25);
   transform: translateY(-2px);

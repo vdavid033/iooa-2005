@@ -3,19 +3,13 @@ const router = express.Router()
 const controller = require('../controllers/objavaController')
 const { verifyTokenUser } = require('../authJwt')
 
-// Sve objave
+// PUBLIC ROUTES (no token required)
 router.get('/', controller.getAllObjave)
-
-// Filtrirane objave po tagovima
 router.get('/filtrirane', controller.getFilteredObjave)
-
-// Jedna objava po ID-u
 router.get('/:id', controller.getObjavaById)
 
-// Kreiraj novu objavu
+// PROTECTED ROUTES (token required)
 router.post('/', verifyTokenUser, controller.createObjava)
-
-// NOVA RUTA - Uredi objavu (samo vlastitu)
 router.put('/:id', verifyTokenUser, controller.updateObjava)
 
 module.exports = router
