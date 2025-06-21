@@ -36,7 +36,8 @@ exports.createObjava = (req, res) => {
 exports.getAllObjave = (req, res) => {
   const sql = `
     SELECT o.id_objava AS id, o.naslov_objave AS title, LEFT(o.sadrzaj_objave, 200) AS preview,
-           o.datum_objave AS date, k.korisnicko_ime AS author, kf.ime_kategorija_forum AS category
+           o.datum_objave AS date, o.edited_at, o.edit_count,
+           k.korisnicko_ime AS author, kf.ime_kategorija_forum AS category
     FROM objava o
     LEFT JOIN korisnik k ON o.fk_korisnik = k.id_korisnika
     LEFT JOIN kategorija_forum kf ON o.fk_kategorija = kf.id_kategorija_forum
@@ -130,8 +131,10 @@ exports.getFilteredObjave = (req, res) => {
 exports.getObjavaById = (req, res) => {
   const id = req.params.id
   const sql = `
-    SELECT o.id_objava AS id, o.naslov_objave AS naslov, o.sadrzaj_objave AS sadrzaj, o.datum_objave,
-           o.fk_korisnik AS id_korisnika, k.korisnicko_ime AS username, kf.ime_kategorija_forum AS kategorija
+    SELECT o.id_objava AS id, o.naslov_objave AS naslov, o.sadrzaj_objave AS sadrzaj, 
+           o.datum_objave, o.edited_at, o.edit_count,
+           o.fk_korisnik AS id_korisnika, k.korisnicko_ime AS username, 
+           kf.ime_kategorija_forum AS kategorija
     FROM objava o
     LEFT JOIN korisnik k ON o.fk_korisnik = k.id_korisnika
     LEFT JOIN kategorija_forum kf ON o.fk_kategorija = kf.id_kategorija_forum
@@ -147,6 +150,80 @@ exports.getObjavaById = (req, res) => {
       if (tagErr) return res.status(500).json({ error: 'Greška pri tagovima.' })
       post.tagovi = tagResults.map(r => r.naziv_tag)
       res.status(200).json(post)
+    })
+  })
+}
+
+// NOVA FUNKCIJA ZA EDIT OBJAVE
+exports.updateObjava = (req, res) => {
+  const { id } = req.params
+  const { sadrzaj } = req.body
+  const fk_korisnik = req.user.id // iz verifyTokenUser middleware
+
+  // Validacija
+  if (!sadrzaj || sadrzaj.trim().length === 0) {
+    return res.status(400).json({ error: 'Sadržaj objave je obavezan' })
+  }
+  
+  if (sadrzaj.length > 256) {
+    return res.status(400).json({ error: 'Sadržaj ne može biti duži od 256 znakova' })
+  }
+
+  // Provjeri da objava postoji i da je korisnik vlasnik
+  const checkSql = 'SELECT * FROM objava WHERE id_objava = ? AND fk_korisnik = ?'
+  db.query(checkSql, [id, fk_korisnik], (err, results) => {
+    if (err) {
+      console.error('Database error:', err)
+      return res.status(500).json({ error: 'Greška na serveru' })
+    }
+
+    if (results.length === 0) {
+      return res.status(404).json({ 
+        error: 'Objava nije pronađena ili nemate dozvolu za uređivanje' 
+      })
+    }
+
+    // Ažuriraj objavu
+    const updateSql = `
+      UPDATE objava 
+      SET sadrzaj_objave = ?, 
+          edited_at = CURRENT_TIMESTAMP,
+          edit_count = edit_count + 1 
+      WHERE id_objava = ? AND fk_korisnik = ?
+    `
+    
+    db.query(updateSql, [sadrzaj.trim(), id, fk_korisnik], (updateErr, updateResult) => {
+      if (updateErr) {
+        console.error('Update error:', updateErr)
+        return res.status(500).json({ error: 'Greška pri ažuriranju objave' })
+      }
+
+      if (updateResult.affectedRows === 0) {
+        return res.status(500).json({ error: 'Greška pri ažuriranju objave' })
+      }
+
+      // Vrati ažuriranu objavu s korisničkim podacima
+      const selectSql = `
+        SELECT o.id_objava AS id, o.naslov_objave AS naslov, o.sadrzaj_objave AS sadrzaj, 
+               o.datum_objave, o.edited_at, o.edit_count, o.fk_korisnik AS id_korisnika, 
+               k.korisnicko_ime AS username, kf.ime_kategorija_forum AS kategorija
+        FROM objava o
+        LEFT JOIN korisnik k ON o.fk_korisnik = k.id_korisnika
+        LEFT JOIN kategorija_forum kf ON o.fk_kategorija = kf.id_kategorija_forum
+        WHERE o.id_objava = ?
+      `
+      
+      db.query(selectSql, [id], (selectErr, selectResults) => {
+        if (selectErr) {
+          console.error('Select error:', selectErr)
+          return res.status(500).json({ error: 'Greška pri dohvaćanju ažurirane objave' })
+        }
+
+        res.json({
+          success: true,
+          objava: selectResults[0]
+        })
+      })
     })
   })
 }
