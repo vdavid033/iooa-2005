@@ -20,7 +20,6 @@ const verifyTokenAdmin = (req, res, next) => {
         }
         
         req.user = decoded;
-        req.userId = decoded.id; 
         
         if (decoded.uloga === "admin") {
             next();
@@ -50,7 +49,6 @@ const verifyTokenUser = (req, res, next) => {
         
         
         req.user = decoded;
-        
         next();
         
     } catch (err) {
