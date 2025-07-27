@@ -6,6 +6,7 @@ const jwt = require("jsonwebtoken");
 const config = require("./auth_config");
 const authJwt = require("./authJwt");
 const connection = require("./data/db");
+const path = require('path')
 
 const app = express();
 const PORT = 3000;
@@ -24,21 +25,25 @@ app.post("/api/login", async (req, res) => {
     );
 
     if (!rows.length) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Korisnik ne postoji" });
+      return res.status(404).json({ success: false, message: "Korisnik ne postoji" });
     }
 
     const user = rows[0];
+
+    // Check if user is 'zakljucan' (locked)
+    if (user.zakljucan === 1) {
+      return res
+        .status(403)  // 403 Forbidden is a suitable status here
+        .json({ success: false, message: "Korisnik čeka odobrenje admina" });
+    }
+
     const isMatch = await bcrypt.compare(
       String(password),
       String(user.lozinka_korisnika)
     );
 
     if (!isMatch) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Krivo korisničko ime ili lozinka" });
+      return res.status(401).json({ success: false, message: "Krivo korisničko ime ili lozinka" });
     }
 
     const token = jwt.sign(
@@ -74,6 +79,9 @@ app.use("/api/events", require("./routes/events"));
 app.use("/api/objave", require("./routes/objaveRoutes"));
 app.use("/api/comments", require("./routes/komentariRoutes"));
 app.use("/api", require("./routes/reportRoutes"));
+app.use("/accountUpdate", require("./routes/accountRoutes"));
+app.use("/adminAccountCheck", require("./routes/accountManagementRoutes"));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);

@@ -28,11 +28,24 @@
             <q-input v-model="lozinka" label="Lozinka" type="password" outlined class="q-mb-md" />
             <q-input v-model="jmbag" label="JMBAG" outlined class="q-mb-md" />
 
+            <q-input
+              v-model="email"
+              label="Email"
+              type="email"
+              outlined
+              class="q-mb-md"
+              :rules="[val => !!val || 'Email je obavezan', val => /.+@.+\..+/.test(val) || 'Neispravan format emaila']"
+            />
+            <q-input v-model="telefon" label="Telefon" outlined class="q-mb-md" />
+            <q-input v-model="adresa" label="Adresa" outlined class="q-mb-md" />
+
             <q-btn
               label="Registriraj se"
               color="primary"
               @click="register"
               class="q-mt-md full-width"
+              :loading="loading"
+              :disable="loading"
             />
           </q-card>
         </div>
@@ -51,17 +64,41 @@ const prezime = ref('')
 const korisnicko_ime = ref('')
 const lozinka = ref('')
 const jmbag = ref('')
+const email = ref('')
+const telefon = ref('')
+const adresa = ref('')
 
 const router = useRouter()
+const loading = ref(false)
 
 async function register() {
+  if (
+    !ime.value.trim() ||
+    !prezime.value.trim() ||
+    !korisnicko_ime.value.trim() ||
+    !lozinka.value.trim() ||
+    !jmbag.value.trim() ||
+    !email.value.trim() ||
+    !telefon.value.trim() ||
+    !adresa.value.trim()
+  ) {
+    alert('Molimo popunite sva obavezna polja.')
+    return
+  }
+
+  // Optionally add more client-side validation here (email format, phone format, etc.)
+
+  loading.value = true
   try {
     const response = await axios.post('http://localhost:3000/regaKorisnika', {
-      ime: ime.value,
-      prezime: prezime.value,
-      korisnicko_ime: korisnicko_ime.value,
+      ime: ime.value.trim(),
+      prezime: prezime.value.trim(),
+      korisnicko_ime: korisnicko_ime.value.trim(),
       lozinka: lozinka.value,
-      jmbag: jmbag.value
+      jmbag: jmbag.value.trim(),
+      email: email.value.trim(),
+      telefon: telefon.value.trim(),
+      adresa: adresa.value.trim(),
     })
 
     if (response.data?.error === false) {
@@ -71,7 +108,17 @@ async function register() {
       alert('Poruka sustava: ' + (response.data?.message || 'Nepoznata greška.'))
     }
   } catch (err) {
-    alert('Greška pri registraciji: ' + (err.response?.data?.message || err.message))
+    console.error('Registration error:', err)
+
+    if (err.response) {
+      alert('Greška s poslužiteljem: ' + (err.response.data?.message || 'Nepoznata greška na poslužitelju.'))
+    } else if (err.request) {
+      alert('Nema odgovora s poslužitelja. Provjerite da li je server pokrenut i dostupna mreža.')
+    } else {
+      alert('Greška u slanju zahtjeva: ' + err.message)
+    }
+  } finally {
+    loading.value = false
   }
 }
 </script>

@@ -58,9 +58,13 @@ async function login() {
       localStorage.setItem('token', data.token)
       loadUserFromToken()
       window.location.href = '/'
+    } else if (data.message) {
+      alert(data.message)
     }
   } catch (error) {
-    console.error('Login failed:', error.response?.data?.message || error.message)
+    const msg = error.response?.data?.message || error.message
+    alert(msg)
+    console.error('Login failed:', msg)
   }
 }
 

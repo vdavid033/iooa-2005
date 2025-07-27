@@ -19,9 +19,11 @@ const routes = [
       { path: 'groups', component: () => import('pages/GroupMessagesUser.vue') },
       { path: 'login', component: () => import('pages/LoginPage.vue') },
       { path: 'register', component: () => import('pages/RegisterPage.vue') },
+      { path: 'account', component: () => import('pages/AccountPage.vue') },
       { path: 'login', component: () => import('pages/LoginPage.vue') },
       { path: 'report/:postId', component: () => import('pages/ReportPostPage.vue') },
       { path: 'admin/reports', component: () => import('pages/AdminReportsPage.vue') },
+      { path: 'admin/adminAccountManagement', component: () => import('pages/AccountManagement.vue') }
     ],
   },
 

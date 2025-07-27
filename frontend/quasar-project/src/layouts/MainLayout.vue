@@ -4,6 +4,7 @@
       <q-toolbar>
   <div class="q-toolbar-title" style="display: flex; justify-content: center;">
     <q-btn flat label="Početna" to="/" />
+    <q-btn flat label="Moj račun" to="/account" />
     <q-btn flat label="Datoteke" to="/folders" />
     <q-btn flat label="Poruke" to="/poruke" />
     <q-btn flat label="Forum" to="/forum" />
@@ -22,6 +23,12 @@
   flat
   label="Admin Prijave"
   to="/admin/reports"
+/>
+    <q-btn
+  v-if="isAdmin"
+  flat
+  label="Upravljanje računima"
+  to="admin/adminAccountManagement"
 />
   </div>
 
