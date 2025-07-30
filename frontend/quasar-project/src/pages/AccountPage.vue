@@ -3,7 +3,7 @@
     <div class="background-image absolute-full"></div>
 
     <div class="row q-px-xl" style="height: 100%; gap: 32px;">
-
+      <!-- Left column: user info and profile photo -->
       <div style="min-width: 240px; display: flex; flex-direction: column; align-items: center;">
         <img
           alt="Veleri logo"
@@ -27,6 +27,7 @@
           </template>
         </div>
 
+        <!-- Profile Picture Buttons -->
         <div class="q-mt-sm" style="text-align: center; width: 195px;">
           <template v-if="isUploading">
             <q-btn
@@ -105,12 +106,14 @@
         />
       </div>
 
+      <!-- Middle column: User data and password change -->
       <div style="flex: 1; max-width: 600px; display: flex; flex-direction: column;">
+        <!-- (user data inputs and password change here, unchanged from your code) -->
         <h2 class="text-h5 text-primary q-mb-md">Moji podaci</h2>
 
-        <q-input v-model="ime" :readonly="fieldsLocked" label="Ime" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }"/>
-        <q-input v-model="prezime" :readonly="fieldsLocked" label="Prezime" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }"/>
-        <q-input v-model="korisnicko_ime" :readonly="fieldsLocked" label="Korisničko ime" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }"/>
+        <q-input v-model="ime" :readonly="fieldsLocked" label="Ime" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }" />
+        <q-input v-model="prezime" :readonly="fieldsLocked" label="Prezime" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }" />
+        <q-input v-model="korisnicko_ime" :readonly="fieldsLocked" label="Korisničko ime" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }" />
         <q-input v-model="jmbag" :readonly="fieldsLocked" label="JMBAG" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }" :rules="jmbagRules" />
         <q-input
           v-model="email"
@@ -123,17 +126,17 @@
           :rules="[val => !!val || 'Email je obavezan', val => /.+@.+\..+/.test(val) || 'Neispravan format emaila']"
         />
         <q-input
-        v-model="telefon"
-        :readonly="fieldsLocked"
-        label="Telefon"
-        outlined
-        class="q-mb-md"
-        :class="{ 'readonly-field': fieldsLocked }"
-        :rules="phoneRules"
+          v-model="telefon"
+          :readonly="fieldsLocked"
+          label="Telefon"
+          outlined
+          class="q-mb-md"
+          :class="{ 'readonly-field': fieldsLocked }"
+          :rules="phoneRules"
         />
-        <q-input v-model="adresa" :readonly="fieldsLocked" label="Adresa" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }"/>
+        <q-input v-model="adresa" :readonly="fieldsLocked" label="Adresa" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }" />
 
-        <!-- Edit user data buttons -->
+        <!-- Edit buttons -->
         <q-btn
           v-if="fieldsLocked"
           label="Promijeni podatke"
@@ -143,7 +146,6 @@
           :loading="loading"
           :disable="loading"
         />
-
         <div v-else>
           <q-btn
             label="Spremi promjene"
@@ -162,6 +164,7 @@
           />
         </div>
 
+        <!-- Password change -->
         <q-btn
           v-if="!showChangePassword"
           label="Promijeni lozinku"
@@ -170,9 +173,8 @@
           style="margin-top: 16px;"
           @click="toggleChangePasswordFields"
         />
-
         <div v-if="showChangePassword" class="q-mt-md">
-          <q-input v-model="oldPassword" label="Trenutna lozinka" type="password" outlined dense class="q-mb-md"/>
+          <q-input v-model="oldPassword" label="Trenutna lozinka" type="password" outlined dense class="q-mb-md" />
           <q-input v-model="newPassword" label="Nova lozinka" type="password" outlined dense class="q-mb-md" />
           <q-input v-model="repeatNewPassword" label="Ponovi novu lozinku" type="password" outlined dense class="q-mb-md" />
 
@@ -208,10 +210,29 @@
         </div>
       </div>
 
+      <!-- Right column: Notes management -->
       <div style="width: 600px; display: flex; flex-direction: column;">
         <h2 class="text-h5 text-primary q-mb-md">Moje bilješke</h2>
 
-        <div class="row q-mb-md" style="gap: 8px;">
+        <!-- Search notes -->
+        <q-input
+          dense
+          debounce="300"
+          outlined
+          v-model="searchQuery"
+          label="Pretraži bilješke (po naslovu ili sadržaju)"
+          bottom-slots
+          class="q-mb-md"
+          clearable
+          style="width: 100%;"
+        >
+          <template v-slot:append>
+            <q-icon name="search" />
+          </template>
+        </q-input>
+
+        <!-- Add new note -->
+        <div class="row q-gutter-sm q-mb-md" style="width: 100%;">
           <q-input
             v-model="newNoteContent"
             label="Nova bilješka"
@@ -220,49 +241,49 @@
             dense
             style="flex: 1;"
             :disable="notes.length >= maxNotes"
-            :hint="`Maksimalno ${maxNotes} bilješki, max 500 znakova`"
             counter
+            @keyup.enter="addNote"
           />
-          <q-btn label="Dodaj" icon="add" color="primary" dense :disable="!canAddNote" @click="addNote"/>
+          <q-btn label="Dodaj" icon="add" color="primary" dense :disable="!canAddNote" @click="addNote" />
         </div>
 
         <q-list bordered style="max-height: 700px; overflow-y: auto;">
-          <q-item v-for="(note, index) in notes" :key="note.ID_Biljeska" dense>
+          <q-item v-for="(note, index) in filteredNotes" :key="note.ID_Biljeska" dense>
+            <q-item-section style="min-width: 150px; max-width: 180px;">
+              <q-input
+                v-model="note.naziv_biljeske"
+                dense
+                outlined
+                :readonly="!note.editableName"
+                :rules="titleRules"
+                debounce="300"
+                @blur="note.editableName ? saveNote(note) : null"
+                @keydown.enter.prevent="note.editableName && saveNote(note)"
+              />
+            </q-item-section>
             <q-item-section>
-              <div class="row items-center" style="gap: 8px;">
-                <div style="min-width: 120px;">
-                  <q-input
-                    v-model="note.naziv_biljeske"
-                    :readonly="!note.editableName"
-                    dense
-                    outlined
-                    debounce="300"
-                    style="min-width: 120px;"
-                    @blur="note.editableName ? saveNoteName(note) : null"
-                  />
-                </div>
-                <q-icon
-                  :name="note.editableName ? 'lock_open' : 'lock'"
-                  size="18px"
-                  class="cursor-pointer"
-                  @click="toggleEditName(note)"
-                  :color="note.editableName ? 'green' : 'grey'"
-                  title="Uredi naziv bilješke"
-                />
-              </div>
-
               <q-input
                 v-model="note.sadrzaj_biljeske"
-                :readonly="!note.editableContent"
                 dense
                 outlined
                 type="textarea"
-                style="min-height: 45px; margin-top: 4px;"
-                @blur="note.editableContent ? saveNoteContent(note) : null"
+                style="min-height: 60px; width: 100%;"
+                :readonly="!note.editableContent"
+                :rules="contentRules"
+                @blur="note.editableContent ? saveNote(note) : null"
+                @keydown.enter.prevent="note.editableContent && saveNote(note)"
               />
             </q-item-section>
-
             <q-item-section side top>
+              <q-btn
+                dense
+                flat
+                round
+                icon="edit"
+                :color="note.editableName || note.editableContent ? 'primary' : 'grey'"
+                @click="toggleEdit(note)"
+                :title="note.editableName || note.editableContent ? 'Spremi promjene (Enter)' : 'Uredi bilješku'"
+              />
               <q-btn
                 dense
                 flat
@@ -271,13 +292,15 @@
                 color="negative"
                 @click="deleteNote(note.ID_Biljeska, index)"
                 aria-label="Obriši bilješku"
-                title="Obriši bilješku"
+                :title="'Obriši bilješku ' + note.naziv_biljeske"
               />
             </q-item-section>
           </q-item>
+          <q-item v-if="filteredNotes.length === 0" class="text-center q-pa-md">
+            <q-item-section>Nema bilješki za prikaz.</q-item-section>
+          </q-item>
         </q-list>
       </div>
-
     </div>
   </q-page>
 </template>
@@ -293,6 +316,7 @@ const router = useRouter()
 const $q = useQuasar()
 const { user, isAuthenticated } = useUser()
 
+// User profile fields (unchanged)
 const ime = ref('')
 const prezime = ref('')
 const korisnicko_ime = ref('')
@@ -344,11 +368,38 @@ watch(newPassword, (val) => {
   passwordRules.value.specialChar = /[!@#$%^&*,.\-_]/.test(val)
 })
 
-const maxNotes = 5
+// Notes handling
+const maxNotes = 100
 const notes = ref([])
 const newNoteContent = ref('')
+const searchQuery = ref('')
 
 const canAddNote = computed(() => newNoteContent.value.trim().length > 0 && notes.value.length < maxNotes)
+const filteredNotes = computed(() => {
+  if (!searchQuery.value) return notes.value
+  const q = searchQuery.value.toLowerCase()
+  return notes.value.filter(note =>
+    (note.naziv_biljeske?.toLowerCase().includes(q) || note.sadrzaj_biljeske?.toLowerCase().includes(q))
+  )
+})
+
+const titleRules = [
+  val => !!val || 'Naslov je obavezan',
+  val => (val && val.length <= 100) || 'Naslov može imati do 100 znakova',
+]
+const contentRules = [
+  val => !!val || 'Sadržaj je obavezan',
+  val => (val && val.length <= 500) || 'Sadržaj može imati do 500 znakova',
+]
+
+function toggleEdit(note) {
+  if (note.editableName || note.editableContent) {
+    saveNote(note)
+  } else {
+    note.editableName = true
+    note.editableContent = true
+  }
+}
 
 async function fetchUserData() {
   if (!isAuthenticated()) {
@@ -358,7 +409,6 @@ async function fetchUserData() {
   try {
     const userId = user.value?.id
     if (!userId) return
-
     const resp = await axios.get(`http://localhost:3000/accountUpdate/${userId}`)
     if (!resp.data.error && resp.data.user) {
       const u = resp.data.user
@@ -414,7 +464,7 @@ function cancelUserChanges() {
   lockFields()
 }
 
-function cancelChangePassword() {
+async function cancelChangePassword() {
   oldPassword.value = ''
   newPassword.value = ''
   repeatNewPassword.value = ''
@@ -448,10 +498,7 @@ async function updateUser() {
     return
   }
 
-  if (
-    !phoneRules.every(fn => fn(telefon.value) === true) ||
-    !jmbagRules.every(fn => fn(jmbag.value) === true)
-  ) {
+  if (!phoneRules.every(fn => fn(telefon.value) === true) || !jmbagRules.every(fn => fn(jmbag.value) === true)) {
     $q.notify({ type: 'negative', message: 'Molimo ispravite JMBAG i/ili telefon prema pravilima.' })
     return
   }
@@ -505,17 +552,14 @@ async function changePassword() {
     $q.notify({ type: 'negative', message: 'Molimo unesite trenutnu lozinku, novu lozinku i potvrdu nove lozinke.' })
     return
   }
-
   if (newPassword.value === oldPassword.value) {
     $q.notify({ type: 'negative', message: 'Nova lozinka ne smije biti ista kao trenutna lozinka.' })
     return
   }
-
   if (newPassword.value !== repeatNewPassword.value) {
     $q.notify({ type: 'negative', message: 'Nova lozinka i potvrda nove lozinke se ne podudaraju.' })
     return
   }
-
   if (
     !passwordRules.value.minLength ||
     !passwordRules.value.uppercase ||
@@ -526,7 +570,6 @@ async function changePassword() {
     $q.notify({ type: 'negative', message: 'Nova lozinka ne zadovoljava kriterije sigurnosti.' })
     return
   }
-
   loadingChangePassword.value = true
   try {
     const userId = user.value?.id
@@ -535,12 +578,10 @@ async function changePassword() {
       router.push('/login')
       return
     }
-
     const resp = await axios.put(`http://localhost:3000/accountUpdate/${userId}/changePassword`, {
       oldPassword: oldPassword.value,
       newPassword: newPassword.value
     })
-
     if (resp.data && resp.data.error === false) {
       $q.notify({ type: 'positive', message: 'Lozinka je uspješno promijenjena.' })
       toggleChangePasswordFields()
@@ -668,6 +709,7 @@ async function confirmDeleteProfilePicture() {
   }
 }
 
+// Notes related methods
 async function addNote() {
   if (!canAddNote.value) return
   const content = newNoteContent.value.trim()
@@ -777,7 +819,6 @@ async function deleteNote(noteId, index) {
     if (!resp.data.error) {
       notes.value.splice(index, 1)
       $q.notify({ type: 'positive', message: 'Bilješka je obrisana.' })
-
     } else {
       $q.notify({ type: 'negative', message: resp.data.message || 'Greška pri brisanju bilješke.' })
     }
@@ -786,7 +827,7 @@ async function deleteNote(noteId, index) {
     $q.notify({ type: 'negative', message: 'Greška pri brisanju bilješke.' })
   }
 }
-// Lifecycle
+
 onMounted(async () => {
   if (!isAuthenticated()) {
     router.push('/login')
@@ -816,10 +857,10 @@ onMounted(async () => {
 }
 
 .text-positive {
-  color: #21ba45; 
+  color: #21ba45; /* green */
 }
 
 .text-negative {
-  color: #db2828;
+  color: #db2828; /* red */
 }
 </style>

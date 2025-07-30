@@ -24,15 +24,15 @@ router.post('/', async (req, res) => {
   if (!naziv_biljeske || !sadrzaj_biljeske || !ID_korisnika) {
     return res.status(400).json({ error: true, message: 'Sva polja su obavezna.' })
   }
-  if (typeof sadrzaj_biljeske !== 'string' || sadrzaj_biljeske.length === 0 || sadrzaj_biljeske.length > 100) {
-    return res.status(400).json({ error: true, message: 'Sadržaj bilješke mora biti između 1 i 100 znakova.' })
+  if (typeof sadrzaj_biljeske !== 'string' || sadrzaj_biljeske.length === 0 || sadrzaj_biljeske.length > 500) {
+    return res.status(400).json({ error: true, message: 'Sadržaj bilješke mora biti između 1 i 500 znakova.' })
   }
 
   try {
     // Check max notes per user
     const [countRows] = await connection.query('SELECT COUNT(*) as cnt FROM biljeske WHERE ID_korisnika = ?', [ID_korisnika])
-    if (countRows.length && countRows[0].cnt >= 5) {
-      return res.status(400).json({ error: true, message: 'Maksimalno 5 bilješki je dozvoljeno.' })
+    if (countRows.length && countRows[0].cnt >= 100) {
+      return res.status(400).json({ error: true, message: 'Maksimalno 100 bilješki je dozvoljeno.' })
     }
 
     const now = new Date()
