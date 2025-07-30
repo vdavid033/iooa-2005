@@ -6,7 +6,6 @@ const fs = require('fs')
 const path = require('path')
 const bcrypt = require('bcrypt')
 
-// GET - fetch current user data by ID
 router.get('/:id', async (req, res) => {
   const userId = req.params.id
   try {
@@ -21,7 +20,6 @@ router.get('/:id', async (req, res) => {
   }
 })
 
-// PUT - update user data and optionally profile photo
 router.put('/:id', uploadPicture.single('slika_url'), async (req, res) => {
   const userId = req.params.id
   const { ime, prezime, korisnicko_ime, jmbag, email, telefon, adresa } = req.body
@@ -30,7 +28,6 @@ router.put('/:id', uploadPicture.single('slika_url'), async (req, res) => {
     return res.status(400).json({ error: true, message: 'Sva polja su obavezna.' })
   }
 
-  // Email format validation
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
   if (!emailRegex.test(email)) {
     return res.status(400).json({ error: true, message: 'Neispravan format emaila.' })
@@ -63,7 +60,6 @@ router.put('/:id', uploadPicture.single('slika_url'), async (req, res) => {
       updateQuery += ', slika_url = ?'
       params.push(`/uploads/${req.file.filename}`)
     }
-
     updateQuery += ' WHERE id_korisnika = ?'
     params.push(userId)
 
@@ -80,29 +76,23 @@ router.put('/:id', uploadPicture.single('slika_url'), async (req, res) => {
   }
 })
 
-// DELETE - delete user's profile photo (remove file and reset database field)
 router.delete('/:id/photo', async (req, res) => {
   const userId = req.params.id
-
   try {
-    // Get current photo path
     const [rows] = await connection.query('SELECT slika_url FROM korisnik WHERE id_korisnika = ?', [userId])
     if (rows.length === 0) {
       return res.status(404).json({ error: true, message: 'Korisnik nije pronađen.' })
     }
-
     const photoPath = rows[0].slika_url
     if (photoPath) {
       const fullPath = path.join(__dirname, '../', photoPath)
       fs.unlink(fullPath, (err) => {
         if (err) {
-          console.error('Error deleting profile picture file:', err)
+          console.error('Error deleting profile picture:', err)
         }
       })
     }
-
     await connection.query('UPDATE korisnik SET slika_url = NULL WHERE id_korisnika = ?', [userId])
-
     res.json({ error: false, message: 'Profilna slika uspješno obrisana.' })
   } catch (err) {
     console.error(err)
@@ -110,7 +100,6 @@ router.delete('/:id/photo', async (req, res) => {
   }
 })
 
-// PUT - change user's password
 router.put('/:id/changePassword', async (req, res) => {
   const userId = req.params.id
   const { oldPassword, newPassword } = req.body
@@ -118,29 +107,22 @@ router.put('/:id/changePassword', async (req, res) => {
   if (!oldPassword || !newPassword) {
     return res.status(400).json({ error: true, message: 'Obje lozinke su potrebne.' })
   }
-
   if (typeof newPassword !== 'string' || newPassword.length < 6) {
     return res.status(400).json({ error: true, message: 'Nova lozinka mora imati najmanje 6 znakova.' })
   }
 
   try {
-    // Dohvati hashanu lozinku korisnika, ispravno polje iz baze
     const [rows] = await connection.query('SELECT lozinka_korisnika FROM korisnik WHERE id_korisnika = ?', [userId])
     if (rows.length === 0) {
       return res.status(404).json({ error: true, message: 'Korisnik nije pronađen.' })
     }
-
     const currentHashedPassword = rows[0].lozinka_korisnika
-
     const match = await bcrypt.compare(oldPassword, currentHashedPassword)
     if (!match) {
       return res.status(401).json({ error: true, message: 'Stara lozinka nije ispravna.' })
     }
-
     const newHashedPassword = await bcrypt.hash(newPassword, 10)
-
     await connection.query('UPDATE korisnik SET lozinka_korisnika = ? WHERE id_korisnika = ?', [newHashedPassword, userId])
-
     res.json({ error: false, message: 'Lozinka uspješno promijenjena.' })
   } catch (err) {
     console.error(err)

@@ -4,9 +4,8 @@ const bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 const config = require("./auth_config");
-const authJwt = require("./authJwt");
 const connection = require("./data/db");
-const path = require('path')
+const path = require("path");
 
 const app = express();
 const PORT = 3000;
@@ -25,16 +24,23 @@ app.post("/api/login", async (req, res) => {
     );
 
     if (!rows.length) {
-      return res.status(404).json({ success: false, message: "Korisnik ne postoji" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Korisnik ne postoji" });
     }
 
     const user = rows[0];
 
-    // Check if user is 'zakljucan' (locked)
     if (user.zakljucan === 1) {
-      return res
-        .status(403)  // 403 Forbidden is a suitable status here
-        .json({ success: false, message: "Korisnik čeka odobrenje admina" });
+      return res.status(403).json({
+        success: false,
+        message: "Korisnik je zaključan. Obratite se adminu",
+      });
+    } else if (user.zakljucan === -1) {
+      return res.status(403).json({
+        success: false,
+        message: "Korisnik čeka odobrenje admina",
+      });
     }
 
     const isMatch = await bcrypt.compare(
@@ -43,8 +49,35 @@ app.post("/api/login", async (req, res) => {
     );
 
     if (!isMatch) {
-      return res.status(401).json({ success: false, message: "Krivo korisničko ime ili lozinka" });
+      let attempts = (user.neuspjeli_pokusaji || 0) + 1;
+      let updateFields = { neuspjeli_pokusaji: attempts };
+
+      let message = "Krivo korisničko ime ili lozinka";
+
+      if (attempts >= 5) {
+        updateFields.zakljucan = 1;
+        message =
+          "Korisnik je zaključan zbog previše neuspjelih pokušaja, obratite se adminu";
+      } else if (attempts > 1) {
+        const left = 5 - attempts;
+        message += `. Preostalo pokušaja: ${left}`;
+      }
+
+      await connection.query(
+        "UPDATE korisnik SET neuspjeli_pokusaji = ?, zakljucan = IF(?, ?, zakljucan) WHERE id_korisnika = ?",
+        [updateFields.neuspjeli_pokusaji, updateFields.zakljucan === 1 ? 1 : 0, updateFields.zakljucan === 1 ? 1 : 0, user.id_korisnika]
+      );
+
+      return res.status(attempts >= 5 ? 403 : 401).json({
+        success: false,
+        message,
+      });
     }
+
+    await connection.query(
+      "UPDATE korisnik SET neuspjeli_pokusaji = NULL, zakljucan = 0, zadnja_prijava = NOW() WHERE id_korisnika = ?",
+      [user.id_korisnika]
+    );
 
     const token = jwt.sign(
       {
@@ -59,6 +92,7 @@ app.post("/api/login", async (req, res) => {
 
     res.status(200).json({ success: true, token });
   } catch (error) {
+    console.error("Login error:", error);
     res.status(500).json({ success: false, message: "Greška na serveru" });
   }
 });
@@ -80,8 +114,9 @@ app.use("/api/objave", require("./routes/objaveRoutes"));
 app.use("/api/comments", require("./routes/komentariRoutes"));
 app.use("/api", require("./routes/reportRoutes"));
 app.use("/accountUpdate", require("./routes/accountRoutes"));
+app.use("/notes", require("./routes/accountNotesRoutes"));
 app.use("/adminAccountCheck", require("./routes/accountManagementRoutes"));
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')))
+app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
