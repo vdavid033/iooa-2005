@@ -3,7 +3,6 @@
     <div class="background-image absolute-full"></div>
 
     <div class="row q-px-xl" style="height: 100%; gap: 32px;">
-      <!-- Left column: user info and profile photo -->
       <div style="min-width: 240px; display: flex; flex-direction: column; align-items: center;">
         <img
           alt="Veleri logo"
@@ -27,7 +26,6 @@
           </template>
         </div>
 
-        <!-- Profile Picture Buttons -->
         <div class="q-mt-sm" style="text-align: center; width: 195px;">
           <template v-if="isUploading">
             <q-btn
@@ -106,9 +104,7 @@
         />
       </div>
 
-      <!-- Middle column: User data and password change -->
       <div style="flex: 1; max-width: 600px; display: flex; flex-direction: column;">
-        <!-- (user data inputs and password change here, unchanged from your code) -->
         <h2 class="text-h5 text-primary q-mb-md">Moji podaci</h2>
 
         <q-input v-model="ime" :readonly="fieldsLocked" label="Ime" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }" />
@@ -136,7 +132,6 @@
         />
         <q-input v-model="adresa" :readonly="fieldsLocked" label="Adresa" outlined class="q-mb-md" :class="{ 'readonly-field': fieldsLocked }" />
 
-        <!-- Edit buttons -->
         <q-btn
           v-if="fieldsLocked"
           label="Promijeni podatke"
@@ -164,7 +159,6 @@
           />
         </div>
 
-        <!-- Password change -->
         <q-btn
           v-if="!showChangePassword"
           label="Promijeni lozinku"
@@ -210,11 +204,9 @@
         </div>
       </div>
 
-      <!-- Right column: Notes management -->
       <div style="width: 600px; display: flex; flex-direction: column;">
         <h2 class="text-h5 text-primary q-mb-md">Moje bilješke</h2>
 
-        <!-- Search notes -->
         <q-input
           dense
           debounce="300"
@@ -231,7 +223,6 @@
           </template>
         </q-input>
 
-        <!-- Add new note -->
         <div class="row q-gutter-sm q-mb-md" style="width: 100%;">
           <q-input
             v-model="newNoteContent"
@@ -316,7 +307,6 @@ const router = useRouter()
 const $q = useQuasar()
 const { user, isAuthenticated } = useUser()
 
-// User profile fields (unchanged)
 const ime = ref('')
 const prezime = ref('')
 const korisnicko_ime = ref('')
@@ -368,7 +358,6 @@ watch(newPassword, (val) => {
   passwordRules.value.specialChar = /[!@#$%^&*,.\-_]/.test(val)
 })
 
-// Notes handling
 const maxNotes = 100
 const notes = ref([])
 const newNoteContent = ref('')
@@ -709,7 +698,6 @@ async function confirmDeleteProfilePicture() {
   }
 }
 
-// Notes related methods
 async function addNote() {
   if (!canAddNote.value) return
   const content = newNoteContent.value.trim()
@@ -857,10 +845,10 @@ onMounted(async () => {
 }
 
 .text-positive {
-  color: #21ba45; /* green */
+  color: #21ba45; 
 }
 
 .text-negative {
-  color: #db2828; /* red */
+  color: #db2828;
 }
 </style>

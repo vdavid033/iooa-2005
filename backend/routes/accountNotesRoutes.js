@@ -2,7 +2,6 @@ const express = require('express')
 const router = express.Router()
 const connection = require('../data/db')
 
-// GET all notes for user
 router.get('/:userId', async (req, res) => {
   const userId = req.params.userId
   try {
@@ -17,7 +16,6 @@ router.get('/:userId', async (req, res) => {
   }
 })
 
-// POST new note
 router.post('/', async (req, res) => {
   const { naziv_biljeske, sadrzaj_biljeske, ID_korisnika } = req.body
 
@@ -29,7 +27,6 @@ router.post('/', async (req, res) => {
   }
 
   try {
-    // Check max notes per user
     const [countRows] = await connection.query('SELECT COUNT(*) as cnt FROM biljeske WHERE ID_korisnika = ?', [ID_korisnika])
     if (countRows.length && countRows[0].cnt >= 100) {
       return res.status(400).json({ error: true, message: 'Maksimalno 100 bilješki je dozvoljeno.' })
@@ -57,7 +54,6 @@ router.post('/', async (req, res) => {
   }
 })
 
-// PUT update existing note content and timestamp
 router.put('/:noteId', async (req, res) => {
   const noteId = req.params.noteId
   const { naziv_biljeske, sadrzaj_biljeske } = req.body
@@ -91,7 +87,6 @@ router.put('/:noteId', async (req, res) => {
 })
 
 
-// DELETE existing note by id
 router.delete('/:noteId', async (req, res) => {
   const noteId = req.params.noteId
   try {
