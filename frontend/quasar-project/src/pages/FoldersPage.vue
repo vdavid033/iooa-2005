@@ -127,11 +127,7 @@ const logColumns = [
   { name: 'updated_at', label: 'Datum zadnje izmjene', field: 'updated_at' },
   { name: 'path', label: 'Putanja', field: 'path' },
 ]
-const logRows = ref([
-  { id: 1, user_fullname: 'Ivan Horvat', document: 'predavanje1.pdf', created_at: '2025-11-20 09:00', updated_at: '2025-12-01 10:12', path: '/uploads/predavanje1.pdf' },
-  { id: 2, user_fullname: 'Ana Marić', document: 'zadatak2.docx', created_at: '2025-11-15 08:30', updated_at: '2025-11-30 14:05', path: '/uploads/zadatak2.docx' },
-  { id: 3, user_fullname: 'Marko Kovač', document: 'stari_rokovi.xlsx', created_at: '2025-10-10 11:10', updated_at: '2025-11-29 09:45', path: '/uploads/stari_rokovi.xlsx' },
-])
+const logRows = ref([])
 // For now we load all logs at once (no pagination)
 // simulated full dataset (in real use, fetch from API)
 const _allLogRows = []
@@ -149,8 +145,30 @@ for (let i = 1; i <= 200; i++) {
 }
 
 function loadAllLogs () {
-  // replace any existing rows with the full dataset
-  logRows.value = _allLogRows.slice()
+  // fetch real logs from backend if available; fallback to simulated data
+  ;(async () => {
+    try {
+      const resp = await api.get('/logs')
+      if (Array.isArray(resp.data) && resp.data.length) {
+        // Backend returns mapped fields: id, user_fullname, document, created_at, updated_at, path
+        logRows.value = resp.data.map(r => ({
+          id: r.id,
+          user_fullname: r.user_fullname,
+          document: r.document,
+          created_at: r.created_at,
+          updated_at: r.updated_at,
+          path: r.path
+        }))
+        console.log('Loaded', logRows.value.length, 'documents from API')
+        return
+      }
+    } catch (e) {
+      console.warn('loadAllLogs API failed, using simulated data', e)
+    }
+
+    // fallback to simulated dataset
+    logRows.value = _allLogRows.slice()
+  })()
 }
 
 async function fetchRootFolders() {

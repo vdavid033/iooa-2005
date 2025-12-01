@@ -116,6 +116,7 @@ app.use("/api", require("./routes/reportRoutes"));
 app.use("/accountUpdate", require("./routes/accountRoutes"));
 app.use("/notes", require("./routes/accountNotesRoutes"));
 app.use("/adminAccountCheck", require("./routes/accountManagementRoutes"));
+app.use("/api/logs", require("./routes/logRoutes"));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 app.listen(PORT, () => {
