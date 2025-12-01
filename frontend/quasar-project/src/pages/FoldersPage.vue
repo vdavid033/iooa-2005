@@ -58,7 +58,17 @@
             flat
             hide-bottom
             :rows-per-page-options="[]"
-          />
+            :sort-by="['created_at','updated_at']"
+            :sort-desc="false"
+          >
+            <template #body-cell-created_at="props">
+              <q-td :props="props">{{ formatDate(props.row.created_at) }}</q-td>
+            </template>
+
+            <template #body-cell-updated_at="props">
+              <q-td :props="props">{{ formatDate(props.row.updated_at) }}</q-td>
+            </template>
+          </q-table>
         </div>
       </q-card-section>
 
@@ -111,21 +121,31 @@ const showDeleteDialog = ref(false)
 // Activity log dialog + sample data
 const showLogDialog = ref(false)
 const logColumns = [
-  { name: 'date', label: 'Datum', field: 'date' },
-  { name: 'user', label: 'Korisnik', field: 'user' },
-  { name: 'action', label: 'Akcija', field: 'action' },
+  { name: 'user_fullname', label: 'Ime i prezime', field: 'user_fullname' },
   { name: 'document', label: 'Dokument', field: 'document' },
+  { name: 'created_at', label: 'Datum kreiranja', field: 'created_at' },
+  { name: 'updated_at', label: 'Datum zadnje izmjene', field: 'updated_at' },
+  { name: 'path', label: 'Putanja', field: 'path' },
 ]
 const logRows = ref([
-  { id: 1, date: '2025-12-01 10:12', user: 'ivan', action: 'Uredio dokument', document: 'predavanje1.pdf' },
-  { id: 2, date: '2025-11-30 14:05', user: 'ana', action: 'Kreirala dokument', document: 'zadatak2.docx' },
-  { id: 3, date: '2025-11-29 09:45', user: 'marko', action: 'Obrisao dokument', document: 'stari_rokovi.xlsx' },
+  { id: 1, user_fullname: 'Ivan Horvat', document: 'predavanje1.pdf', created_at: '2025-11-20 09:00', updated_at: '2025-12-01 10:12', path: '/uploads/predavanje1.pdf' },
+  { id: 2, user_fullname: 'Ana Marić', document: 'zadatak2.docx', created_at: '2025-11-15 08:30', updated_at: '2025-11-30 14:05', path: '/uploads/zadatak2.docx' },
+  { id: 3, user_fullname: 'Marko Kovač', document: 'stari_rokovi.xlsx', created_at: '2025-10-10 11:10', updated_at: '2025-11-29 09:45', path: '/uploads/stari_rokovi.xlsx' },
 ])
 // For now we load all logs at once (no pagination)
 // simulated full dataset (in real use, fetch from API)
 const _allLogRows = []
+const firstNames = ['Ivan','Ana','Marko','Petra','Luka','Maja','Katarina','Tomislav','Ivana','Dario']
+const lastNames = ['Horvat','Marić','Kovač','Babić','Novak','Perić','Jurić','Radić','Filipović','Šarić']
 for (let i = 1; i <= 200; i++) {
-  _allLogRows.push({ id: i, date: `2025-11-${(i%30)+1} 0${i%24}:00`, user: `user${i%10}`, action: ['Kreirao','Uredio','Obrisao'][i%3] + ' dokument', document: `fajl_${i}.pdf` })
+  const fn = firstNames[i % firstNames.length]
+  const ln = lastNames[i % lastNames.length]
+  const createdDay = ((i % 28) + 1).toString().padStart(2, '0')
+  const createdHour = (8 + (i % 8)).toString().padStart(2, '0')
+  const updatedHour = (9 + (i % 12)).toString().padStart(2, '0')
+  const created_at = `2025-10-${createdDay} ${createdHour}:00`
+  const updated_at = `2025-11-${((i%30)+1).toString().padStart(2,'0')} ${updatedHour}:30`
+  _allLogRows.push({ id: i, user_fullname: `${fn} ${ln}`, document: `fajl_${i}.pdf`, created_at, updated_at, path: `/uploads/fajl_${i}.pdf` })
 }
 
 function loadAllLogs () {
@@ -235,6 +255,17 @@ function openLog () {
   $q.notify({ type: 'info', message: 'Otvaram dnevnik aktivnosti', timeout: 800 })
   if (logRows.value.length === 0) {
     loadAllLogs()
+  }
+}
+
+function formatDate (value) {
+  if (!value) return ''
+  try {
+    const d = new Date(value)
+    // Croatian style: day month year (e.g. 01. prosinca 2025.)
+    return new Intl.DateTimeFormat('hr-HR', { day: '2-digit', month: 'long', year: 'numeric' }).format(d)
+  } catch (e) {
+    return value
   }
 }
 
