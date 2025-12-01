@@ -1,6 +1,7 @@
 <template>
   <q-page class="q-pa-md">
     <h1 class="text-h5">Kolegiji (Root mape)</h1>
+
     <div class="row items-center justify-end q-mb-lg">
       <q-btn
         v-if="isAdmin()"
@@ -12,6 +13,7 @@
         unelevated
       />
     </div>
+
     <LoadingSpinner v-if="isLoading" />
     <ErrorMessage v-else-if="errorMessage" :message="errorMessage" />
     <div v-else>
@@ -23,6 +25,15 @@
         @delete-folder="confirmDelete"
       />
     </div>
+
+<q-btn
+  color="primary"
+  icon="history"
+  label="Povijest izmjena dokumenata"
+  rounded
+  unelevated
+/>
+
     <CreateFolderModal v-model="showCreateModal" @create="handleCreateFolder" />
     <EditFolderDialog v-model="showEditDialog" :folder="folderToEdit" @save="handleRenameFolder" />
     <ConfirmDeleteDialog
@@ -157,4 +168,5 @@ onMounted(() => {
   loadUserFromToken()
   fetchRootFolders()
 })
+
 </script>
