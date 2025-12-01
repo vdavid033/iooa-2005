@@ -36,33 +36,38 @@
   rounded
   unelevated
   @click="openLog"
-/> 
+/>
 
-<q-dialog v-model="showLogDialog" persistent>
-  <q-card style="min-width: 600px; max-width: 1000px;">
-    <q-card-section>
-      <div class="text-h6">DNEVNIK AKTIVNOSTI</div>
-    </q-card-section>
-
-    <q-card-section>
-      <q-table
-        :rows="logRows"
-        :columns="logColumns"
-        row-key="id"
-        dense
-        flat
-      >
-        <template v-slot:top-right>
+<transition name="fade">
+  <div v-show="showLogDialog" class="q-mt-md">
+    <q-card flat bordered class="q-pa-sm" style="max-width:1000px;">
+      <q-card-section>
+        <div class="row items-center justify-between">
+          <div class="text-h6">DNEVNIK AKTIVNOSTI</div>
           <q-btn dense flat icon="close" @click="showLogDialog = false" />
-        </template>
-      </q-table>
-    </q-card-section>
+        </div>
+      </q-card-section>
 
-    <q-card-actions align="right">
-      <q-btn flat label="Zatvori" color="primary" @click="showLogDialog = false" />
-    </q-card-actions>
-  </q-card>
-</q-dialog>
+      <q-card-section class="q-pa-none">
+        <div>
+          <q-table
+            :rows="logRows"
+            :columns="logColumns"
+            row-key="id"
+            dense
+            flat
+            hide-bottom
+            :rows-per-page-options="[]"
+          />
+        </div>
+      </q-card-section>
+
+      <q-card-actions align="right">
+        <q-btn flat label="Zatvori" color="primary" @click="showLogDialog = false" />
+      </q-card-actions>
+    </q-card>
+  </div>
+</transition>
 
     <CreateFolderModal v-model="showCreateModal" @create="handleCreateFolder" />
     <EditFolderDialog v-model="showEditDialog" :folder="folderToEdit" @save="handleRenameFolder" />
@@ -116,6 +121,17 @@ const logRows = ref([
   { id: 2, date: '2025-11-30 14:05', user: 'ana', action: 'Kreirala dokument', document: 'zadatak2.docx' },
   { id: 3, date: '2025-11-29 09:45', user: 'marko', action: 'Obrisao dokument', document: 'stari_rokovi.xlsx' },
 ])
+// For now we load all logs at once (no pagination)
+// simulated full dataset (in real use, fetch from API)
+const _allLogRows = []
+for (let i = 1; i <= 200; i++) {
+  _allLogRows.push({ id: i, date: `2025-11-${(i%30)+1} 0${i%24}:00`, user: `user${i%10}`, action: ['Kreirao','Uredio','Obrisao'][i%3] + ' dokument', document: `fajl_${i}.pdf` })
+}
+
+function loadAllLogs () {
+  // replace any existing rows with the full dataset
+  logRows.value = _allLogRows.slice()
+}
 
 async function fetchRootFolders() {
   isLoading.value = true
@@ -216,7 +232,15 @@ onMounted(() => {
 
 function openLog () {
   showLogDialog.value = true
-  $q.notify({ type: 'info', message: 'Otvaram dnevnik aktivnosti', timeout: 1500 })
+  $q.notify({ type: 'info', message: 'Otvaram dnevnik aktivnosti', timeout: 800 })
+  if (logRows.value.length === 0) {
+    loadAllLogs()
+  }
 }
 
 </script>
+
+<style scoped>
+.fade-enter-active, .fade-leave-active { transition: opacity 0.2s }
+.fade-enter-from, .fade-leave-to { opacity: 0 }
+</style>
