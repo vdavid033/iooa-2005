@@ -28,9 +28,9 @@ Alex Bahorić
 Dino Turak
 Marko Linić
 Nadijo Ražov
-Igor Petkovic
 Dino Kavgić
 Dominik Rukavina
+Igor Petković
 
 ## Kalendar obaveza - opis
 
