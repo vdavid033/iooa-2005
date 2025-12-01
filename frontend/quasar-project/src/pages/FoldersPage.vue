@@ -17,13 +17,16 @@
     <LoadingSpinner v-if="isLoading" />
     <ErrorMessage v-else-if="errorMessage" :message="errorMessage" />
     <div v-else>
-      <folder-grid
-        :folders="folders"
-        :on-folder-click="openFolder"
-        :is-admin="isAdmin()"
-        @edit-folder="editFolder"
-        @delete-folder="confirmDelete"
-      />
+      <div v-if="folders.length">
+        <folder-grid
+          :folders="folders"
+          :on-folder-click="openFolder"
+          :is-admin="isAdmin()"
+          @edit-folder="editFolder"
+          @delete-folder="confirmDelete"
+        />
+      </div>
+      <div v-else class="text-subtitle2 q-pa-md">Nema mapa za prikaz.</div>
     </div>
 
 <q-btn
@@ -32,7 +35,34 @@
   label="Povijest izmjena dokumenata"
   rounded
   unelevated
-/>
+  @click="openLog"
+/> 
+
+<q-dialog v-model="showLogDialog" persistent>
+  <q-card style="min-width: 600px; max-width: 1000px;">
+    <q-card-section>
+      <div class="text-h6">DNEVNIK AKTIVNOSTI</div>
+    </q-card-section>
+
+    <q-card-section>
+      <q-table
+        :rows="logRows"
+        :columns="logColumns"
+        row-key="id"
+        dense
+        flat
+      >
+        <template v-slot:top-right>
+          <q-btn dense flat icon="close" @click="showLogDialog = false" />
+        </template>
+      </q-table>
+    </q-card-section>
+
+    <q-card-actions align="right">
+      <q-btn flat label="Zatvori" color="primary" @click="showLogDialog = false" />
+    </q-card-actions>
+  </q-card>
+</q-dialog>
 
     <CreateFolderModal v-model="showCreateModal" @create="handleCreateFolder" />
     <EditFolderDialog v-model="showEditDialog" :folder="folderToEdit" @save="handleRenameFolder" />
@@ -73,18 +103,33 @@ const folderToDelete = ref(null)
 const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
 
+// Activity log dialog + sample data
+const showLogDialog = ref(false)
+const logColumns = [
+  { name: 'date', label: 'Datum', field: 'date' },
+  { name: 'user', label: 'Korisnik', field: 'user' },
+  { name: 'action', label: 'Akcija', field: 'action' },
+  { name: 'document', label: 'Dokument', field: 'document' },
+]
+const logRows = ref([
+  { id: 1, date: '2025-12-01 10:12', user: 'ivan', action: 'Uredio dokument', document: 'predavanje1.pdf' },
+  { id: 2, date: '2025-11-30 14:05', user: 'ana', action: 'Kreirala dokument', document: 'zadatak2.docx' },
+  { id: 3, date: '2025-11-29 09:45', user: 'marko', action: 'Obrisao dokument', document: 'stari_rokovi.xlsx' },
+])
+
 async function fetchRootFolders() {
   isLoading.value = true
   try {
     const response = await api.get('/folders')
     folders.value = response.data
   } catch (error) {
-    errorMessage.value = error.value || 'Došlo je do greške prilikom učitavanja mapa.'
+    console.error('fetchRootFolders error:', error)
+    errorMessage.value = error.response?.data?.message || error.message || 'Došlo je do greške prilikom učitavanja mapa.'
+    $q.notify({ type: 'negative', message: errorMessage.value, timeout: 3000 })
   } finally {
     isLoading.value = false
   }
 }
-
 async function handleCreateFolder({ name }) {
   try {
     const response = await api.post('/folders', {
@@ -168,5 +213,10 @@ onMounted(() => {
   loadUserFromToken()
   fetchRootFolders()
 })
+
+function openLog () {
+  showLogDialog.value = true
+  $q.notify({ type: 'info', message: 'Otvaram dnevnik aktivnosti', timeout: 1500 })
+}
 
 </script>
