@@ -40,7 +40,7 @@
 
 <transition name="fade">
   <div v-show="showLogDialog" class="q-mt-md">
-    <q-card flat bordered class="q-pa-sm" style="max-width:1000px;">
+    <q-card flat bordered class="q-pa-sm log-card">
       <q-card-section>
         <div class="row items-center justify-between">
           <div class="text-h6">DNEVNIK AKTIVNOSTI</div>
@@ -49,7 +49,7 @@
       </q-card-section>
 
       <q-card-section class="q-pa-none">
-        <div>
+        <div class="q-table-responsive">
           <q-table
             :rows="logRows"
             :columns="logColumns"
@@ -67,6 +67,12 @@
 
             <template #body-cell-updated_at="props">
               <q-td :props="props">{{ formatDate(props.row.updated_at) }}</q-td>
+            </template>
+
+            <template #body-cell-path="props">
+              <q-td :props="props">
+                <div class="dnevnik-path">{{ props.row.path }}</div>
+              </q-td>
             </template>
           </q-table>
         </div>
@@ -292,4 +298,23 @@ function formatDate (value) {
 <style scoped>
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s }
 .fade-enter-from, .fade-leave-to { opacity: 0 }
+
+.log-card {
+  width: 100%;
+}
+
+.q-table-responsive {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.q-table-responsive .q-table__middle {
+  min-width: 900px; /* keeps columns readable on wide screens; allows horizontal scroll on small screens */
+}
+
+.dnevnik-path {
+  white-space: normal;
+  word-break: break-word;
+  max-width: 320px;
+}
 </style>
