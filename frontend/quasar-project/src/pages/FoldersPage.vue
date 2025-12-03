@@ -69,6 +69,16 @@
               <q-td :props="props">{{ formatDate(props.row.updated_at) }}</q-td>
             </template>
 
+            <template #body-cell-mapa="props">
+              <q-td :props="props">
+                <q-btn v-if="props.row.mapa && props.row.fk_mape"
+                  :to="`/folders/${props.row.fk_mape}`"
+                  flat dense color="primary" class="q-pa-none q-ma-none" style="text-transform:none;min-width:0;">
+                  {{ props.row.mapa }}
+                </q-btn>
+                <span v-else>{{ props.row.mapa }}</span>
+              </q-td>
+            </template>
             <template #body-cell-path="props">
               <q-td :props="props">
                 <div class="dnevnik-path">{{ props.row.path }}</div>
@@ -129,6 +139,7 @@ const showLogDialog = ref(false)
 const logColumns = [
   { name: 'user_fullname', label: 'Ime i prezime', field: 'user_fullname' },
   { name: 'document', label: 'Dokument', field: 'document' },
+  { name: 'mapa', label: 'Mapa', field: 'mapa' },
   { name: 'created_at', label: 'Datum kreiranja', field: 'created_at' },
   { name: 'updated_at', label: 'Datum zadnje izmjene', field: 'updated_at' },
   { name: 'path', label: 'Putanja', field: 'path' },
@@ -156,11 +167,13 @@ function loadAllLogs () {
     try {
       const resp = await api.get('/logs')
       if (Array.isArray(resp.data) && resp.data.length) {
-        // Backend returns mapped fields: id, user_fullname, document, created_at, updated_at, path
+        // Backend returns mapped fields: id, user_fullname, document, mapa, created_at, updated_at, path
         logRows.value = resp.data.map(r => ({
           id: r.id,
           user_fullname: r.user_fullname,
           document: r.document,
+          mapa: r.mapa,
+          fk_mape: r.fk_mape,
           created_at: r.created_at,
           updated_at: r.updated_at,
           path: r.path
