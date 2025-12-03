@@ -1,6 +1,6 @@
 <template>
   <q-page class="q-pa-md">
-    <h1 class="text-h5">Kolegiji (Root mape)</h1>
+    <h1 class="text-h5">Kolegiji — Glavna mapa 📂</h1>
 
     <div class="row items-center justify-end q-mb-lg">
       <q-btn
@@ -49,7 +49,7 @@
       </q-card-section>
 
       <q-card-section class="q-pa-none">
-        <div class="q-table-responsive">
+        <div class="q-table-responsive dnevnik-table-scroll">
           <q-table
             :rows="logRows"
             :columns="logColumns"
@@ -60,6 +60,8 @@
             :rows-per-page-options="[]"
             :sort-by="['created_at','updated_at']"
             :sort-desc="false"
+            virtual-scroll
+            :virtual-scroll-item-size="48"
           >
             <template #body-cell-created_at="props">
               <q-td :props="props">{{ formatDate(props.row.created_at) }}</q-td>
@@ -319,6 +321,11 @@ function formatDate (value) {
 .q-table-responsive {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
+}
+.dnevnik-table-scroll {
+  max-height: 500px;
+  min-height: 300px;
+  overflow-y: auto;
 }
 
 .q-table-responsive .q-table__middle {
