@@ -1,6 +1,21 @@
 <template>
   <q-page class="q-pa-md">
-    <h1 class="text-h5">Kolegiji — Glavna mapa 📂</h1>
+    <div class="row items-center q-mb-md">
+      <h1 class="text-h5 q-mr-md">Kolegiji — Glavna mapa 📂</h1>
+      <q-input
+        dense
+        outlined
+        v-model="searchFolders"
+        placeholder="Pretraži mape..."
+        class="search-bar"
+        style="max-width: 260px;"
+        clearable
+      >
+        <template #append>
+          <q-icon name="search" />
+        </template>
+      </q-input>
+    </div>
 
     <div class="row items-center justify-end q-mb-lg">
       <q-btn
@@ -108,6 +123,7 @@
 </template>
 
 <script setup>
+const searchFolders = ref("");
 import { onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from 'boot/axios'
