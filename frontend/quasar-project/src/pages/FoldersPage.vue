@@ -4,11 +4,13 @@
       <h1 class="text-h5 q-mr-md">Kolegiji — Glavna mapa 📂</h1>
       <q-input
         dense
+        rounded
+        color="primary"
         outlined
         v-model="searchFolders"
         placeholder="Pretraži mape..."
         class="search-bar"
-        style="max-width: 260px;"
+        style="max-width: 220px; min-width: 180px; height: 36px;"
         clearable
       >
         <template #append>
