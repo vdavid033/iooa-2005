@@ -12,7 +12,7 @@ exports.getDocumentLogs = async (req, res) => {
              CONCAT(u.ime_korisnika, ' ', u.prezime_korisnika) AS user_fullname
       FROM dokument d
       LEFT JOIN korisnik u ON d.fk_korisnika = u.id_korisnika
-      ORDER BY d.datum_kreiranja ASC
+      ORDER BY d.datum_kreiranja DESC
     `
 
     const [rows] = await db.query(sql)
