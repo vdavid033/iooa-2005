@@ -12,6 +12,7 @@
           class="search-bar q-mr-md"
           style="max-width: 320px; min-width: 180px; height: 40px; font-weight: bold;"
         clearable
+        @input="handleSearch"
         @keyup.enter="handleSearch"
       >
         <template #append>
@@ -100,17 +101,15 @@
       <q-card-section class="q-pa-none">
         <div class="q-table-responsive dnevnik-table-scroll">
           <q-table
+            v-model:pagination="logPagination"
             :rows="logRows"
             :columns="logColumns"
             row-key="id"
             dense
             flat
-            hide-bottom
-            :rows-per-page-options="[]"
+            :rows-per-page-options="[10,25,50]"
             :sort-by="['created_at','updated_at']"
             :sort-desc="false"
-            virtual-scroll
-            :virtual-scroll-item-size="48"
           >
             <template #body-cell-created_at="props">
               <q-td :props="props">{{ formatDate(props.row.created_at) }}</q-td>
@@ -158,6 +157,7 @@
 
 <script setup>
 const searchQuery = ref("");
+
 const fileResults = ref([]);
 
 const filteredFolders = computed(() => {
@@ -166,8 +166,7 @@ const filteredFolders = computed(() => {
 });
 
 async function handleSearch() {
-  // Filter folders locally
-  // Search files via backend
+  // Folder search is local, file search is backend
   if (!searchQuery.value) {
     fileResults.value = [];
     return;
@@ -175,12 +174,8 @@ async function handleSearch() {
   try {
     const resp = await api.get(`/documents/search?q=${encodeURIComponent(searchQuery.value)}`);
     fileResults.value = Array.isArray(resp.data) ? resp.data : [];
-    if (!filteredFolders.value.length && !fileResults.value.length) {
-      $q.notify({ type: 'info', message: 'Nema rezultata za traženi pojam.', timeout: 1500 });
-    }
   } catch (e) {
     fileResults.value = [];
-    $q.notify({ type: 'negative', message: 'Greška pri pretrazi dokumenata.', timeout: 1500 });
   }
 }
 import { onMounted, ref, computed } from 'vue'
@@ -222,6 +217,7 @@ const logColumns = [
   { name: 'path', label: 'Putanja', field: 'path' },
 ]
 const logRows = ref([])
+const logPagination = ref({ page: 1, rowsPerPage: 10, sortBy: 'created_at', descending: false })
 // For now we load all logs at once (no pagination)
 // simulated full dataset (in real use, fetch from API)
 const _allLogRows = []
