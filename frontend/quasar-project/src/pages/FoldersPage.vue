@@ -9,8 +9,8 @@
         outlined
         v-model="searchQuery"
         placeholder="Pretraži mape i dokumente..."
-        class="search-bar"
-        style="max-width: 320px; min-width: 180px; height: 36px;"
+          class="search-bar q-mr-md"
+          style="max-width: 320px; min-width: 180px; height: 40px; font-weight: bold;"
         clearable
         @keyup.enter="handleSearch"
       >
@@ -382,6 +382,16 @@ function formatDate (value) {
 </script>
 
 <style scoped>
+.search-bar .q-field__control,
+.search-bar .q-field__native {
+  background: #1976d2 !important;
+  color: #fff !important;
+  font-weight: bold;
+}
+.search-bar input::placeholder {
+  color: #fff !important;
+  opacity: 1;
+}
 .fade-enter-active, .fade-leave-active { transition: opacity 0.2s }
 .fade-enter-from, .fade-leave-to { opacity: 0 }
 
