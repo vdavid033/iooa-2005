@@ -22,28 +22,32 @@
 
     <div v-if="searchQuery && (filteredFolders.length || fileResults.length)" class="q-mb-md">
       <div v-if="filteredFolders.length" class="q-mb-sm">
-        <div class="text-subtitle1 q-mb-xs">Rezultati pretrage mapa:</div>
-        <q-list bordered separator>
-          <q-item v-for="folder in filteredFolders" :key="folder.id_mape" clickable @click="openFolder(folder)">
-            <q-item-section>
-              <q-item-label>{{ folder.ime_mape }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
+        <template v-if="filteredFolders.length">
+          <div class="text-subtitle1 q-mb-xs">Rezultati pretrage mapa:</div>
+          <q-list bordered separator>
+            <q-item v-for="folder in filteredFolders" :key="folder.id_mape" clickable @click="openFolder(folder)">
+              <q-item-section>
+                <q-item-label>{{ folder.ime_mape }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
       </div>
       <div v-if="fileResults.length">
-        <div class="text-subtitle1 q-mb-xs">Rezultati pretrage dokumenata:</div>
-        <q-list bordered separator>
-          <q-item v-for="file in fileResults" :key="file.id_dokumenta">
-            <q-item-section>
-              <q-item-label>{{ file.ime_dokumenta }}</q-item-label>
-              <q-item-label caption>{{ file.putanja }}</q-item-label>
-            </q-item-section>
-            <q-item-section side>
-              <q-btn :href="`/api/documents/download/${file.id_dokumenta}`" target="_blank" icon="download" flat dense color="primary" title="Preuzmi" />
-            </q-item-section>
-          </q-item>
-        </q-list>
+        <template v-if="fileResults.length">
+          <div class="text-subtitle1 q-mb-xs">Rezultati pretrage dokumenata:</div>
+          <q-list bordered separator>
+            <q-item v-for="file in fileResults" :key="file.id_dokumenta">
+              <q-item-section>
+                <q-item-label>{{ file.ime_dokumenta }}</q-item-label>
+                <q-item-label caption>{{ file.putanja }}</q-item-label>
+              </q-item-section>
+              <q-item-section side>
+                <q-btn :href="`/api/documents/download/${file.id_dokumenta}`" target="_blank" icon="download" flat dense color="primary" title="Preuzmi" />
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
       </div>
     </div>
 
