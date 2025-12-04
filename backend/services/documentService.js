@@ -1,3 +1,11 @@
+// Search documents by name (global)
+async function searchDocumentsByName(query) {
+  const [rows] = await db.query(
+    'SELECT * FROM dokument WHERE ime_dokumenta LIKE ?',
+    [`%${query}%`]
+  );
+  return rows;
+}
 const db = require('../data/db')
 const fs = require('fs')
 const path = require('path')
@@ -45,5 +53,6 @@ module.exports = {
   getDocumentsByFolder,
   uploadDocument,
   deleteDocument,
-  getDocumentById
+  getDocumentById,
+  searchDocumentsByName
 }

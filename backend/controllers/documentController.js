@@ -1,3 +1,15 @@
+// Search documents by name (global)
+exports.searchDocuments = async (req, res) => {
+  try {
+    const q = req.query.q || '';
+    if (!q) return res.json([]);
+    const documents = await documentService.searchDocumentsByName(q);
+    res.json(documents);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: 'Greška pri pretrazi dokumenata' });
+  }
+}
 const documentService = require('../services/documentService')
 
 exports.getDocumentsByFolder = async (req, res) => {

@@ -7,16 +7,44 @@
         rounded
         color="primary"
         outlined
-        v-model="searchFolders"
-        placeholder="Pretraži mape..."
+        v-model="searchQuery"
+        placeholder="Pretraži mape i dokumente..."
         class="search-bar"
-        style="max-width: 220px; min-width: 180px; height: 36px;"
+        style="max-width: 320px; min-width: 180px; height: 36px;"
         clearable
+        @keyup.enter="handleSearch"
       >
         <template #append>
-          <q-icon name="search" />
+          <q-icon name="search" @click="handleSearch" class="cursor-pointer" />
         </template>
       </q-input>
+    </div>
+
+    <div v-if="searchQuery && (filteredFolders.length || fileResults.length)" class="q-mb-md">
+      <div v-if="filteredFolders.length" class="q-mb-sm">
+        <div class="text-subtitle1 q-mb-xs">Rezultati pretrage mapa:</div>
+        <q-list bordered separator>
+          <q-item v-for="folder in filteredFolders" :key="folder.id_mape" clickable @click="openFolder(folder)">
+            <q-item-section>
+              <q-item-label>{{ folder.ime_mape }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
+      <div v-if="fileResults.length">
+        <div class="text-subtitle1 q-mb-xs">Rezultati pretrage dokumenata:</div>
+        <q-list bordered separator>
+          <q-item v-for="file in fileResults" :key="file.id_dokumenta">
+            <q-item-section>
+              <q-item-label>{{ file.ime_dokumenta }}</q-item-label>
+              <q-item-label caption>{{ file.putanja }}</q-item-label>
+            </q-item-section>
+            <q-item-section side>
+              <q-btn :href="`/api/documents/download/${file.id_dokumenta}`" target="_blank" icon="download" flat dense color="primary" title="Preuzmi" />
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
     </div>
 
     <div class="row items-center justify-end q-mb-lg">
@@ -125,8 +153,33 @@
 </template>
 
 <script setup>
-const searchFolders = ref("");
-import { onMounted, ref } from 'vue'
+const searchQuery = ref("");
+const fileResults = ref([]);
+
+const filteredFolders = computed(() => {
+  if (!searchQuery.value) return folders.value;
+  return folders.value.filter(f => f.ime_mape.toLowerCase().includes(searchQuery.value.toLowerCase()));
+});
+
+async function handleSearch() {
+  // Filter folders locally
+  // Search files via backend
+  if (!searchQuery.value) {
+    fileResults.value = [];
+    return;
+  }
+  try {
+    const resp = await api.get(`/documents/search?q=${encodeURIComponent(searchQuery.value)}`);
+    fileResults.value = Array.isArray(resp.data) ? resp.data : [];
+    if (!filteredFolders.value.length && !fileResults.value.length) {
+      $q.notify({ type: 'info', message: 'Nema rezultata za traženi pojam.', timeout: 1500 });
+    }
+  } catch (e) {
+    fileResults.value = [];
+    $q.notify({ type: 'negative', message: 'Greška pri pretrazi dokumenata.', timeout: 1500 });
+  }
+}
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from 'boot/axios'
 import { useQuasar } from 'quasar'

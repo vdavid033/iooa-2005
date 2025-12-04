@@ -7,6 +7,7 @@ const {verifyTokenUser} = require('../authJwt')
 
 router.use(verifyTokenUser)
 
+router.get('/search', controller.searchDocuments)
 router.get('/:folderId', controller.getDocumentsByFolder)
 router.post('/upload', upload.single('file'), controller.uploadDocument)
 router.delete('/:id', controller.deleteDocument)
