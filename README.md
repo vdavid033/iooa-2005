@@ -50,4 +50,4 @@ Glavne značajke uključuju:
 ## Kalendar obaveza - potrebni instalacijski paketi
 
 npm install express mysql2 cors
-npm install jwt-decode
+npm install jwt-decod

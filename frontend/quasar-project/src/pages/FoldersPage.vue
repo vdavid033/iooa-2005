@@ -209,7 +209,7 @@ const showDeleteDialog = ref(false)
 // Activity log dialog + sample data
 const showLogDialog = ref(false)
 const logColumns = [
-  { name: 'user_fullname', label: 'Ime i prezime', field: 'user_fullname' },
+  { name: 'user_fullname', label: 'Ime i prezime', field: 'user_fullname', sortable: true },
   { name: 'document', label: 'Dokument', field: 'document' },
   { name: 'mapa', label: 'Mapa', field: 'mapa' },
   { name: 'created_at', label: 'Datum kreiranja', field: 'created_at' },
