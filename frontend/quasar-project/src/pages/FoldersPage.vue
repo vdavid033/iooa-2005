@@ -206,7 +206,7 @@ const folderToDelete = ref(null)
 const showEditDialog = ref(false)
 const showDeleteDialog = ref(false)
 
-// Activity log dialog + sample data
+// Activity log dialog
 const showLogDialog = ref(false)
 const logColumns = [
   { name: 'user_fullname', label: 'Ime i prezime', field: 'user_fullname', sortable: true },
@@ -217,48 +217,30 @@ const logColumns = [
 ]
 const logRows = ref([])
 const logPagination = ref({ page: 1, rowsPerPage: 10, sortBy: 'created_at', descending: false })
-// For now we load all logs at once (no pagination)
-// simulated full dataset (in real use, fetch from API)
-const _allLogRows = []
-const firstNames = ['Ivan','Ana','Marko','Petra','Luka','Maja','Katarina','Tomislav','Ivana','Dario']
-const lastNames = ['Horvat','Marić','Kovač','Babić','Novak','Perić','Jurić','Radić','Filipović','Šarić']
-for (let i = 1; i <= 200; i++) {
-  const fn = firstNames[i % firstNames.length]
-  const ln = lastNames[i % lastNames.length]
-  const createdDay = ((i % 28) + 1).toString().padStart(2, '0')
-  const createdHour = (8 + (i % 8)).toString().padStart(2, '0')
-  const updatedHour = (9 + (i % 12)).toString().padStart(2, '0')
-  const created_at = `2025-10-${createdDay} ${createdHour}:00`
-  const updated_at = `2025-11-${((i%30)+1).toString().padStart(2,'0')} ${updatedHour}:30`
-  _allLogRows.push({ id: i, user_fullname: `${fn} ${ln}`, document: `fajl_${i}.pdf`, created_at, updated_at, path: `/uploads/fajl_${i}.pdf` })
-}
-
+// For now we load all logs at once (no pagination) — fetched from API only
 function loadAllLogs () {
-  // fetch real logs from backend if available; fallback to simulated data
   ;(async () => {
     try {
       const resp = await api.get('/logs')
-      if (Array.isArray(resp.data) && resp.data.length) {
-        // Backend returns mapped fields: id, user_fullname, document, mapa, created_at, updated_at, path
-        logRows.value = resp.data.map(r => ({
-          id: r.id,
-          user_fullname: r.user_fullname,
-          document: r.document,
-          mapa: r.mapa,
-          fk_mape: r.fk_mape,
-          created_at: r.created_at,
-          updated_at: r.updated_at,
-          path: r.path
-        }))
-        console.log('Loaded', logRows.value.length, 'documents from API')
-        return
+      const data = Array.isArray(resp.data) ? resp.data : []
+      logRows.value = data.map(r => ({
+        id: r.id,
+        user_fullname: r.user_fullname,
+        document: r.document,
+        mapa: r.mapa,
+        fk_mape: r.fk_mape,
+        created_at: r.created_at,
+        updated_at: r.updated_at,
+        path: r.path
+      }))
+      if (!logRows.value.length) {
+        console.info('No logs returned from API')
       }
     } catch (e) {
-      console.warn('loadAllLogs API failed, using simulated data', e)
+      console.error('loadAllLogs API failed', e)
+      logRows.value = []
+      $q.notify({ type: 'warning', message: 'Ne mogu učitati dnevnik aktivnosti.', timeout: 3000 })
     }
-
-    // fallback to simulated dataset
-    logRows.value = _allLogRows.slice()
   })()
 }
 
