@@ -212,8 +212,8 @@ const logColumns = [
   { name: 'user_fullname', label: 'Ime i prezime', field: 'user_fullname', sortable: true },
   { name: 'document', label: 'Dokument', field: 'document' },
   { name: 'mapa', label: 'Mapa', field: 'mapa' },
-  { name: 'created_at', label: 'Datum kreiranja', field: 'created_at' },
-  { name: 'updated_at', label: 'Datum zadnje izmjene', field: 'updated_at' },
+  { name: 'created_at', label: 'Datum kreiranja', field: 'created_at', sortable: true },
+  { name: 'updated_at', label: 'Datum zadnje izmjene', field: 'updated_at', sortable: true },
   { name: 'path', label: 'Putanja', field: 'path' },
 ]
 const logRows = ref([])
