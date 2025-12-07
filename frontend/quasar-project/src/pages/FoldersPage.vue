@@ -1,24 +1,33 @@
 <template>
   <q-page class="q-pa-md">
-    <div class="row items-center q-mb-md">
-      <h1 class="text-h5 q-mr-md">Kolegiji — Glavna mapa 📂</h1>
-      <q-input
-        dense
-        rounded
-        color="primary"
-        outlined
-        v-model="searchQuery"
-        placeholder="Pretraži mape i dokumente..."
-          class="search-bar q-mr-md"
-          style="max-width: 320px; min-width: 180px; height: 40px; font-weight: bold;"
-        clearable
-        @input="handleSearch"
-        @keyup.enter="handleSearch"
-      >
-        <template #append>
-          <q-icon name="search" @click="handleSearch" class="cursor-pointer" />
-        </template>
-      </q-input>
+    <div class="row items-center q-gutter-md q-mb-md">
+      <div class="col-12 col-md-auto">
+        <h1 class="text-h5">Kolegiji — Glavna mapa 📂</h1>
+      </div>
+      <div class="col-12 col-md-auto search-wrapper">
+        <q-input
+          rounded
+          color="primary"
+          outlined
+          v-model="searchQuery"
+          placeholder="🔍 Pretraži..."
+          class="search-bar"
+          clearable
+          @input="handleSearch"
+          @keyup.enter="handleSearch"
+        >
+          <template #append>
+            <q-btn
+              flat
+              round
+              color="white"
+              icon="search"
+              @click="handleSearch"
+              :aria-label="'Pretraži'"
+            />
+          </template>
+        </q-input>
+      </div>
     </div>
 
     <div v-if="searchQuery && (filteredFolders.length || fileResults.length)" class="q-mb-md">
@@ -26,7 +35,12 @@
         <template v-if="filteredFolders.length">
           <div class="text-subtitle1 q-mb-xs">Rezultati pretrage mapa:</div>
           <q-list bordered separator>
-            <q-item v-for="folder in filteredFolders" :key="folder.id_mape" clickable @click="openFolder(folder)">
+            <q-item
+              v-for="folder in filteredFolders"
+              :key="folder.id_mape"
+              clickable
+              @click="openFolder(folder)"
+            >
               <q-item-section>
                 <q-item-label>{{ folder.ime_mape }}</q-item-label>
               </q-item-section>
@@ -44,7 +58,15 @@
                 <q-item-label caption>{{ file.putanja }}</q-item-label>
               </q-item-section>
               <q-item-section side>
-                <q-btn :href="`/api/documents/download/${file.id_dokumenta}`" target="_blank" icon="download" flat dense color="primary" title="Preuzmi" />
+                <q-btn
+                  :href="`/api/documents/download/${file.id_dokumenta}`"
+                  target="_blank"
+                  icon="download"
+                  flat
+                  dense
+                  color="primary"
+                  title="Preuzmi"
+                />
               </q-item-section>
             </q-item>
           </q-list>
@@ -79,71 +101,77 @@
       <div v-else class="text-subtitle2 q-pa-md">Nema mapa za prikaz.</div>
     </div>
 
-<q-btn
-  color="primary"
-  icon="history"
-  label="Povijest izmjena dokumenata"
-  rounded
-  unelevated
-  @click="openLog"
-/>
+    <q-btn
+      color="primary"
+      icon="history"
+      label="Povijest izmjena dokumenata"
+      rounded
+      unelevated
+      @click="openLog"
+    />
 
-<transition name="fade">
-  <div v-show="showLogDialog" class="q-mt-md">
-    <q-card flat bordered class="q-pa-sm log-card">
-      <q-card-section>
-        <div class="row items-center justify-between">
-          <div class="text-h6">DNEVNIK AKTIVNOSTI</div>
-          <q-btn dense flat icon="close" @click="showLogDialog = false" />
-        </div>
-      </q-card-section>
+    <transition name="fade">
+      <div v-show="showLogDialog" class="q-mt-md">
+        <q-card flat bordered class="q-pa-sm log-card">
+          <q-card-section>
+            <div class="row items-center justify-between">
+              <div class="text-h6">DNEVNIK AKTIVNOSTI</div>
+              <q-btn dense flat icon="close" @click="showLogDialog = false" />
+            </div>
+          </q-card-section>
 
-      <q-card-section class="q-pa-none">
-        <div class="q-table-responsive dnevnik-table-scroll">
-          <q-table
-            v-model:pagination="logPagination"
-            :rows="logRows"
-            :columns="logColumns"
-            row-key="id"
-            dense
-            flat
-            :rows-per-page-options="[10,25,50]"
-            :sort-by="['created_at','updated_at']"
-            :sort-desc="false"
-          >
-            <template #body-cell-created_at="props">
-              <q-td :props="props">{{ formatDate(props.row.created_at) }}</q-td>
-            </template>
+          <q-card-section class="q-pa-none">
+            <div class="q-table-responsive dnevnik-table-scroll">
+              <q-table
+                v-model:pagination="logPagination"
+                :rows="logRows"
+                :columns="logColumns"
+                row-key="id"
+                dense
+                flat
+                :rows-per-page-options="[10, 25, 50]"
+                :sort-by="['created_at', 'updated_at']"
+                :sort-desc="false"
+              >
+                <template #body-cell-created_at="props">
+                  <q-td :props="props">{{ formatDate(props.row.created_at) }}</q-td>
+                </template>
 
-            <template #body-cell-updated_at="props">
-              <q-td :props="props">{{ formatDate(props.row.updated_at) }}</q-td>
-            </template>
+                <template #body-cell-updated_at="props">
+                  <q-td :props="props">{{ formatDate(props.row.updated_at) }}</q-td>
+                </template>
 
-            <template #body-cell-mapa="props">
-              <q-td :props="props">
-                <q-btn v-if="props.row.mapa && props.row.fk_mape"
-                  :to="`/folders/${props.row.fk_mape}`"
-                  flat dense color="primary" class="q-pa-none q-ma-none" style="text-transform:none;min-width:0;">
-                  {{ props.row.mapa }}
-                </q-btn>
-                <span v-else>{{ props.row.mapa }}</span>
-              </q-td>
-            </template>
-            <template #body-cell-path="props">
-              <q-td :props="props">
-                <div class="dnevnik-path">{{ props.row.path }}</div>
-              </q-td>
-            </template>
-          </q-table>
-        </div>
-      </q-card-section>
+                <template #body-cell-mapa="props">
+                  <q-td :props="props">
+                    <q-btn
+                      v-if="props.row.mapa && props.row.fk_mape"
+                      :to="`/folders/${props.row.fk_mape}`"
+                      flat
+                      dense
+                      color="primary"
+                      class="q-pa-none q-ma-none"
+                      style="text-transform: none; min-width: 0"
+                    >
+                      {{ props.row.mapa }}
+                    </q-btn>
+                    <span v-else>{{ props.row.mapa }}</span>
+                  </q-td>
+                </template>
+                <template #body-cell-path="props">
+                  <q-td :props="props">
+                    <div class="dnevnik-path">{{ props.row.path }}</div>
+                  </q-td>
+                </template>
+              </q-table>
+            </div>
+          </q-card-section>
 
-      <q-card-actions align="right">
-        <q-btn flat label="Zatvori" color="primary" @click="showLogDialog = false" />
-      </q-card-actions>
-    </q-card>
-  </div>
-</transition>
+          <q-card-actions align="right">
+            <q-btn flat label="Zatvori" color="primary" @click="showLogDialog = false" />
+          </q-card-actions>
+        </q-card>
+      </div>
+    </transition>
 
     <CreateFolderModal v-model="showCreateModal" @create="handleCreateFolder" />
     <EditFolderDialog v-model="showEditDialog" :folder="folderToEdit" @save="handleRenameFolder" />
@@ -156,26 +184,28 @@
 </template>
 
 <script setup>
-const searchQuery = ref("");
+const searchQuery = ref('')
 
-const fileResults = ref([]);
+const fileResults = ref([])
 
 const filteredFolders = computed(() => {
-  if (!searchQuery.value) return folders.value;
-  return folders.value.filter(f => f.ime_mape.toLowerCase().includes(searchQuery.value.toLowerCase()));
-});
+  if (!searchQuery.value) return folders.value
+  return folders.value.filter((f) =>
+    f.ime_mape.toLowerCase().includes(searchQuery.value.toLowerCase())
+  )
+})
 
 async function handleSearch() {
   // Folder search is local, file search is backend
   if (!searchQuery.value) {
-    fileResults.value = [];
-    return;
+    fileResults.value = []
+    return
   }
   try {
-    const resp = await api.get(`/documents/search?q=${encodeURIComponent(searchQuery.value)}`);
-    fileResults.value = Array.isArray(resp.data) ? resp.data : [];
+    const resp = await api.get(`/documents/search?q=${encodeURIComponent(searchQuery.value)}`)
+    fileResults.value = Array.isArray(resp.data) ? resp.data : []
   } catch (e) {
-    fileResults.value = [];
+    fileResults.value = []
   }
 }
 import { onMounted, ref, computed } from 'vue'
@@ -218,12 +248,12 @@ const logColumns = [
 const logRows = ref([])
 const logPagination = ref({ page: 1, rowsPerPage: 10, sortBy: 'created_at', descending: false })
 // For now we load all logs at once (no pagination) — fetched from API only
-function loadAllLogs () {
+function loadAllLogs() {
   ;(async () => {
     try {
       const resp = await api.get('/logs')
       const data = Array.isArray(resp.data) ? resp.data : []
-      logRows.value = data.map(r => ({
+      logRows.value = data.map((r) => ({
         id: r.id,
         user_fullname: r.user_fullname,
         document: r.document,
@@ -231,7 +261,7 @@ function loadAllLogs () {
         fk_mape: r.fk_mape,
         created_at: r.created_at,
         updated_at: r.updated_at,
-        path: r.path
+        path: r.path,
       }))
       if (!logRows.value.length) {
         console.info('No logs returned from API')
@@ -251,7 +281,10 @@ async function fetchRootFolders() {
     folders.value = response.data
   } catch (error) {
     console.error('fetchRootFolders error:', error)
-    errorMessage.value = error.response?.data?.message || error.message || 'Došlo je do greške prilikom učitavanja mapa.'
+    errorMessage.value =
+      error.response?.data?.message ||
+      error.message ||
+      'Došlo je do greške prilikom učitavanja mapa.'
     $q.notify({ type: 'negative', message: errorMessage.value, timeout: 3000 })
   } finally {
     isLoading.value = false
@@ -341,7 +374,7 @@ onMounted(() => {
   fetchRootFolders()
 })
 
-function openLog () {
+function openLog() {
   showLogDialog.value = true
   $q.notify({ type: 'info', message: 'Otvaram dnevnik aktivnosti', timeout: 800 })
   if (logRows.value.length === 0) {
@@ -349,17 +382,20 @@ function openLog () {
   }
 }
 
-function formatDate (value) {
+function formatDate(value) {
   if (!value) return ''
   try {
     const d = new Date(value)
     // Croatian style: day month year (e.g. 01. prosinca 2025.)
-    return new Intl.DateTimeFormat('hr-HR', { day: '2-digit', month: 'long', year: 'numeric' }).format(d)
+    return new Intl.DateTimeFormat('hr-HR', {
+      day: '2-digit',
+      month: 'long',
+      year: 'numeric',
+    }).format(d)
   } catch (e) {
     return value
   }
 }
-
 </script>
 
 <style scoped>
@@ -369,12 +405,29 @@ function formatDate (value) {
   color: #fff !important;
   font-weight: bold;
 }
+.search-bar .q-field__control {
+  min-height: 42px; /* match default q-btn height */
+}
+.search-bar .q-field__native {
+  min-height: 42px; /* ensure input area matches button height */
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+.search-bar .q-field__marginal {
+  height: 42px; /* align prepend/append areas (icons, clear button) */
+}
 .search-bar input::placeholder {
   color: #fff !important;
   opacity: 1;
 }
-.fade-enter-active, .fade-leave-active { transition: opacity 0.2s }
-.fade-enter-from, .fade-leave-to { opacity: 0 }
+.fade-enter-active,
+.fade-leave-active {
+  transition: opacity 0.2s;
+}
+.fade-enter-from,
+.fade-leave-to {
+  opacity: 0;
+}
 
 .log-card {
   width: 100%;
@@ -398,5 +451,10 @@ function formatDate (value) {
   white-space: normal;
   word-break: break-word;
   max-width: 320px;
+}
+
+/* Keep the search bar from stretching full width */
+.search-wrapper {
+  max-width: 420px;
 }
 </style>
