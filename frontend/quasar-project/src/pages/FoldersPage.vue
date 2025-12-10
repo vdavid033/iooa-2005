@@ -30,7 +30,18 @@
       </div>
     </div>
 
-    <div v-if="searchQuery && (filteredFolders.length || fileResults.length)" class="q-mb-md">
+    <div v-if="searchQuery && (filteredFolders.length || fileResults.length || userResults.length)" class="q-mb-md">
+      <div v-if="userResults.length" class="q-mb-sm">
+        <div class="text-subtitle1 q-mb-xs">Rezultati pretrage korisnika:</div>
+        <q-list bordered separator>
+          <q-item v-for="user in userResults" :key="user.id">
+            <q-item-section>
+              <q-item-label>{{ user.name || user.korisnicko_ime }}</q-item-label>
+              <q-item-label caption v-if="user.email">{{ user.email }}</q-item-label>
+            </q-item-section>
+          </q-item>
+        </q-list>
+      </div>
       <div v-if="filteredFolders.length" class="q-mb-sm">
         <template v-if="filteredFolders.length">
           <div class="text-subtitle1 q-mb-xs">Rezultati pretrage mapa:</div>
@@ -187,6 +198,9 @@
 const searchQuery = ref('')
 
 const fileResults = ref([])
+const userResults = ref([])
+// cache all users to avoid repeated API calls while typing
+const allUsersCache = ref(null)
 
 const filteredFolders = computed(() => {
   if (!searchQuery.value) return folders.value
@@ -196,16 +210,34 @@ const filteredFolders = computed(() => {
 })
 
 async function handleSearch() {
-  // Folder search is local, file search is backend
+  // Folder search is local, file search is backend, users fetched then filtered locally
   if (!searchQuery.value) {
     fileResults.value = []
+    userResults.value = []
     return
   }
+  // fetch documents by name
   try {
     const resp = await api.get(`/documents/search?q=${encodeURIComponent(searchQuery.value)}`)
     fileResults.value = Array.isArray(resp.data) ? resp.data : []
   } catch (e) {
     fileResults.value = []
+  }
+
+  // fetch all users once (from groups API) and filter by query
+  try {
+    if (!allUsersCache.value) {
+      const usersResp = await api.get('/groups/users/all')
+      allUsersCache.value = Array.isArray(usersResp.data) ? usersResp.data : []
+    }
+    const q = searchQuery.value.toLowerCase()
+    userResults.value = allUsersCache.value.filter((u) => {
+      const name = (u.name || u.korisnicko_ime || '').toString().toLowerCase()
+      const email = (u.email || '').toString().toLowerCase()
+      return name.includes(q) || email.includes(q)
+    })
+  } catch (e) {
+    userResults.value = []
   }
 }
 import { onMounted, ref, computed } from 'vue'
