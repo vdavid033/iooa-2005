@@ -13,7 +13,7 @@
           placeholder="🔍 Pretraži..."
           class="search-bar"
           clearable
-          @input="handleSearch"
+          @update:model-value="handleLiveInput"
           @keyup.enter="handleSearch"
         >
           <template #append>
@@ -31,17 +31,6 @@
     </div>
 
     <div v-if="searchQuery && (filteredFolders.length || fileResults.length || userResults.length)" class="q-mb-md">
-      <div v-if="userResults.length" class="q-mb-sm">
-        <div class="text-subtitle1 q-mb-xs">Rezultati pretrage korisnika:</div>
-        <q-list bordered separator>
-          <q-item v-for="user in userResults" :key="user.id">
-            <q-item-section>
-              <q-item-label>{{ user.name || user.korisnicko_ime }}</q-item-label>
-              <q-item-label caption v-if="user.email">{{ user.email }}</q-item-label>
-            </q-item-section>
-          </q-item>
-        </q-list>
-      </div>
       <div v-if="filteredFolders.length" class="q-mb-sm">
         <template v-if="filteredFolders.length">
           <div class="text-subtitle1 q-mb-xs">Rezultati pretrage mapa:</div>
@@ -54,6 +43,23 @@
             >
               <q-item-section>
                 <q-item-label>{{ folder.ime_mape }}</q-item-label>
+              </q-item-section>
+            </q-item>
+          </q-list>
+        </template>
+      </div>
+      <div v-if="userResults.length" class="q-mb-sm">
+        <template v-if="userResults.length">
+          <div class="text-subtitle1 q-mb-xs">Rezultati pretrage korisnika:</div>
+          <q-list bordered separator>
+            <q-item v-for="u in userResults" :key="u.id">
+              <q-item-section avatar>
+                <q-avatar size="32px">
+                  <img :src="u.avatar" alt="avatar" />
+                </q-avatar>
+              </q-item-section>
+              <q-item-section>
+                <q-item-label>{{ u.name }}</q-item-label>
               </q-item-section>
             </q-item>
           </q-list>
@@ -199,8 +205,7 @@ const searchQuery = ref('')
 
 const fileResults = ref([])
 const userResults = ref([])
-// cache all users to avoid repeated API calls while typing
-const allUsersCache = ref(null)
+const allUsers = ref([])
 
 const filteredFolders = computed(() => {
   if (!searchQuery.value) return folders.value
@@ -209,33 +214,66 @@ const filteredFolders = computed(() => {
   )
 })
 
+// Live input handler: update local/lazy results and clear stale remote (documents)
+function handleLiveInput() {
+  const q = searchQuery.value
+  if (!q) {
+    fileResults.value = []
+    userResults.value = []
+    return
+  }
+
+  // Clear previous document results while typing; they will be refreshed on Enter/click
+  fileResults.value = []
+
+  // Immediately clear previous user results to avoid showing stale items while typing
+  userResults.value = []
+
+  // Update user results live (lazy-load all users once)
+  ;(async () => {
+    try {
+      // Snapshot current query to prevent race conditions
+      const qSnapshot = String(q).toLowerCase()
+      if (!allUsers.value.length) {
+        const uResp = await api.get('/groups/users/all')
+        allUsers.value = Array.isArray(uResp.data) ? uResp.data : []
+      }
+      const results = allUsers.value.filter((u) =>
+        String(u.name || '').toLowerCase().includes(qSnapshot)
+      )
+      // Only apply if the input hasn't changed meanwhile
+      if (String(searchQuery.value).toLowerCase() === qSnapshot) {
+        userResults.value = results
+      }
+    } catch (e) {
+      userResults.value = []
+    }
+  })()
+}
+
 async function handleSearch() {
-  // Folder search is local, file search is backend, users fetched then filtered locally
+  // Folder search is local, file search is backend
   if (!searchQuery.value) {
     fileResults.value = []
     userResults.value = []
     return
   }
-  // fetch documents by name
   try {
     const resp = await api.get(`/documents/search?q=${encodeURIComponent(searchQuery.value)}`)
     fileResults.value = Array.isArray(resp.data) ? resp.data : []
   } catch (e) {
     fileResults.value = []
   }
-
-  // fetch all users once (from groups API) and filter by query
   try {
-    if (!allUsersCache.value) {
-      const usersResp = await api.get('/groups/users/all')
-      allUsersCache.value = Array.isArray(usersResp.data) ? usersResp.data : []
+    // Lazy-load all users once, then filter on the client
+    if (!allUsers.value.length) {
+      const uResp = await api.get('/groups/users/all')
+      allUsers.value = Array.isArray(uResp.data) ? uResp.data : []
     }
     const q = searchQuery.value.toLowerCase()
-    userResults.value = allUsersCache.value.filter((u) => {
-      const name = (u.name || u.korisnicko_ime || '').toString().toLowerCase()
-      const email = (u.email || '').toString().toLowerCase()
-      return name.includes(q) || email.includes(q)
-    })
+    userResults.value = allUsers.value.filter((u) =>
+      String(u.name || '').toLowerCase().includes(q)
+    )
   } catch (e) {
     userResults.value = []
   }
