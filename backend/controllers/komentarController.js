@@ -2,7 +2,7 @@ const db = require('../db')
 
 exports.createKomentar = (req, res) => {
   const { id_objava, sadrzaj_komentara } = req.body
-  const id_korisnika = req.userId
+  const id_korisnika = req.user.id
 
   if (!id_objava || !sadrzaj_komentara || !id_korisnika) {
     return res.status(400).json({ error: 'Nedostaju podaci.' })

@@ -4,6 +4,7 @@
       <q-toolbar>
   <div class="q-toolbar-title" style="display: flex; justify-content: center;">
     <q-btn flat label="Početna" to="/" />
+    <q-btn flat label="Moj račun" to="/account" />
     <q-btn flat label="Datoteke" to="/folders" />
     <q-btn flat label="Poruke" to="/poruke" />
     <q-btn flat label="Forum" to="/forum" />
@@ -17,7 +18,18 @@
     <q-tooltip>Grupne poruke</q-tooltip>
     </q-btn>
     <q-btn flat label="Registriraj se" to="/register" />
-    
+    <q-btn
+  v-if="isAdmin"
+  flat
+  label="Admin Prijave"
+  to="/admin/reports"
+/>
+    <q-btn
+  v-if="isAdmin"
+  flat
+  label="Upravljanje računima"
+  to="admin/adminAccountManagement"
+/>
   </div>
 
     <!-- Desna strana: Login / Logout -->
@@ -98,6 +110,17 @@ const router = useRouter()
 const linksList = [
   // ... postojeće linkove
 ]
+
+const isAdmin = computed(() => {
+  const token = localStorage.getItem('token')
+  if (!token) return false
+  try {
+    const decoded = jwtDecode(token)
+    return decoded.uloga === 'admin' || decoded.uloga === 1
+  } catch (e) {
+    return false
+  }
+})
 
 const leftDrawerOpen = ref(false)
 const isLoggedIn = computed(() => !!localStorage.getItem('korisnik'))

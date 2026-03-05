@@ -1,7 +1,6 @@
 const express = require('express')
 const router = express.Router()
 const controller = require('../controllers/folderController')
-const isAdmin = require('../middlewares/isAdmin')
 const {verifyTokenUser, verifyTokenAdmin} = require('../authJwt')
 
 router.use(verifyTokenUser)

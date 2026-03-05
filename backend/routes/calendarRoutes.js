@@ -1,11 +1,12 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const authJwt = require('../authJwt');
-const db = require('../db');
+const authJwt = require("../authJwt");
+const { verifyTokenAdmin } = require("../authJwt");
+const db = require("../db");
 
 // Dohvati sve obaveze za prijavljenog korisnika
-router.get('/sve-obaveze', authJwt.verifyTokenUser, (req, res) => {
-  const sql = 'SELECT * FROM obaveza';
+router.get("/sve-obaveze", authJwt.verifyTokenUser, (req, res) => {
+  const sql = "SELECT * FROM obaveza";
   db.query(sql, (err, results) => {
     if (res.headersSent) return;
     if (err) {
@@ -18,25 +19,45 @@ router.get('/sve-obaveze', authJwt.verifyTokenUser, (req, res) => {
 });
 
 // Dodaj novu obavezu
-router.post('/unosObaveze', verifyTokenAdmin, (req, res) => {
-  const { datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze } = req.body;
-  const sql = "INSERT INTO obaveza (datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze, fk_korisnika) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
-  const values = [datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze, req.userId];
+router.post("/unosObaveze", verifyTokenAdmin, (req, res) => {
+  const {
+    datum_obaveze,
+    vrijeme_pocetka,
+    opis_obaveze,
+    lokacija,
+    profesor,
+    kolegij,
+    fk_tip_obaveze,
+  } = req.body;
+  const sql =
+    "INSERT INTO obaveza (datum_obaveze, vrijeme_pocetka, opis_obaveze, lokacija, profesor, kolegij, fk_tip_obaveze, fk_korisnika) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+  const values = [
+    datum_obaveze,
+    vrijeme_pocetka,
+    opis_obaveze,
+    lokacija,
+    profesor,
+    kolegij,
+    fk_tip_obaveze,
+    req.userId,
+  ];
   db.query(sql, values, (err, result) => {
     if (res.headersSent) return;
     if (err) {
       console.error("Greška pri unosu obaveze:", err);
       res.status(500).json({ error: "Neuspješan unos obaveze." });
     } else {
-      res.status(201).json({ poruka: "Obaveza uspješno unesena.", id: result.insertId });
+      res
+        .status(201)
+        .json({ poruka: "Obaveza uspješno unesena.", id: result.insertId });
     }
   });
 });
 
 // Obriši obavezu
-router.delete('/obaveza-brisanje/:id', authJwt.verifyTokenUser, (req, res) => {
+router.delete("/obaveza-brisanje/:id", authJwt.verifyTokenUser, (req, res) => {
   const { id } = req.params;
-  const sql = "DELETE FROM obaveza WHERE id_obaveze = ? AND fk_korisnika = ?";
+  const sql = "DELETE FROM obaveza WHERE id_obaveze = ?";
   db.query(sql, [id, req.userId], (err, results) => {
     if (res.headersSent) return;
     if (err) {
@@ -51,8 +72,9 @@ router.delete('/obaveza-brisanje/:id', authJwt.verifyTokenUser, (req, res) => {
 });
 
 // Dohvati sve tipove obaveza
-router.get('/tipoviObaveza', authJwt.verifyTokenUser, (req, res) => {
-  const sql = "SELECT id_tipa_obaveze AS value, naziv_tipa_obaveze AS label FROM tip_obaveze";
+router.get("/tipoviObaveza", authJwt.verifyTokenUser, (req, res) => {
+  const sql =
+    "SELECT id_tipa_obaveze AS value, naziv_tipa_obaveze AS label FROM tip_obaveze";
   db.query(sql, (err, results) => {
     if (res.headersSent) return;
     if (err) {
